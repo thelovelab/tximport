@@ -10,10 +10,6 @@ readLengths <- function(files,
                         ...) {
   dataList <- list()
   level <- match.arg(level, c("tx","gene"))
-  # a weighted average of transcript length, weighting by transcript abundance
-  avgTxLength <- function(x) {
-    sum(x[[lengthCol]] * x[[abundanceCol]])/sum(x[[abundanceCol]])
-  }
   for (i in seq_along(files)) {
     cat(i,"")
     raw <- as.data.frame(importer(files[i], ...))
@@ -28,8 +24,11 @@ readLengths <- function(files,
         raw[[geneIdCol]] <- gene2tx$GENEID[match(raw[[txIdCol]], gene2tx$TXNAME)]
       }
       raw[[geneIdCol]] <- factor(raw[[geneIdCol]], unique(raw[[geneIdCol]]))
-      res <- do.call(c, as.list(by(raw, raw[[geneIdCol]], avgTxLength, simplify=FALSE)))
-      dataList[[i]] <- res
+      # a weighted average of transcript length, weighting by transcript abundance
+      # this is decently fast using tapply
+      abundancePerGene <- tapply(raw[[abundanceCol]], raw[[geneIdCol]], sum)
+      weightedLength <- tapply(raw[[abundanceCol]] * raw[[lengthCol]], raw[[geneIdCol]], sum)
+      dataList[[i]] <- weightedLength / abundancePerGene
     } else if (level == "gene") {
       stopifnot(all(c(geneIdCol, lengthCol) %in% names(raw)))
       dataList[[i]] <- raw[[lengthCol]]
