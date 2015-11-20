@@ -1,6 +1,6 @@
 # todo
 
-* faster import and summarization
+* faster import and summarization: first matrices, then use `by`
 * preset 'types' for different software
-* deal with abundance of 0, taking average overall or average within sample
+* deal with abundance of 0, taking average over samples
 
