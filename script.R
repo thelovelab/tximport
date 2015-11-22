@@ -10,4 +10,4 @@ gene2tx <- read.csv(file.path(dir, "gene2tx.csv"))
 
 # these need gene IDs
 # first make a table with columns: geneID, txID
-lens <- readLengths(files, level="tx", gene2tx=gene2tx)
+lens <- tximport(files, level="tx", gene2tx=gene2tx)
