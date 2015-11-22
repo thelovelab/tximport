@@ -1,6 +1,5 @@
 # todo
 
-* faster import and summarization: first matrices, then use `by`
 * preset 'types' for different software
-* deal with abundance of 0, taking average over samples
-
+* deal with length `NaN` from abundances of 0, by taking average over samples
+* how to pass off to DESeq2, edgeR, limma+voom
