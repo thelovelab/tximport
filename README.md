@@ -1,5 +1,6 @@
 # todo
 
+* instead of lists, just preallocate matrices
 * deal with length `NaN` from abundances of 0:
   take average of length of other samples, more data driven than
   taking simple average over isoforms
