@@ -55,7 +55,7 @@ tximport <- function(files,
     
     # need to associate tx to genes, and remove unassociated rows
     if (!is.null(gene2tx)) {
-      cat("\ntx missing genes:",sum(!txId %in% gene2tx$TXNAME))
+      cat("\ntranscripts missing genes:",sum(!txId %in% gene2tx$TXNAME))
       sub.idx <- txId %in% gene2tx$TXNAME
       abundanceMatTx <- abundanceMatTx[sub.idx,]
       countsMatTx <- countsMatTx[sub.idx,]
