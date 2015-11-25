@@ -1,3 +1,8 @@
+fastby <- function(m, f, fun) {
+  idx <- split(1:nrow(m), f)
+  t(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
+}
+
 tximport <- function(files,
                         level=c("tx","gene"),
                         geneIdCol="gene_id",
@@ -60,11 +65,11 @@ tximport <- function(files,
     }
     
     cat("\nsummarizing abundance")
-    abundanceMat <- do.call(rbind, by(abundanceMatTx, geneId, colSums))
+    abundanceMat <- fastby(abundanceMatTx, geneId, colSums)
     cat("\nsummarizing counts")
-    countsMat <- do.call(rbind, by(countsMatTx, geneId, colSums))
+    countsMat <- fastby(countsMatTx, geneId, colSums)
     cat("\nsummarizing length\n")
-    weightedLength <- do.call(rbind, by(abundanceMatTx * lengthMatTx, geneId, colSums))
+    weightedLength <- fastby(abundanceMatTx * lengthMatTx, geneId, colSums)
     # a weighted average of transcript length, weighting by transcript abundance
     lengthMat <- weightedLength / abundanceMat   
  
