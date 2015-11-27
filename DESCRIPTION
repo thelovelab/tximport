@@ -1,0 +1,7 @@
+Package: tximport
+Version: 0.1
+Title: Import transcript abundances and average transcript length offsets for gene-level analysis
+Description: Import transcript abundances and average transcript length offsets for gene-level analysis
+Author: Michael Love, Charlotte Soneson, Mark Robinson
+Maintainer: Michael Love <michaelisaiahlove@gmail.com>
+License: GPL (>=2)
