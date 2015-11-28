@@ -1,11 +1,6 @@
-# this is much faster than by(), a bit slower than dplyr summarize_each()
-fastby <- function(m, f, fun) {
-  idx <- split(1:nrow(m), f)
-  t(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
-}
-
 tximport <- function(files,
-                     level=c("tx","gene"),
+                     inLevel=c("tx","gene"),
+                     outLevel=c("tx","gene"),
                      geneIdCol="gene_id",
                      txIdCol="target_id",
                      lengthCol="eff_length",
@@ -15,11 +10,11 @@ tximport <- function(files,
                      importer=function(x) read.table(x,header=TRUE),
                      ...) {
 
-  # this is the level of the input files
-  level <- match.arg(level, c("tx","gene"))
+  inLevel <- match.arg(level, c("tx","gene"))
+  outLevel <- match.arg(level, c("tx","gene"))  
   
   # if input is tx-level, need to summarize to gene-level
-  if (level == "tx") {
+  if (inLevel == "tx") {
     cat("reading in files: ")
     for (i in seq_along(files)) {
       cat(i,"")
@@ -97,7 +92,7 @@ tximport <- function(files,
     
   # e.g. RSEM already has gene-level summaries
   # just combine the gene-level summaries across files
-  } else if (level == "gene") {
+  } else if (inLevel == "gene") {
     cat("reading in files: ")
     for (i in seq_along(files)) {
       cat(i,"")
@@ -118,3 +113,8 @@ tximport <- function(files,
   return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat))
 }
 
+# this is much faster than by(), a bit slower than dplyr summarize_each()
+fastby <- function(m, f, fun) {
+  idx <- split(1:nrow(m), f)
+  t(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
+}
