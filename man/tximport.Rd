@@ -5,7 +5,7 @@
 \title{Import transcript-level abundances and estimated counts for gene-level analysis packages}
 \usage{
 tximport(files, type = c("kallisto", "salmon", "rsem", "cufflinks"),
-  inTx = TRUE, outTx = FALSE, countsFromAbundance = FALSE,
+  txIn = TRUE, txOut = FALSE, countsFromAbundance = FALSE,
   geneIdCol = "gene_id", txIdCol = "target_id", abundanceCol = "tpm",
   countsCol = "est_counts", lengthCol = "eff_length", gene2tx = NULL,
   importer = function(x) read.table(x, header = TRUE), collatedFiles, ...)
@@ -16,9 +16,9 @@ tximport(files, type = c("kallisto", "salmon", "rsem", "cufflinks"),
 \item{type}{the type of software used to generate the abundances,
 which will be used to autofill the arguments below}
 
-\item{inTx}{logical, whether the incoming files are transcript level (default TRUE)}
+\item{txIn}{logical, whether the incoming files are transcript level (default TRUE)}
 
-\item{outTx}{logical, whether the function should just output  transcript-level (default FALSE)}
+\item{txOut}{logical, whether the function should just output transcript-level (default FALSE)}
 
 \item{countsFromAbundance}{logical, whether to generate estimated counts using
 abundance estimates and the average of average transcript length over samples (default FALSE).

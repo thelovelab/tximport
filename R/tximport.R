@@ -3,8 +3,8 @@
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type the type of software used to generate the abundances, 
 #' which will be used to autofill the arguments below
-#' @param inTx logical, whether the incoming files are transcript level (default TRUE)
-#' @param outTx logical, whether the function should just output  transcript-level (default FALSE)
+#' @param txIn logical, whether the incoming files are transcript level (default TRUE)
+#' @param txOut logical, whether the function should just output transcript-level (default FALSE)
 #' @param countsFromAbundance logical, whether to generate estimated counts using 
 #' abundance estimates and the average of average transcript length over samples (default FALSE). 
 #' If this argument is used, then the counts are no longer correlated with average transcript length,
@@ -29,8 +29,8 @@
 #' @export
 tximport <- function(files,
                      type=c("kallisto","salmon","rsem","cufflinks"),
-                     inTx=TRUE,
-                     outTx=FALSE,
+                     txIn=TRUE,
+                     txOut=FALSE,
                      countsFromAbundance=FALSE,
                      geneIdCol="gene_id",
                      txIdCol="target_id",
@@ -46,7 +46,7 @@ tximport <- function(files,
   type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
   
   # if input is tx-level, need to summarize to gene-level
-  if (inTx) {
+  if (txIn) {
     message("reading in files")
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
