@@ -11,5 +11,7 @@ file.exists(files)
 # if not, first make a data.frame with two columns: gene ID, transcript ID
 gene2tx <- read.csv(file.path(dir, "gene2tx.csv"))
 
-txi <- tximport(files, level="tx", gene2tx=gene2tx)
+library(devtools)
+load_all()
+txi <- tximport(files, gene2tx=gene2tx)
 

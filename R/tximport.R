@@ -45,9 +45,9 @@ tximport <- function(files,
   
   # if input is tx-level, need to summarize to gene-level
   if (inTx) {
-    cat("reading in files: ")
+    message("reading in files")
     for (i in seq_along(files)) {
-      cat(i,"")
+      message(i," ",appendLF=FALSE)
       raw <- as.data.frame(importer(files[i], ...))
       # does the table contain gene association or was an external gene2tx table provided?
       if (is.null(gene2tx)) {
@@ -78,9 +78,10 @@ tximport <- function(files,
       countsMatTx[,i] <- raw[[countsCol]]
       lengthMatTx[,i] <- raw[[lengthCol]]
     }
+    message("")
     # need to associate tx to genes, and remove unassociated rows and warn user
     if (!is.null(gene2tx)) {
-      cat("\ntranscripts missing genes:",sum(!txId %in% gene2tx$TXNAME))
+      message("transcripts missing genes: ",sum(!txId %in% gene2tx$TXNAME))
       sub.idx <- txId %in% gene2tx$TXNAME
       abundanceMatTx <- abundanceMatTx[sub.idx,]
       countsMatTx <- countsMatTx[sub.idx,]
@@ -89,11 +90,11 @@ tximport <- function(files,
       geneId <- gene2tx$GENEID[match(txId, gene2tx$TXNAME)]
     }
     # summarize abundance and counts
-    cat("\nsummarizing abundance")
+    message("summarizing abundance")
     abundanceMat <- fastby(abundanceMatTx, geneId, colSums)
-    cat("\nsummarizing counts")
+    message("summarizing counts")
     countsMat <- fastby(countsMatTx, geneId, colSums)
-    cat("\nsummarizing length\n")
+    message("summarizing length")
     
     # the next two lines, calculate a weighted average of transcript length, 
     # weighting by transcript abundance.
@@ -123,9 +124,9 @@ tximport <- function(files,
   # e.g. RSEM already has gene-level summaries
   # just combine the gene-level summaries across files
   } else {
-    cat("reading in files: ")
+    message("reading in files")
     for (i in seq_along(files)) {
-      cat(i,"")
+      message(i)
       raw <- as.data.frame(importer(files[i], ...))
       stopifnot(all(c(geneIdCol, abundanceCol, lengthCol) %in% names(raw)))
       if (i == 1) {
@@ -139,7 +140,6 @@ tximport <- function(files,
       lengthMatTx[,i] <- raw[[lengthCol]]
     }
   } 
-  cat("\n")
   return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat))
 }
 
