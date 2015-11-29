@@ -1,20 +1,50 @@
+#' Import transcript-level abundances and estimated counts for gene-level analysis packages
+#' 
+#' @param files a character vector of filenames for the transcript-level abundances
+#' @param type the type of software used to generate the abundances, 
+#' which will be used to autofill the arguments below
+#' @param inTx logical, whether the incoming files are transcript level (default TRUE)
+#' @param outTx logical, whether the function should just output  transcript-level (default FALSE)
+#' @param countsFromAbundance logical, whether to generate estimated counts using 
+#' abundance estimates and gene length
+#' @param geneIdCol name of column with gene id. if missing, the gene2tx argument can be used
+#' @param txIdCol name of column with tx id
+#' @param abundanceCol name of column with abundances (e.g. TPM or FPKM)
+#' @param countsCol name of column with estimated counts
+#' @param lengthCol name of column with feature length information
+#' @param gene2tx a two-column data.frame linking gene id and transcript id. 
+#' this is needed for software which does not provide such information in the file
+#' (kallisto and Salmon)
+#' @param importer a function used to read in the files
+#' @param collatedFiles a character vector of filenames for software which provides
+#' abundances and counts in matrix form (e.g. Cufflinks). The files should be, in order,
+#' abundances, counts, and a third file with length information
+#' 
+#' @return a simple list with matrices: abundances, counts, length. 
+#' The length matrix contains the average transcript length for each
+#' gene which can be used as an offset for gene-level analysis.
+#' 
+#' @export
 tximport <- function(files,
-                     inLevel=c("tx","gene"),
-                     outLevel=c("tx","gene"),
+                     type=c("kallisto","salmon","rsem","cufflinks"),
+                     inTx=TRUE,
+                     outTx=FALSE,
+                     countsFromAbundance=FALSE,
                      geneIdCol="gene_id",
                      txIdCol="target_id",
-                     lengthCol="eff_length",
                      abundanceCol="tpm",
                      countsCol="est_counts",
+                     lengthCol="eff_length",
                      gene2tx=NULL,
                      importer=function(x) read.table(x,header=TRUE),
+                     collatedFiles,
                      ...) {
 
-  inLevel <- match.arg(level, c("tx","gene"))
-  outLevel <- match.arg(level, c("tx","gene"))  
+  # todo
+  type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
   
   # if input is tx-level, need to summarize to gene-level
-  if (inLevel == "tx") {
+  if (inTx) {
     cat("reading in files: ")
     for (i in seq_along(files)) {
       cat(i,"")
@@ -92,7 +122,7 @@ tximport <- function(files,
     
   # e.g. RSEM already has gene-level summaries
   # just combine the gene-level summaries across files
-  } else if (inLevel == "gene") {
+  } else {
     cat("reading in files: ")
     for (i in seq_along(files)) {
       cat(i,"")
