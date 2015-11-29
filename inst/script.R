@@ -14,4 +14,6 @@ gene2tx <- read.csv(file.path(dir, "gene2tx.csv"))
 library(devtools)
 load_all()
 txi <- tximport(files, gene2tx=gene2tx)
-
+head(txi$counts)
+txi <- tximport(files, gene2tx=gene2tx, countsFromAbundance=TRUE)
+head(txi$counts)

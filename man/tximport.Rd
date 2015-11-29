@@ -21,7 +21,9 @@ which will be used to autofill the arguments below}
 \item{outTx}{logical, whether the function should just output  transcript-level (default FALSE)}
 
 \item{countsFromAbundance}{logical, whether to generate estimated counts using
-abundance estimates and gene length}
+abundance estimates and the average of average transcript length over samples (default FALSE).
+If this argument is used, then the counts are no longer correlated with average transcript length,
+and so the length offset matrix should not be used.}
 
 \item{geneIdCol}{name of column with gene id. if missing, the gene2tx argument can be used}
 

@@ -6,7 +6,9 @@
 #' @param inTx logical, whether the incoming files are transcript level (default TRUE)
 #' @param outTx logical, whether the function should just output  transcript-level (default FALSE)
 #' @param countsFromAbundance logical, whether to generate estimated counts using 
-#' abundance estimates and gene length
+#' abundance estimates and the average of average transcript length over samples (default FALSE). 
+#' If this argument is used, then the counts are no longer correlated with average transcript length,
+#' and so the length offset matrix should not be used.
 #' @param geneIdCol name of column with gene id. if missing, the gene2tx argument can be used
 #' @param txIdCol name of column with tx id
 #' @param abundanceCol name of column with abundances (e.g. TPM or FPKM)
@@ -117,6 +119,14 @@ tximport <- function(files,
           lengthMat[i,idx] <-  exp(mean(log(lengthMat[i,!idx]), na.rm=TRUE))
         }
       }
+    }
+    
+    if (countsFromAbundance) {
+      countsSum <- colSums(countsMat)
+      newCounts0 <- abundanceMat * rowMeans(lengthMat)
+      newSum <- colSums(newCounts0, na.rm=TRUE)
+      newCounts <- t(t(newCounts0) * (countsSum/newSum))
+      countsMat <- newCounts
     }
     
     return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat))
