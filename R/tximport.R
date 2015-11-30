@@ -147,7 +147,14 @@ tximport <- function(files,
     # for the differential analysis of estimated counts summarized at the gene level.
     weightedLength <- fastby(abundanceMatTx * lengthMatTx, geneId, colSums)
     lengthMat <- weightedLength / abundanceMat   
-     
+
+    # pre-calculate a simple average transcript length
+    # in case the abundances are all zero for all samples.
+    # first, average length over samples for each tx
+    aveLengthSamp <- rowMeans(lengthMatTx)
+    # then simple average of lengths within genes (not weighted by abundance)
+    aveLengthSampGene <- tapply(aveLengthSamp, geneId, mean)
+    
     # check for NaN and if possible replace these values with geometric mean of other samples.
     # (the geometic mean here implies an offset of 0 on the log scale)
     # NaN come from samples which have abundance of 0 for all isoforms of a gene, and 
@@ -164,6 +171,9 @@ tximport <- function(files,
         }
       }
     }
+
+        
+    browser()
     
     if (countsFromAbundance) {
       countsSum <- colSums(countsMat)
