@@ -5,9 +5,8 @@
 \title{Import transcript-level abundances and estimated counts for gene-level analysis packages}
 \usage{
 tximport(files, type = c("kallisto", "salmon", "rsem", "cufflinks"),
-  txIn = TRUE, txOut = FALSE, countsFromAbundance = FALSE,
-  geneIdCol = "gene_id", txIdCol = "target_id", abundanceCol = "tpm",
-  countsCol = "est_counts", lengthCol = "eff_length", gene2tx = NULL,
+  txIn = TRUE, txOut = FALSE, countsFromAbundance = FALSE, geneIdCol,
+  txIdCol, abundanceCol, countsCol, lengthCol, gene2tx = NULL,
   importer = function(x) read.table(x, header = TRUE), collatedFiles, ...)
 }
 \arguments{

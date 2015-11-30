@@ -32,25 +32,59 @@ tximport <- function(files,
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=FALSE,
-                     geneIdCol="gene_id",
-                     txIdCol="target_id",
-                     abundanceCol="tpm",
-                     countsCol="est_counts",
-                     lengthCol="eff_length",
+                     geneIdCol,
+                     txIdCol,
+                     abundanceCol,
+                     countsCol,
+                     lengthCol,
                      gene2tx=NULL,
                      importer=function(x) read.table(x,header=TRUE),
                      collatedFiles,
                      ...) {
 
-  # todo
   type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
   
-  # if input is tx-level, need to summarize to gene-level
+  # kallisto presets
+  if (type == "kallisto") {
+    geneIdCol="gene_id"
+    txIdCol <- "target_id"
+    abundanceCol <- "tpm"
+    countsCol <- "est_counts"
+    lengthCol <- "eff_length"
+    }
+  
+  # salmon presets
+  if (type == "salmon") {
+    geneIdCol="gene_id"
+    txIdCol <- "Name"
+    abundanceCol <- "TPM"
+    countsCol <- "NumReads"
+    lengthCol <- "Length"
+    # because the comment lines have the same comment character as the header...
+    # need to name the column names
+    importer <- function(x) {
+      tmp <- read.table(x,comment.char="#")
+      names(tmp) <- c("Name","Length","TPM","NumReads")
+      tmp
+    }
+  }
+  
+  # rsem presets
+  if (type == "rsem") {
+    txIn <- FALSE
+    geneIdCol <- "gene_id"
+    abundanceCol <- "FPKM"
+    countsCol <- "expected_count"
+    lengthCol <- "effective_length"
+  }
+  
+  # if input is tx-level, need to summarize abundances, counts and lengths to gene-level
   if (txIn) {
     message("reading in files")
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
       raw <- as.data.frame(importer(files[i], ...))
+      
       # does the table contain gene association or was an external gene2tx table provided?
       if (is.null(gene2tx)) {
         # e.g. Cufflinks includes the gene ID in the table
@@ -81,9 +115,17 @@ tximport <- function(files,
       lengthMatTx[,i] <- raw[[lengthCol]]
     }
     message("")
-    # need to associate tx to genes, and remove unassociated rows and warn user
+    
+    # if the user requested just the transcript-level data:
+    if (txOut) {
+      return(list(abundance=abundanceMatTx, counts=countsMatTx, length=lengthMatTx))
+    }
+    
+    # need to associate tx to genes
+    # potentially remove unassociated transcript rows and warn user
     if (!is.null(gene2tx)) {
-      message("transcripts missing genes: ",sum(!txId %in% gene2tx$TXNAME))
+      ntxmissing <- sum(!txId %in% gene2tx$TXNAME)
+      if (ntxmissing > 0) message("transcripts missing genes: ", ntxmissing)
       sub.idx <- txId %in% gene2tx$TXNAME
       abundanceMatTx <- abundanceMatTx[sub.idx,]
       countsMatTx <- countsMatTx[sub.idx,]
@@ -91,6 +133,7 @@ tximport <- function(files,
       txId <- txId[sub.idx]
       geneId <- gene2tx$GENEID[match(txId, gene2tx$TXNAME)]
     }
+    
     # summarize abundance and counts
     message("summarizing abundance")
     abundanceMat <- fastby(abundanceMatTx, geneId, colSums)
@@ -98,14 +141,15 @@ tximport <- function(files,
     countsMat <- fastby(countsMatTx, geneId, colSums)
     message("summarizing length")
     
-    # the next two lines, calculate a weighted average of transcript length, 
+    # the next lines calculate a weighted average of transcript length, 
     # weighting by transcript abundance.
     # this can be used as an offset / normalization factor which removes length bias
-    # for the differential analysis of estimated counts summarized at the gene level
+    # for the differential analysis of estimated counts summarized at the gene level.
     weightedLength <- fastby(abundanceMatTx * lengthMatTx, geneId, colSums)
     lengthMat <- weightedLength / abundanceMat   
- 
+     
     # check for NaN and if possible replace these values with geometric mean of other samples.
+    # (the geometic mean here implies an offset of 0 on the log scale)
     # NaN come from samples which have abundance of 0 for all isoforms of a gene, and 
     # so we cannot calculate the weighted average. our best guess is to use the average
     # transcript length from the other samples.
@@ -113,7 +157,7 @@ tximport <- function(files,
     if (length(nanRows) > 0) {
       for (i in nanRows) {
         if (all(is.nan(lengthMat[i,]))) {
-          lengthMat[i,] <- NA
+          lengthMat[i,] <- NA # TODO just use simple average here
         } else {
           idx <- is.nan(lengthMat[i,])
           lengthMat[i,idx] <-  exp(mean(log(lengthMat[i,!idx]), na.rm=TRUE))
@@ -134,22 +178,27 @@ tximport <- function(files,
   # e.g. RSEM already has gene-level summaries
   # just combine the gene-level summaries across files
   } else {
+    # stating the obvious:
+    if (txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
+  
     message("reading in files")
     for (i in seq_along(files)) {
-      message(i)
+      message(i," ",appendLF=FALSE)
       raw <- as.data.frame(importer(files[i], ...))
       stopifnot(all(c(geneIdCol, abundanceCol, lengthCol) %in% names(raw)))
       if (i == 1) {
         mat <- matrix(nrow=nrow(raw),ncol=length(files))
-        abundanceMatTx <- mat
-        countsMatTx <- mat
-        lengthMatTx <- mat
+        rownames(mat) <- raw[[geneIdCol]]
+        abundanceMat <- mat
+        countsMat <- mat
+        lengthMat <- mat
       }
-      abundanceMatTx[,i] <- raw[[abundanceCol]]
-      countsMatTx[,i] <- raw[[countsCol]]
-      lengthMatTx[,i] <- raw[[lengthCol]]
+      abundanceMat[,i] <- raw[[abundanceCol]]
+      countsMat[,i] <- raw[[countsCol]]
+      lengthMat[,i] <- raw[[lengthCol]]
     }
   } 
+  message("")
   return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat))
 }
 

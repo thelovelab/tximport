@@ -1,6 +1,4 @@
 # todo
 
-* option to return transcript-level counts, abundances, lengths
-* preset 'types' for different software
-* work out collatedFiles logic
-* when 0 abundances for all samples, use simple average transcript length?
+* use simple average when all abundances across all samples are 0
+* work out collatedFiles logic for Cufflinks
