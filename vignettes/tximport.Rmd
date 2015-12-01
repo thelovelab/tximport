@@ -32,6 +32,7 @@ This can be accomplished from a *TxDb* object and the `select` function.
 
 ```{r}
 gene2tx <- read.csv(file.path(dir, "gene2tx.csv"))
+head(gene2tx)
 ```
 
 The *tximport* package has a single function for importing transcript-level estimates.

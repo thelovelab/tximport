@@ -43,6 +43,17 @@ This can be accomplished from a *TxDb* object and the `select` function.
 
 ```r
 gene2tx <- read.csv(file.path(dir, "gene2tx.csv"))
+head(gene2tx)
+```
+
+```
+##     GENEID       TXNAME
+## 1     A1BG    NM_130786
+## 2 A1BG-AS1    NR_015380
+## 3     A1CF NM_001198818
+## 4     A1CF NM_001198819
+## 5     A1CF NM_001198820
+## 6     A1CF    NM_014576
 ```
 
 The *tximport* package has a single function for importing transcript-level estimates.
