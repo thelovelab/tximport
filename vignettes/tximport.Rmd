@@ -5,6 +5,11 @@
 
 # tximport: import and summarize transcript-level estimates for gene-level analysis
 
+```{r, echo=FALSE, results="hide"}
+library(knitr)
+opts_chunk$set(cache=TRUE)
+```
+
 ## kallisto
 
 First, read in some kallisto example files:
@@ -81,3 +86,9 @@ head(txi.rsem$counts)
 ## Import with edgeR, DESeq2, limma+voom
 
 TODO
+
+## Session info
+
+```{r}
+sessionInfo()
+```
