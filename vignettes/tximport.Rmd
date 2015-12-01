@@ -39,6 +39,7 @@ gene-level differential analysis of count matrices.
 ```{r}
 library(tximport)
 txi <- tximport(files, type="kallisto", gene2tx=gene2tx)
+names(txi)
 head(txi$counts)
 ```
 
