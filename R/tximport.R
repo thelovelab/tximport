@@ -22,7 +22,7 @@
 #' abundances and counts in matrix form (e.g. Cufflinks). The files should be, in order,
 #' abundances, counts, and a third file with length information
 #' 
-#' @return a simple list with matrices: abundances, counts, length. 
+#' @return a simple list with matrices: abundance, counts, length. 
 #' The length matrix contains the average transcript length for each
 #' gene which can be used as an offset for gene-level analysis.
 #' 
