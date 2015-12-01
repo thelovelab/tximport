@@ -10,3 +10,5 @@ Description: Imports transcript-level abundance, estimated counts and
 Author: Michael Love, Charlotte Soneson, Mark Robinson
 Maintainer: Michael Love <michaelisaiahlove@gmail.com>
 License: GPL (>=2)
+VignetteBuilder: knitr
+Suggests: knitr, tximportData
