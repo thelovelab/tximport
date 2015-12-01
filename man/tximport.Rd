@@ -5,15 +5,15 @@
 \title{Import transcript-level abundances and estimated counts for gene-level analysis packages}
 \usage{
 tximport(files, type = c("kallisto", "salmon", "rsem", "cufflinks"),
-  txIn = TRUE, txOut = FALSE, countsFromAbundance = FALSE, geneIdCol,
-  txIdCol, abundanceCol, countsCol, lengthCol, gene2tx = NULL,
+  txIn = TRUE, txOut = FALSE, countsFromAbundance = FALSE,
+  gene2tx = NULL, geneIdCol, txIdCol, abundanceCol, countsCol, lengthCol,
   importer = function(x) read.table(x, header = TRUE), collatedFiles, ...)
 }
 \arguments{
 \item{files}{a character vector of filenames for the transcript-level abundances}
 
 \item{type}{the type of software used to generate the abundances,
-which will be used to autofill the arguments below}
+which will be used to autofill the arguments below (geneIdCol, etc.)}
 
 \item{txIn}{logical, whether the incoming files are transcript level (default TRUE)}
 
@@ -24,6 +24,10 @@ abundance estimates and the average of average transcript length over samples (d
 If this argument is used, then the counts are no longer correlated with average transcript length,
 and so the length offset matrix should not be used.}
 
+\item{gene2tx}{a two-column data.frame linking gene id and transcript id.
+this is necessary for software which does not provide such information in the file
+(kallisto and Salmon)}
+
 \item{geneIdCol}{name of column with gene id. if missing, the gene2tx argument can be used}
 
 \item{txIdCol}{name of column with tx id}
@@ -33,10 +37,6 @@ and so the length offset matrix should not be used.}
 \item{countsCol}{name of column with estimated counts}
 
 \item{lengthCol}{name of column with feature length information}
-
-\item{gene2tx}{a two-column data.frame linking gene id and transcript id.
-this is needed for software which does not provide such information in the file
-(kallisto and Salmon)}
 
 \item{importer}{a function used to read in the files}
 

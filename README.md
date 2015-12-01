@@ -1,4 +1,4 @@
 # todo
 
-* use simple average when all abundances across all samples are 0
+* vignette with examples of import for edgeR, DESeq2, limma+voom, etc.
 * work out collatedFiles logic for Cufflinks

@@ -1,7 +1,12 @@
 Package: tximport
 Version: 0.0.1
-Title: Import transcript abundances and average transcript length offsets for gene-level analysis
-Description: Import transcript abundances and average transcript length offsets for gene-level analysis
+Title: Import and summarize transcript-level estimates for gene-level analysis
+Description: Imports transcript-level abundance, estimated counts and 
+ transcript lengths, and summarizes into matrices for use with downstream
+ gene-level analysis packages. Average transcript length, weighted by 
+ sample-specific transcript abundance estimates, is provided as a matrix
+ which can be used as an offset for different expression of 
+ gene-level counts.
 Author: Michael Love, Charlotte Soneson, Mark Robinson
 Maintainer: Michael Love <michaelisaiahlove@gmail.com>
 License: GPL (>=2)

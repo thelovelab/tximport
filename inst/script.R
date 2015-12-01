@@ -1,9 +1,9 @@
 # read in some kallisto example files
 library(tximportData)
-dir <- system.file("extdata",package="tximportData")
+dir <- system.file("extdata", package="tximportData")
 list.files(dir)
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
-files <- file.path(dir,"kallisto",samples$run,"abundance.tsv")
+files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
 file.exists(files)
 
 # transcripts need to be associated with gene IDs
@@ -20,21 +20,27 @@ head(txi$counts)
 # generate counts from abundances and average transcript length over samples
 # this way the counts are not correlated with length, and so the length matrix
 # does not need to be provided as offset
-txi2 <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance=TRUE)
-head(txi2$counts)
+txi.cfa <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance=TRUE)
+head(txi.cfa$counts)
+
+txi.txout <- tximport(files, type="kallisto", txOut=TRUE)
+head(txi.txout$counts)
 
 #######################
 # salmon
-files <- file.path(dir,"salmon",samples$run,"quant.sf")
+files <- file.path(dir,"salmon", samples$run, "quant.sf")
 file.exists(files)
 
-txi3 <- tximport(files, type="salmon", gene2tx=gene2tx)
-head(txi3$counts)
+txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx)
+head(txi.salmon$counts)
 
 #######################
 # RSEM
-files <- file.path(dir,"rsem",samples$run,paste0(samples$run,".genes.results"))
+files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results"))
 file.exists(files)
 
-txi4 <- tximport(files, type="rsem")
-head(txi4$counts)
+txi.rsem <- tximport(files, type="rsem")
+head(txi.rsem$counts)
+
+#######################
+# Cufflinks: not yet implemented

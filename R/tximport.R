@@ -2,21 +2,21 @@
 #' 
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type the type of software used to generate the abundances, 
-#' which will be used to autofill the arguments below
+#' which will be used to autofill the arguments below (geneIdCol, etc.)
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
 #' @param txOut logical, whether the function should just output transcript-level (default FALSE)
 #' @param countsFromAbundance logical, whether to generate estimated counts using 
 #' abundance estimates and the average of average transcript length over samples (default FALSE). 
 #' If this argument is used, then the counts are no longer correlated with average transcript length,
 #' and so the length offset matrix should not be used.
+#' @param gene2tx a two-column data.frame linking gene id and transcript id. 
+#' this is necessary for software which does not provide such information in the file
+#' (kallisto and Salmon)
 #' @param geneIdCol name of column with gene id. if missing, the gene2tx argument can be used
 #' @param txIdCol name of column with tx id
 #' @param abundanceCol name of column with abundances (e.g. TPM or FPKM)
 #' @param countsCol name of column with estimated counts
 #' @param lengthCol name of column with feature length information
-#' @param gene2tx a two-column data.frame linking gene id and transcript id. 
-#' this is needed for software which does not provide such information in the file
-#' (kallisto and Salmon)
 #' @param importer a function used to read in the files
 #' @param collatedFiles a character vector of filenames for software which provides
 #' abundances and counts in matrix form (e.g. Cufflinks). The files should be, in order,
@@ -32,12 +32,12 @@ tximport <- function(files,
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=FALSE,
+                     gene2tx=NULL,
                      geneIdCol,
                      txIdCol,
                      abundanceCol,
                      countsCol,
                      lengthCol,
-                     gene2tx=NULL,
                      importer=function(x) read.table(x,header=TRUE),
                      collatedFiles,
                      ...) {
@@ -78,6 +78,10 @@ tximport <- function(files,
     lengthCol <- "effective_length"
   }
   
+  if (type == "cufflinks") {
+    stop("reading from collated files not yet implemented")
+  }
+  
   # if input is tx-level, need to summarize abundances, counts and lengths to gene-level
   if (txIn) {
     message("reading in files")
@@ -86,7 +90,7 @@ tximport <- function(files,
       raw <- as.data.frame(importer(files[i], ...))
       
       # does the table contain gene association or was an external gene2tx table provided?
-      if (is.null(gene2tx)) {
+      if (is.null(gene2tx) & !txOut) {
         # e.g. Cufflinks includes the gene ID in the table
         stopifnot(all(c(geneIdCol, lengthCol, abundanceCol) %in% names(raw)))
         if (i == 1) {
@@ -106,6 +110,7 @@ tximport <- function(files,
       # create empty matrices
       if (i == 1) {
         mat <- matrix(nrow=nrow(raw),ncol=length(files))
+        rownames(mat) <- raw[[txIdCol]]
         abundanceMatTx <- mat
         countsMatTx <- mat
         lengthMatTx <- mat
@@ -149,11 +154,12 @@ tximport <- function(files,
     lengthMat <- weightedLength / abundanceMat   
 
     # pre-calculate a simple average transcript length
-    # in case the abundances are all zero for all samples.
-    # first, average length over samples for each tx
+    # for the case the abundances are all zero for all samples.
+    # first, average the tx lengths over samples
     aveLengthSamp <- rowMeans(lengthMatTx)
     # then simple average of lengths within genes (not weighted by abundance)
     aveLengthSampGene <- tapply(aveLengthSamp, geneId, mean)
+    stopifnot(all(names(aveLengthSampGene) == rownames(lengthMat)))
     
     # check for NaN and if possible replace these values with geometric mean of other samples.
     # (the geometic mean here implies an offset of 0 on the log scale)
@@ -164,16 +170,15 @@ tximport <- function(files,
     if (length(nanRows) > 0) {
       for (i in nanRows) {
         if (all(is.nan(lengthMat[i,]))) {
-          lengthMat[i,] <- NA # TODO just use simple average here
+          # if all samples have 0 abundances for all tx, use the simple average
+          lengthMat[i,] <- aveLengthSampGene[i]
         } else {
+          # otherwise use the geometric mean of the lengths from the other samples
           idx <- is.nan(lengthMat[i,])
           lengthMat[i,idx] <-  exp(mean(log(lengthMat[i,!idx]), na.rm=TRUE))
         }
       }
     }
-
-        
-    browser()
     
     if (countsFromAbundance) {
       countsSum <- colSums(countsMat)
