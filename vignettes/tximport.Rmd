@@ -21,18 +21,22 @@ list.files(dir)
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
 file.exists(files)
+names(files) <- paste0("sample",1:6)
 ```
 
 Transcripts need to be associated with gene IDs for summarization.
 If that information is present in the files, we can skip this step.
 But for kallisto and Salmon, the files just provide the transcript ID.
-So we first make a `data.frame` with two columns: gene ID, transcript ID.
+So we first make a `data.frame` with two columns: gene ID (column 1)
+and transcript ID (column 2).
+The column names are not relevant but this column order must be used.
 This can be accomplished from a *TxDb* object and the `select` function. 
 (TODO: show example)
 
 ```{r}
 gene2tx <- read.csv(file.path(dir, "gene2tx.csv"))
 head(gene2tx)
+gene2tx <- rbind(data.frame(x="AAA",y="foo"), gene2tx)
 ```
 
 The *tximport* package has a single function for importing transcript-level estimates.
@@ -55,8 +59,10 @@ with length, and so the length matrix does not need to be provided as an offset
 for downstream analysis packages.
 
 ```{r}
-txi.cfa <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance=TRUE)
+txi.cfa <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance="scaledTPM")
+txi.cfa.len <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance="lengthScaledTPM")
 head(txi.cfa$counts)
+head(txi.cfa.len$counts)
 ```
 
 We can also avoid gene-level summarization:
@@ -71,6 +77,7 @@ head(txi.txout$counts)
 ```{r}
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
 file.exists(files)
+names(files) <- paste0("sample",1:6)
 txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx)
 head(txi.salmon$counts)
 ```
@@ -80,6 +87,7 @@ head(txi.salmon$counts)
 ```{r}
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results"))
 file.exists(files)
+names(files) <- paste0("sample",1:6)
 txi.rsem <- tximport(files, type="rsem")
 head(txi.rsem$counts)
 ```
