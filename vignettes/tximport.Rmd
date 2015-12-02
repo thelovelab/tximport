@@ -36,7 +36,6 @@ This can be accomplished from a *TxDb* object and the `select` function.
 ```{r}
 gene2tx <- read.csv(file.path(dir, "gene2tx.csv"))
 head(gene2tx)
-gene2tx <- rbind(data.frame(x="AAA",y="foo"), gene2tx)
 ```
 
 The *tximport* package has a single function for importing transcript-level estimates.
@@ -53,8 +52,10 @@ names(txi)
 head(txi$counts)
 ```
 
-We can also generate counts from abundances and the average transcript length,
-averaged over samples. Using this approach, the counts are not correlated 
+We can also generate counts from abundances, scaled to library size
+(scaledTPM) or additionally scaled using the average transcript length,
+averaged over samples and to library size (lengthScaledTPM). 
+Using either of these approaches, the counts are not correlated 
 with length, and so the length matrix does not need to be provided as an offset
 for downstream analysis packages.
 
