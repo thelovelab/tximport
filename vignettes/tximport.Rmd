@@ -97,6 +97,10 @@ head(txi.rsem$counts)
 
 An example of creating a `DGEList` for use with edgeR:
 
+```{r, messages=FALSE}
+library(edgeR)
+```
+
 ```{r}
 cts <- txi$counts
 normMat <- txi$length
@@ -108,10 +112,13 @@ y$offset <- t(t(log(normMat)) + o)
 ```
 
 An example of creating a `DESeqDataSet` for use with DESeq2
-(requires version >= 1.10.5).
+(requires version >= 1.11.6).
+
+```{r, messages=FALSE}
+library(DESeq2)
+```
 
 ```{r}
-library(DESeq2)
 sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
 dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
 ```

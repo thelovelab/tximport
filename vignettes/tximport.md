@@ -291,9 +291,41 @@ head(txi.rsem$counts)
 ## A2ML1       0.84    2.89    0.00    1.00    2.00    3.11
 ```
 
-## Import with edgeR, DESeq2, limma+voom
+## Import with edgeR, DESeq2
 
-TODO
+An example of creating a `DGEList` for use with edgeR:
+
+
+```r
+library(edgeR)
+```
+
+
+```r
+cts <- txi$counts
+normMat <- txi$length
+normMat <- normMat / exp(rowMeans(log(normMat)))
+library(edgeR)
+o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
+y <- DGEList(cts)
+y$offset <- t(t(log(normMat)) + o)
+```
+
+An example of creating a `DESeqDataSet` for use with DESeq2
+(requires version >= 1.11.6).
+
+
+```r
+library(DESeq2)
+```
+
+
+```r
+sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
+dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
+```
+
+TODO: limma example
 
 ## Session info
 
@@ -303,25 +335,42 @@ sessionInfo()
 ```
 
 ```
-## R version 3.2.2 (2015-08-14)
-## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Ubuntu 15.10
+## R Under development (unstable) (2015-07-02 r68623)
+## Platform: x86_64-apple-darwin14.3.0 (64-bit)
+## Running under: OS X 10.10.5 (Yosemite)
 ## 
 ## locale:
-##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
-##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
-##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
-##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
-##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
 ## 
 ## attached base packages:
-## [1] stats     graphics  grDevices datasets  utils     methods   base     
+## [1] parallel  stats4    stats     graphics  grDevices datasets  utils    
+## [8] methods   base     
 ## 
 ## other attached packages:
-## [1] tximport_0.0.2   tximportData_0.1 knitr_1.11      
+##  [1] DESeq2_1.11.6              RcppArmadillo_0.5.600.2.0 
+##  [3] Rcpp_0.12.1                SummarizedExperiment_0.3.9
+##  [5] Biobase_2.29.1             GenomicRanges_1.21.29     
+##  [7] GenomeInfoDb_1.5.16        IRanges_2.3.22            
+##  [9] S4Vectors_0.7.18           BiocGenerics_0.15.6       
+## [11] edgeR_3.11.3               limma_3.25.16             
+## [13] tximport_0.0.3             tximportData_0.1          
+## [15] knitr_1.11                
 ## 
 ## loaded via a namespace (and not attached):
-## [1] magrittr_1.5     formatR_1.2.1    tools_3.2.2      codetools_0.2-14
-## [5] stringi_1.0-1    digest_0.6.8     stringr_1.0.0    evaluate_0.8
+##  [1] genefilter_1.51.1     locfit_1.5-9.1        reshape2_1.4.1       
+##  [4] splines_3.3.0         lattice_0.20-33       colorspace_1.2-6     
+##  [7] survival_2.38-3       XML_3.98-1.3          foreign_0.8-66       
+## [10] DBI_0.3.1             BiocParallel_1.3.52   RColorBrewer_1.1-2   
+## [13] lambda.r_1.1.7        plyr_1.8.3            stringr_1.0.0        
+## [16] zlibbioc_1.15.0       munsell_0.4.2         gtable_0.1.2         
+## [19] futile.logger_1.4.1   codetools_0.2-14      evaluate_0.8         
+## [22] latticeExtra_0.6-26   geneplotter_1.47.0    AnnotationDbi_1.31.18
+## [25] proto_0.3-10          acepack_1.3-3.3       xtable_1.7-4         
+## [28] scales_0.3.0          formatR_1.2.1         Hmisc_3.17-0         
+## [31] annotate_1.47.4       XVector_0.9.4         gridExtra_2.0.0      
+## [34] ggplot2_1.0.1         digest_0.6.8          stringi_0.5-5        
+## [37] grid_3.3.0            tools_3.3.0           magrittr_1.5         
+## [40] RSQLite_1.0.0         Formula_1.2-1         cluster_2.0.3        
+## [43] futile.options_1.0.0  MASS_7.3-44           rpart_4.1-10         
+## [46] nnet_7.3-11           compiler_3.3.0        git2r_0.11.0
 ```
