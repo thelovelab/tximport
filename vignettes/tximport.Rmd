@@ -21,12 +21,15 @@ list.files(dir)
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
 file.exists(files)
+names(files) <- paste0("sample",1:6)
 ```
 
 Transcripts need to be associated with gene IDs for summarization.
 If that information is present in the files, we can skip this step.
 But for kallisto and Salmon, the files just provide the transcript ID.
-So we first make a `data.frame` with two columns: gene ID, transcript ID.
+So we first make a `data.frame` with two columns: gene ID (column 1)
+and transcript ID (column 2).
+The column names are not relevant but this column order must be used.
 This can be accomplished from a *TxDb* object and the `select` function. 
 (TODO: show example)
 
@@ -49,14 +52,18 @@ names(txi)
 head(txi$counts)
 ```
 
-We can also generate counts from abundances and the average transcript length,
-averaged over samples. Using this approach, the counts are not correlated 
+We can also generate counts from abundances, scaled to library size
+(scaledTPM) or additionally scaled using the average transcript length,
+averaged over samples and to library size (lengthScaledTPM). 
+Using either of these approaches, the counts are not correlated 
 with length, and so the length matrix does not need to be provided as an offset
 for downstream analysis packages.
 
 ```{r}
-txi.cfa <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance=TRUE)
+txi.cfa <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance="scaledTPM")
+txi.cfa.len <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance="lengthScaledTPM")
 head(txi.cfa$counts)
+head(txi.cfa.len$counts)
 ```
 
 We can also avoid gene-level summarization:
@@ -71,6 +78,7 @@ head(txi.txout$counts)
 ```{r}
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
 file.exists(files)
+names(files) <- paste0("sample",1:6)
 txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx)
 head(txi.salmon$counts)
 ```
@@ -80,6 +88,7 @@ head(txi.salmon$counts)
 ```{r}
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results"))
 file.exists(files)
+names(files) <- paste0("sample",1:6)
 txi.rsem <- tximport(files, type="rsem")
 head(txi.rsem$counts)
 ```

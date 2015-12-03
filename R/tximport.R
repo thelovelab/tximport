@@ -1,15 +1,18 @@
 #' Import transcript-level abundances and estimated counts for gene-level analysis packages
 #' 
 #' @param files a character vector of filenames for the transcript-level abundances
-#' @param type the type of software used to generate the abundances, 
+#' @param type character, the type of software used to generate the abundances, 
 #' which will be used to autofill the arguments below (geneIdCol, etc.)
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
 #' @param txOut logical, whether the function should just output transcript-level (default FALSE)
-#' @param countsFromAbundance logical, whether to generate estimated counts using 
-#' abundance estimates and the average of average transcript length over samples (default FALSE). 
-#' If this argument is used, then the counts are no longer correlated with average transcript length,
+#' @param countsFromAbundance character, either "no" (default), "scaledTPM", or "lengthScaledTPM",
+#' for whether to generate estimated counts using abundance estimates scaled up to library size
+#' (scaledTPM) or additionally scaled using the average transcript length over samples and
+#' the library size (lengthScaledTPM). if using scaledTPM or lengthScaledTPM, 
+#' then the counts are no longer correlated with average transcript length,
 #' and so the length offset matrix should not be used.
-#' @param gene2tx a two-column data.frame linking gene id and transcript id. 
+#' @param gene2tx a two-column data.frame linking gene id (column 1) and transcript id (column 2).
+#' the column names are not relevant, but this column order must be used. 
 #' this is necessary for software which does not provide such information in the file
 #' (kallisto and Salmon)
 #' @param geneIdCol name of column with gene id. if missing, the gene2tx argument can be used
@@ -31,7 +34,7 @@ tximport <- function(files,
                      type=c("kallisto","salmon","rsem","cufflinks"),
                      txIn=TRUE,
                      txOut=FALSE,
-                     countsFromAbundance=FALSE,
+                     countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
                      gene2tx=NULL,
                      geneIdCol,
                      txIdCol,
@@ -43,6 +46,7 @@ tximport <- function(files,
                      ...) {
 
   type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
+  countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
   
   # kallisto presets
   if (type == "kallisto") {
@@ -111,6 +115,7 @@ tximport <- function(files,
       if (i == 1) {
         mat <- matrix(nrow=nrow(raw),ncol=length(files))
         rownames(mat) <- raw[[txIdCol]]
+        colnames(mat) <- names(files)
         abundanceMatTx <- mat
         countsMatTx <- mat
         lengthMatTx <- mat
@@ -129,14 +134,20 @@ tximport <- function(files,
     # need to associate tx to genes
     # potentially remove unassociated transcript rows and warn user
     if (!is.null(gene2tx)) {
-      ntxmissing <- sum(!txId %in% gene2tx$TXNAME)
+      colnames(gene2tx) <- c("gene","tx")
+      gene2tx$gene <- factor(gene2tx$gene)
+      gene2tx$tx <- factor(gene2tx$tx)
+      # remove transcripts (and genes) not in the abundances
+      gene2tx <- gene2tx[gene2tx$tx %in% txId,]
+      gene2tx$gene <- droplevels(gene2tx$gene)
+      ntxmissing <- sum(!txId %in% gene2tx$tx)
       if (ntxmissing > 0) message("transcripts missing genes: ", ntxmissing)
-      sub.idx <- txId %in% gene2tx$TXNAME
+      sub.idx <- txId %in% gene2tx$tx
       abundanceMatTx <- abundanceMatTx[sub.idx,]
       countsMatTx <- countsMatTx[sub.idx,]
       lengthMatTx <- lengthMatTx[sub.idx,]
       txId <- txId[sub.idx]
-      geneId <- gene2tx$GENEID[match(txId, gene2tx$TXNAME)]
+      geneId <- gene2tx$gene[match(txId, gene2tx$tx)]
     }
     
     # summarize abundance and counts
@@ -180,12 +191,15 @@ tximport <- function(files,
       }
     }
     
-    if (countsFromAbundance) {
+    if (countsFromAbundance != "no") {
       countsSum <- colSums(countsMat)
-      newCounts0 <- abundanceMat * rowMeans(lengthMat)
-      newSum <- colSums(newCounts0, na.rm=TRUE)
-      newCounts <- t(t(newCounts0) * (countsSum/newSum))
-      countsMat <- newCounts
+      if (countsFromAbundance == "lengthScaledTPM") {
+        newCounts <- abundanceMat * rowMeans(lengthMat)
+      } else {
+        newCounts <- abundanceMat
+      }
+      newSum <- colSums(newCounts)
+      countsMat <- t(t(newCounts) * (countsSum/newSum))
     }
     
     return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat))
@@ -204,6 +218,7 @@ tximport <- function(files,
       if (i == 1) {
         mat <- matrix(nrow=nrow(raw),ncol=length(files))
         rownames(mat) <- raw[[geneIdCol]]
+        colnames(mat) <- names(files)
         abundanceMat <- mat
         countsMat <- mat
         lengthMat <- mat

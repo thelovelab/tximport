@@ -5,26 +5,30 @@
 \title{Import transcript-level abundances and estimated counts for gene-level analysis packages}
 \usage{
 tximport(files, type = c("kallisto", "salmon", "rsem", "cufflinks"),
-  txIn = TRUE, txOut = FALSE, countsFromAbundance = FALSE,
-  gene2tx = NULL, geneIdCol, txIdCol, abundanceCol, countsCol, lengthCol,
-  importer = function(x) read.table(x, header = TRUE), collatedFiles, ...)
+  txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no", "scaledTPM",
+  "lengthScaledTPM"), gene2tx = NULL, geneIdCol, txIdCol, abundanceCol,
+  countsCol, lengthCol, importer = function(x) read.table(x, header = TRUE),
+  collatedFiles, ...)
 }
 \arguments{
 \item{files}{a character vector of filenames for the transcript-level abundances}
 
-\item{type}{the type of software used to generate the abundances,
+\item{type}{character, the type of software used to generate the abundances,
 which will be used to autofill the arguments below (geneIdCol, etc.)}
 
 \item{txIn}{logical, whether the incoming files are transcript level (default TRUE)}
 
 \item{txOut}{logical, whether the function should just output transcript-level (default FALSE)}
 
-\item{countsFromAbundance}{logical, whether to generate estimated counts using
-abundance estimates and the average of average transcript length over samples (default FALSE).
-If this argument is used, then the counts are no longer correlated with average transcript length,
+\item{countsFromAbundance}{character, either "no" (default), "scaledTPM", or "lengthScaledTPM",
+for whether to generate estimated counts using abundance estimates scaled up to library size
+(scaledTPM) or additionally scaled using the average transcript length over samples and
+the library size (lengthScaledTPM). if using scaledTPM or lengthScaledTPM,
+then the counts are no longer correlated with average transcript length,
 and so the length offset matrix should not be used.}
 
-\item{gene2tx}{a two-column data.frame linking gene id and transcript id.
+\item{gene2tx}{a two-column data.frame linking gene id (column 1) and transcript id (column 2).
+the column names are not relevant, but this column order must be used.
 this is necessary for software which does not provide such information in the file
 (kallisto and Salmon)}
 
