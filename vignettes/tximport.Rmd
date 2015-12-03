@@ -84,9 +84,30 @@ txi.rsem <- tximport(files, type="rsem")
 head(txi.rsem$counts)
 ```
 
-## Import with edgeR, DESeq2, limma+voom
+## Import with edgeR, DESeq2
 
-TODO
+An example of creating a `DGEList` for use with edgeR:
+
+```{r}
+cts <- txi$counts
+normMat <- txi$length
+normMat <- normMat / exp(rowMeans(log(normMat)))
+library(edgeR)
+o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
+y <- DGEList(cts)
+y$offset <- t(t(log(normMat)) + o)
+```
+
+An example of creating a `DESeqDataSet` for use with DESeq2
+(requires version >= 1.10.5).
+
+```{r}
+library(DESeq2)
+sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
+dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
+```
+
+TODO: limma example
 
 ## Session info
 
