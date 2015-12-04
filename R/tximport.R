@@ -128,7 +128,7 @@ tximport <- function(files,
     
     # if the user requested just the transcript-level data:
     if (txOut) {
-      return(list(abundance=abundanceMatTx, counts=countsMatTx, length=lengthMatTx
+      return(list(abundance=abundanceMatTx, counts=countsMatTx, length=lengthMatTx,
                   countsFromAbundance="no"))
     }
     
