@@ -202,7 +202,8 @@ tximport <- function(files,
       countsMat <- t(t(newCounts) * (countsSum/newSum))
     }
     
-    return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat))
+    return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
+                countsFromAbundance=countsFromAbundance))
     
   # e.g. RSEM already has gene-level summaries
   # just combine the gene-level summaries across files
