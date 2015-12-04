@@ -128,7 +128,8 @@ tximport <- function(files,
     
     # if the user requested just the transcript-level data:
     if (txOut) {
-      return(list(abundance=abundanceMatTx, counts=countsMatTx, length=lengthMatTx))
+      return(list(abundance=abundanceMatTx, counts=countsMatTx, length=lengthMatTx
+                  countsFromAbundance="no"))
     }
     
     # need to associate tx to genes
@@ -230,7 +231,8 @@ tximport <- function(files,
     }
   } 
   message("")
-  return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat))
+  return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
+              countsFromAbundance="no"))
 }
 
 # this is much faster than by(), a bit slower than dplyr summarize_each()
