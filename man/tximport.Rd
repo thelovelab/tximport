@@ -50,6 +50,8 @@ abundances, counts, and a third file with length information}
 }
 \value{
 a simple list with matrices: abundance, counts, length.
+A final element 'countsFromAbundance' carries through
+the character argument used in the tximport call.
 The length matrix contains the average transcript length for each
 gene which can be used as an offset for gene-level analysis.
 }
