@@ -20,7 +20,6 @@ dir <- system.file("extdata", package="tximportData")
 list.files(dir)
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
-file.exists(files)
 names(files) <- paste0("sample",1:6)
 ```
 
@@ -77,7 +76,6 @@ head(txi.txout$counts)
 
 ```{r}
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
-file.exists(files)
 names(files) <- paste0("sample",1:6)
 txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx)
 head(txi.salmon$counts)
@@ -87,17 +85,16 @@ head(txi.salmon$counts)
 
 ```{r}
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results"))
-file.exists(files)
 names(files) <- paste0("sample",1:6)
 txi.rsem <- tximport(files, type="rsem")
 head(txi.rsem$counts)
 ```
 
-## Import with edgeR, DESeq2
+## Import with edgeR, DESeq2, limma-voom
 
 An example of creating a `DGEList` for use with edgeR:
 
-```{r, messages=FALSE}
+```{r, results="hide"}
 library(edgeR)
 ```
 
@@ -109,21 +106,33 @@ library(edgeR)
 o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
 y <- DGEList(cts)
 y$offset <- t(t(log(normMat)) + o)
+# y is now ready for estimate dispersion functions
+# see edgeR User's Guide
 ```
 
 An example of creating a `DESeqDataSet` for use with DESeq2
 (requires version >= 1.11.6).
 
-```{r, messages=FALSE}
+```{r, results="hide"}
 library(DESeq2)
 ```
 
 ```{r}
 sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
 dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
+# dds is now ready for DESeq()
+# see DESeq2 vignette
 ```
 
-TODO: limma example
+An example for use with limma-voom:
+
+```{r}
+library(limma)
+design <- model.matrix(~ condition, data=sampleTable)
+v <- voom(y, design)
+# v is now ready for lmFit()
+# see limma User's Guide
+```
 
 ## Session info
 

@@ -47,6 +47,7 @@ tximport <- function(files,
 
   type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
+  stopifnot(all(file.exists(files)))
   
   # kallisto presets
   if (type == "kallisto") {

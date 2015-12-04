@@ -26,14 +26,6 @@ list.files(dir)
 ```r
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
-file.exists(files)
-```
-
-```
-## [1] TRUE TRUE TRUE TRUE TRUE TRUE
-```
-
-```r
 names(files) <- paste0("sample",1:6)
 ```
 
@@ -89,7 +81,8 @@ names(txi)
 ```
 
 ```
-## [1] "abundance" "counts"    "length"
+## [1] "abundance"           "counts"              "length"             
+## [4] "countsFromAbundance"
 ```
 
 ```r
@@ -220,14 +213,6 @@ head(txi.txout$counts)
 
 ```r
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
-file.exists(files)
-```
-
-```
-## [1] TRUE TRUE TRUE TRUE TRUE TRUE
-```
-
-```r
 names(files) <- paste0("sample",1:6)
 txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx)
 ```
@@ -260,14 +245,6 @@ head(txi.salmon$counts)
 
 ```r
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results"))
-file.exists(files)
-```
-
-```
-## [1] TRUE TRUE TRUE TRUE TRUE TRUE
-```
-
-```r
 names(files) <- paste0("sample",1:6)
 txi.rsem <- tximport(files, type="rsem")
 ```
@@ -291,7 +268,7 @@ head(txi.rsem$counts)
 ## A2ML1       0.84    2.89    0.00    1.00    2.00    3.11
 ```
 
-## Import with edgeR, DESeq2
+## Import with edgeR, DESeq2, limma-voom
 
 An example of creating a `DGEList` for use with edgeR:
 
@@ -309,6 +286,8 @@ library(edgeR)
 o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
 y <- DGEList(cts)
 y$offset <- t(t(log(normMat)) + o)
+# y is now ready for estimate dispersion functions
+# see edgeR User's Guide
 ```
 
 An example of creating a `DESeqDataSet` for use with DESeq2
@@ -325,7 +304,25 @@ sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
 dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
 ```
 
-TODO: limma example
+```
+## using counts and average transcript lengths from tximport
+```
+
+```r
+# dds is now ready for DESeq()
+# see DESeq2 vignette
+```
+
+An example for use with limma-voom:
+
+
+```r
+library(limma)
+design <- model.matrix(~ condition, data=sampleTable)
+v <- voom(y, design)
+# v is now ready for lmFit()
+# see limma User's Guide
+```
 
 ## Session info
 
@@ -347,14 +344,14 @@ sessionInfo()
 ## [8] methods   base     
 ## 
 ## other attached packages:
-##  [1] DESeq2_1.11.6              RcppArmadillo_0.5.600.2.0 
-##  [3] Rcpp_0.12.1                SummarizedExperiment_0.3.9
-##  [5] Biobase_2.29.1             GenomicRanges_1.21.29     
-##  [7] GenomeInfoDb_1.5.16        IRanges_2.3.22            
-##  [9] S4Vectors_0.7.18           BiocGenerics_0.15.6       
-## [11] edgeR_3.11.3               limma_3.25.16             
-## [13] tximport_0.0.3             tximportData_0.1          
-## [15] knitr_1.11                
+##  [1] tximport_0.0.7             DESeq2_1.11.7             
+##  [3] RcppArmadillo_0.5.600.2.0  Rcpp_0.12.1               
+##  [5] SummarizedExperiment_0.3.9 Biobase_2.29.1            
+##  [7] GenomicRanges_1.21.29      GenomeInfoDb_1.5.16       
+##  [9] IRanges_2.3.22             S4Vectors_0.7.18          
+## [11] BiocGenerics_0.15.6        edgeR_3.11.3              
+## [13] limma_3.25.16              tximportData_0.1          
+## [15] knitr_1.11                 devtools_1.9.1            
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] genefilter_1.51.1     locfit_1.5-9.1        reshape2_1.4.1       
@@ -363,14 +360,15 @@ sessionInfo()
 ## [10] DBI_0.3.1             BiocParallel_1.3.52   RColorBrewer_1.1-2   
 ## [13] lambda.r_1.1.7        plyr_1.8.3            stringr_1.0.0        
 ## [16] zlibbioc_1.15.0       munsell_0.4.2         gtable_0.1.2         
-## [19] futile.logger_1.4.1   codetools_0.2-14      evaluate_0.8         
-## [22] latticeExtra_0.6-26   geneplotter_1.47.0    AnnotationDbi_1.31.18
-## [25] proto_0.3-10          acepack_1.3-3.3       xtable_1.7-4         
-## [28] scales_0.3.0          formatR_1.2.1         Hmisc_3.17-0         
-## [31] annotate_1.47.4       XVector_0.9.4         gridExtra_2.0.0      
-## [34] ggplot2_1.0.1         digest_0.6.8          stringi_0.5-5        
-## [37] grid_3.3.0            tools_3.3.0           magrittr_1.5         
-## [40] RSQLite_1.0.0         Formula_1.2-1         cluster_2.0.3        
-## [43] futile.options_1.0.0  MASS_7.3-44           rpart_4.1-10         
-## [46] nnet_7.3-11           compiler_3.3.0        git2r_0.11.0
+## [19] futile.logger_1.4.1   codetools_0.2-14      memoise_0.2.1        
+## [22] evaluate_0.8          latticeExtra_0.6-26   geneplotter_1.47.0   
+## [25] AnnotationDbi_1.31.18 proto_0.3-10          acepack_1.3-3.3      
+## [28] xtable_1.7-4          scales_0.3.0          formatR_1.2.1        
+## [31] Hmisc_3.17-0          annotate_1.47.4       XVector_0.9.4        
+## [34] gridExtra_2.0.0       ggplot2_1.0.1         digest_0.6.8         
+## [37] stringi_0.5-5         grid_3.3.0            tools_3.3.0          
+## [40] magrittr_1.5          RSQLite_1.0.0         Formula_1.2-1        
+## [43] cluster_2.0.3         futile.options_1.0.0  MASS_7.3-44          
+## [46] rpart_4.1-10          nnet_7.3-11           compiler_3.3.0       
+## [49] git2r_0.11.0
 ```
