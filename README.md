@@ -1,4 +1,14 @@
-# todo
+# tximport
 
-* work out collatedFiles logic for Cufflinks
-* include in documentation that we are not using the bootstraps
+Import and summarize transcript-level estimates for gene-level analysis
+
+---
+
+Imports transcript-level abundance, estimated counts and 
+transcript lengths, and summarizes into matrices for use with downstream
+ gene-level analysis packages. Average transcript length, weighted by 
+sample-specific transcript abundance estimates, is provided as a matrix
+which can be used as an offset for different expression of 
+gene-level counts.
+
+See examples in [vignette](https://github.com/mikelove/tximport/blob/master/vignettes/tximport.md)
