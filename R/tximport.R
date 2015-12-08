@@ -147,9 +147,9 @@ tximport <- function(files,
       ntxmissing <- sum(!txId %in% gene2tx$tx)
       if (ntxmissing > 0) message("transcripts missing genes: ", ntxmissing)
       sub.idx <- txId %in% gene2tx$tx
-      abundanceMatTx <- abundanceMatTx[sub.idx,]
-      countsMatTx <- countsMatTx[sub.idx,]
-      lengthMatTx <- lengthMatTx[sub.idx,]
+      abundanceMatTx <- abundanceMatTx[sub.idx,,drop=FALSE]
+      countsMatTx <- countsMatTx[sub.idx,,drop=FALSE]
+      lengthMatTx <- lengthMatTx[sub.idx,,drop=FALSE]
       txId <- txId[sub.idx]
       geneId <- gene2tx$gene[match(txId, gene2tx$tx)]
     }
