@@ -24,8 +24,6 @@
 #' @param collatedFiles a character vector of filenames for software which provides
 #' abundances and counts in matrix form (e.g. Cufflinks). The files should be, in order,
 #' abundances, counts, and a third file with length information
-#' @param salmonEffLen logical, whether to use the stats.tsv file for effective length
-#' (default TRUE)
 #' 
 #' @return a simple list with matrices: abundance, counts, length.
 #' A final element 'countsFromAbundance' carries through
@@ -75,12 +73,16 @@ tximport <- function(files,
     importer <- function(x) {
       tmp <- read.table(x,comment.char="#")
       names(tmp) <- c("Name","Length","TPM","NumReads")
-      if (salmonEffLen) {
-        tmp2 <- read.table(file.path(dirname(x),"stats.tsv"),skip=1)
-        stopifnot(all(tmp$Name ==  tmp2$V1)) # name check
-        # overwrite the absolute lengths with the effective lengths
-        tmp$Length <- tmp2$V2
-      }
+
+      # TODO...
+
+      ## if ( detect... ) {
+      ##   tmp2 <- read.table(file.path(dirname(x),"stats.tsv"),skip=1)
+      ##   stopifnot(all(tmp$Name ==  tmp2$V1)) # name check
+      ##   # overwrite the absolute lengths with the effective lengths
+      ##   tmp$Length <- tmp2$V2
+      ## }
+      
       tmp
     }
   }

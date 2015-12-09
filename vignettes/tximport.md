@@ -210,15 +210,11 @@ head(txi.txout$counts)
 
 ## Salmon
 
-TODO: need to add `stats.tsv` files to `tximportData`, so that we 
-can use the new argument `salmonEffLen` which looks for the effective length
-in these extra files.
-
 
 ```r
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
 names(files) <- paste0("sample",1:6)
-txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx, salmonEffLen=FALSE)
+txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx)
 ```
 
 ```
