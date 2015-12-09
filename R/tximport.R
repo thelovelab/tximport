@@ -24,6 +24,8 @@
 #' @param collatedFiles a character vector of filenames for software which provides
 #' abundances and counts in matrix form (e.g. Cufflinks). The files should be, in order,
 #' abundances, counts, and a third file with length information
+#' @param salmonEffLen logical, whether to use the stats.tsv file for effective length
+#' (default TRUE)
 #' 
 #' @return a simple list with matrices: abundance, counts, length.
 #' A final element 'countsFromAbundance' carries through
@@ -45,6 +47,7 @@ tximport <- function(files,
                      lengthCol,
                      importer=function(x) read.table(x,header=TRUE),
                      collatedFiles,
+                     salmonEffLen=TRUE,
                      ...) {
 
   type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
@@ -72,6 +75,12 @@ tximport <- function(files,
     importer <- function(x) {
       tmp <- read.table(x,comment.char="#")
       names(tmp) <- c("Name","Length","TPM","NumReads")
+      if (salmonEffLen) {
+        tmp2 <- read.table(file.path(dirname(x),"stats.tsv"),skip=1)
+        stopifnot(all(tmp$Name ==  tmp2$V1)) # name check
+        # overwrite the absolute lengths with the effective lengths
+        tmp$Length <- tmp2$V2
+      }
       tmp
     }
   }
@@ -241,5 +250,9 @@ tximport <- function(files,
 # this is much faster than by(), a bit slower than dplyr summarize_each()
 fastby <- function(m, f, fun) {
   idx <- split(1:nrow(m), f)
-  t(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
+  if (ncol(m) > 1) {
+    t(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
+  } else {
+    as.matrix(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
+  }
 }
