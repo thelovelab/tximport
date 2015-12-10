@@ -44,9 +44,7 @@ tximport <- function(files,
                      countsCol,
                      lengthCol,
                      importer=function(x) read.table(x,header=TRUE),
-                     collatedFiles,
-                     salmonEffLen=TRUE,
-                     ...) {
+                     collatedFiles) {
 
   type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
@@ -67,22 +65,12 @@ tximport <- function(files,
     txIdCol <- "Name"
     abundanceCol <- "TPM"
     countsCol <- "NumReads"
-    lengthCol <- "Length"
+    lengthCol <- "Length" 
     # because the comment lines have the same comment character as the header...
     # need to name the column names
     importer <- function(x) {
       tmp <- read.table(x,comment.char="#")
       names(tmp) <- c("Name","Length","TPM","NumReads")
-
-      # TODO...
-
-      ## if ( detect... ) {
-      ##   tmp2 <- read.table(file.path(dirname(x),"stats.tsv"),skip=1)
-      ##   stopifnot(all(tmp$Name ==  tmp2$V1)) # name check
-      ##   # overwrite the absolute lengths with the effective lengths
-      ##   tmp$Length <- tmp2$V2
-      ## }
-      
       tmp
     }
   }
@@ -105,7 +93,7 @@ tximport <- function(files,
     message("reading in files")
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
-      raw <- as.data.frame(importer(files[i], ...))
+      raw <- as.data.frame(importer(files[i]))
       
       # does the table contain gene association or was an external gene2tx table provided?
       if (is.null(gene2tx) & !txOut) {
@@ -185,6 +173,7 @@ tximport <- function(files,
     aveLengthSamp <- rowMeans(lengthMatTx)
     # then simple average of lengths within genes (not weighted by abundance)
     aveLengthSampGene <- tapply(aveLengthSamp, geneId, mean)
+
     stopifnot(all(names(aveLengthSampGene) == rownames(lengthMat)))
     
     # check for NaN and if possible replace these values with geometric mean of other samples.
@@ -192,19 +181,7 @@ tximport <- function(files,
     # NaN come from samples which have abundance of 0 for all isoforms of a gene, and 
     # so we cannot calculate the weighted average. our best guess is to use the average
     # transcript length from the other samples.
-    nanRows <- which(apply(lengthMat, 1, function(row) any(is.nan(row))))
-    if (length(nanRows) > 0) {
-      for (i in nanRows) {
-        if (all(is.nan(lengthMat[i,]))) {
-          # if all samples have 0 abundances for all tx, use the simple average
-          lengthMat[i,] <- aveLengthSampGene[i]
-        } else {
-          # otherwise use the geometric mean of the lengths from the other samples
-          idx <- is.nan(lengthMat[i,])
-          lengthMat[i,idx] <-  exp(mean(log(lengthMat[i,!idx]), na.rm=TRUE))
-        }
-      }
-    }
+    lengthMat <- replaceMissingLength(lengthMat, aveLengthSampGene)
     
     if (countsFromAbundance != "no") {
       countsSum <- colSums(countsMat)
@@ -229,7 +206,7 @@ tximport <- function(files,
     message("reading in files")
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
-      raw <- as.data.frame(importer(files[i], ...))
+      raw <- as.data.frame(importer(files[i]))
       stopifnot(all(c(geneIdCol, abundanceCol, lengthCol) %in% names(raw)))
       if (i == 1) {
         mat <- matrix(nrow=nrow(raw),ncol=length(files))
@@ -255,6 +232,25 @@ fastby <- function(m, f, fun) {
   if (ncol(m) > 1) {
     t(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
   } else {
-    as.matrix(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
+    matrix(sapply(idx, function(i) fun(m[i,,drop=FALSE])),
+           dimnames=list(levels(f), colnames(m)))
   }
+}
+
+# function for replacing missing average transcript length values
+replaceMissingLength <- function(lengthMat, aveLengthSampGene) {
+  nanRows <- which(apply(lengthMat, 1, function(row) any(is.nan(row))))
+  if (length(nanRows) > 0) {
+    for (i in nanRows) {
+      if (all(is.nan(lengthMat[i,]))) {
+        # if all samples have 0 abundances for all tx, use the simple average
+        lengthMat[i,] <- aveLengthSampGene[i]
+      } else {
+          # otherwise use the geometric mean of the lengths from the other samples
+          idx <- is.nan(lengthMat[i,])
+          lengthMat[i,idx] <-  exp(mean(log(lengthMat[i,!idx]), na.rm=TRUE))
+        }
+    }
+  }
+  lengthMat
 }

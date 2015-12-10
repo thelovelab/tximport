@@ -8,7 +8,7 @@ tximport(files, type = c("kallisto", "salmon", "rsem", "cufflinks"),
   txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no", "scaledTPM",
   "lengthScaledTPM"), gene2tx = NULL, geneIdCol, txIdCol, abundanceCol,
   countsCol, lengthCol, importer = function(x) read.table(x, header = TRUE),
-  collatedFiles, ...)
+  collatedFiles)
 }
 \arguments{
 \item{files}{a character vector of filenames for the transcript-level abundances}

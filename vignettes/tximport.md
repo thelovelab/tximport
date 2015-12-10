@@ -344,31 +344,34 @@ sessionInfo()
 ## [8] methods   base     
 ## 
 ## other attached packages:
-##  [1] tximport_0.0.7             DESeq2_1.11.7             
-##  [3] RcppArmadillo_0.5.600.2.0  Rcpp_0.12.1               
-##  [5] SummarizedExperiment_0.3.9 Biobase_2.29.1            
-##  [7] GenomicRanges_1.21.29      GenomeInfoDb_1.5.16       
-##  [9] IRanges_2.3.22             S4Vectors_0.7.18          
-## [11] BiocGenerics_0.15.6        edgeR_3.11.3              
-## [13] limma_3.25.16              tximportData_0.1          
-## [15] knitr_1.11                 devtools_1.9.1            
+##  [1] DESeq2_1.11.7              RcppArmadillo_0.5.600.2.0 
+##  [3] Rcpp_0.12.1                SummarizedExperiment_1.0.1
+##  [5] Biobase_2.29.1             GenomicRanges_1.22.1      
+##  [7] GenomeInfoDb_1.5.16        IRanges_2.4.5             
+##  [9] S4Vectors_0.8.4            BiocGenerics_0.16.1       
+## [11] edgeR_3.11.3               limma_3.25.16             
+## [13] tximport_0.0.11            tximportData_0.1          
+## [15] slidify_0.5                knitr_1.11                
+## [17] testthat_0.10.0            devtools_1.9.1            
+## [19] BiocInstaller_1.20.1      
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] genefilter_1.51.1     locfit_1.5-9.1        reshape2_1.4.1       
 ##  [4] splines_3.3.0         lattice_0.20-33       colorspace_1.2-6     
-##  [7] survival_2.38-3       XML_3.98-1.3          foreign_0.8-66       
-## [10] DBI_0.3.1             BiocParallel_1.3.52   RColorBrewer_1.1-2   
-## [13] lambda.r_1.1.7        plyr_1.8.3            stringr_1.0.0        
-## [16] zlibbioc_1.15.0       munsell_0.4.2         gtable_0.1.2         
-## [19] futile.logger_1.4.1   codetools_0.2-14      memoise_0.2.1        
-## [22] evaluate_0.8          latticeExtra_0.6-26   geneplotter_1.47.0   
-## [25] AnnotationDbi_1.31.18 proto_0.3-10          acepack_1.3-3.3      
-## [28] xtable_1.7-4          scales_0.3.0          formatR_1.2.1        
-## [31] Hmisc_3.17-0          annotate_1.47.4       XVector_0.9.4        
-## [34] gridExtra_2.0.0       ggplot2_1.0.1         digest_0.6.8         
-## [37] stringi_0.5-5         grid_3.3.0            tools_3.3.0          
-## [40] magrittr_1.5          RSQLite_1.0.0         Formula_1.2-1        
-## [43] cluster_2.0.3         futile.options_1.0.0  MASS_7.3-44          
-## [46] rpart_4.1-10          nnet_7.3-11           compiler_3.3.0       
-## [49] git2r_0.11.0
+##  [7] yaml_2.1.13           survival_2.38-3       XML_3.98-1.3         
+## [10] DBI_0.3.1             foreign_0.8-66        BiocParallel_1.3.52  
+## [13] RColorBrewer_1.1-2    lambda.r_1.1.7        plyr_1.8.3           
+## [16] stringr_1.0.0         zlibbioc_1.15.0       munsell_0.4.2        
+## [19] gtable_0.1.2          futile.logger_1.4.1   codetools_0.2-14     
+## [22] memoise_0.2.1         evaluate_0.8          latticeExtra_0.6-26  
+## [25] geneplotter_1.47.0    AnnotationDbi_1.31.18 markdown_0.7.7       
+## [28] proto_0.3-10          acepack_1.3-3.3       xtable_1.7-4         
+## [31] scales_0.3.0          formatR_1.2.1         Hmisc_3.17-0         
+## [34] annotate_1.47.4       XVector_0.9.4         gridExtra_2.0.0      
+## [37] ggplot2_1.0.1         digest_0.6.8          stringi_0.5-5        
+## [40] grid_3.3.0            tools_3.3.0           magrittr_1.5         
+## [43] RSQLite_1.0.0         Formula_1.2-1         cluster_2.0.3        
+## [46] futile.options_1.0.0  crayon_1.3.1          whisker_0.3-2        
+## [49] MASS_7.3-44           rpart_4.1-10          git2r_0.11.0         
+## [52] nnet_7.3-11
 ```
