@@ -24,6 +24,10 @@
 #' @param collatedFiles a character vector of filenames for software which provides
 #' abundances and counts in matrix form (e.g. Cufflinks). The files should be, in order,
 #' abundances, counts, and a third file with length information
+#' @param ignoreTxVersion logical, whether to split the tx id on the '.' character
+#' to remove version information, for easier matching with the tx id in gene2tx
+#' (default FALSE)
+#' 
 #' 
 #' @return a simple list with matrices: abundance, counts, length.
 #' A final element 'countsFromAbundance' carries through
@@ -45,7 +49,7 @@ tximport <- function(files,
                      lengthCol,
                      importer=function(x) read.table(x,header=TRUE),
                      collatedFiles,
-                     ignore.txVersion=FALSE) {
+                     ignoreTxVersion=FALSE) {
 
   type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
@@ -139,7 +143,7 @@ tximport <- function(files,
     # potentially remove unassociated transcript rows and warn user
     if (!is.null(gene2tx)) {
       colnames(gene2tx) <- c("gene","tx")
-      if (ignore.txVersion) {
+      if (ignoreTxVersion) {
         txId <- sapply(strsplit(as.character(txId), "\\."), "[[", 1)
       }
       gene2tx$gene <- factor(gene2tx$gene)

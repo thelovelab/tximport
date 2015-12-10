@@ -1,14 +1,21 @@
 Package: tximport
 Version: 0.0.11
 Title: Import and summarize transcript-level estimates for gene-level analysis
-Description: Imports transcript-level abundance, estimated counts and 
- transcript lengths, and summarizes into matrices for use with downstream
- gene-level analysis packages. Average transcript length, weighted by 
- sample-specific transcript abundance estimates, is provided as a matrix
- which can be used as an offset for different expression of 
- gene-level counts.
+Description: Imports transcript-level abundance, estimated counts and
+    transcript lengths, and summarizes into matrices for use with downstream
+    gene-level analysis packages. Average transcript length, weighted by
+    sample-specific transcript abundance estimates, is provided as a matrix
+    which can be used as an offset for different expression of
+    gene-level counts.
 Author: Michael Love, Charlotte Soneson, Mark Robinson
 Maintainer: Michael Love <michaelisaiahlove@gmail.com>
 License: GPL (>=2)
 VignetteBuilder: knitr
-Suggests: knitr, testthat, tximportData, limma, edgeR, DESeq2 (>= 1.11.6)
+Suggests:
+    knitr,
+    testthat,
+    tximportData,
+    limma,
+    edgeR,
+    DESeq2 (>= 1.11.6)
+RoxygenNote: 5.0.1
