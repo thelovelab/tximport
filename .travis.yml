@@ -1,5 +1,15 @@
 language: r
-sudo: required
+
 bioc_required: true
+
+r_packages:
+  - covr
+
 r_github_packages:
- - tximportData
+  - mikelove/tximportData
+
+r_build_args: "--no-manual --no-resave-data"
+r_check_args: "--no-build-vignettes --no-manual --timings"
+
+after_success:
+   - Rscript -e 'library(covr); codecov()'
