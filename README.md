@@ -1,6 +1,6 @@
 # tximport
 
-![build](https://travis-ci.org/mikelove/tximport.svg?branch=master)
+[![build](https://travis-ci.org/mikelove/tximport.svg?branch=master)](https://travis-ci.org/mikelove/tximport)
 
 Import and summarize transcript-level estimates for gene-level analysis
 
