@@ -44,7 +44,8 @@ tximport <- function(files,
                      countsCol,
                      lengthCol,
                      importer=function(x) read.table(x,header=TRUE),
-                     collatedFiles) {
+                     collatedFiles,
+                     ignore.txVersion=FALSE) {
 
   type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
@@ -138,6 +139,9 @@ tximport <- function(files,
     # potentially remove unassociated transcript rows and warn user
     if (!is.null(gene2tx)) {
       colnames(gene2tx) <- c("gene","tx")
+      if (ignore.txVersion) {
+        txId <- sapply(strsplit(as.character(txId), "\\."), "[[", 1)
+      }
       gene2tx$gene <- factor(gene2tx$gene)
       gene2tx$tx <- factor(gene2tx$tx)
       # remove transcripts (and genes) not in the abundances
