@@ -15,6 +15,9 @@
 #' the column names are not relevant, but this column order must be used. 
 #' this is necessary for software which does not provide such information in the file
 #' (kallisto and Salmon)
+#' @param reader a function to replace read.delim in the pre-set importer functions,
+#' for example substituting read_tsv from the readr package will substantially 
+#' speed up tximport
 #' @param geneIdCol name of column with gene id. if missing, the gene2tx argument can be used
 #' @param txIdCol name of column with tx id
 #' @param abundanceCol name of column with abundances (e.g. TPM or FPKM)
@@ -42,12 +45,13 @@ tximport <- function(files,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
                      gene2tx=NULL,
+                     reader=read.delim,
                      geneIdCol,
                      txIdCol,
                      abundanceCol,
                      countsCol,
                      lengthCol,
-                     importer=function(x) read.table(x,header=TRUE),
+                     importer,
                      collatedFiles,
                      ignoreTxVersion=FALSE) {
 
@@ -62,6 +66,7 @@ tximport <- function(files,
     abundanceCol <- "tpm"
     countsCol <- "est_counts"
     lengthCol <- "eff_length"
+    importer <- reader
     }
   
   # salmon presets
@@ -74,7 +79,7 @@ tximport <- function(files,
     # because the comment lines have the same comment character as the header...
     # need to name the column names
     importer <- function(x) {
-      tmp <- read.table(x,comment.char="#")
+      tmp <- reader(x, skip=11)
       names(tmp) <- c("Name","Length","TPM","NumReads")
       tmp
     }
@@ -87,6 +92,7 @@ tximport <- function(files,
     abundanceCol <- "FPKM"
     countsCol <- "expected_count"
     lengthCol <- "effective_length"
+    importer <- reader
   }
   
   if (type == "cufflinks") {

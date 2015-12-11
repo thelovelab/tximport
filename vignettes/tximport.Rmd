@@ -12,12 +12,16 @@ opts_chunk$set(cache=TRUE)
 
 ## kallisto
 
+We start with some kallisto TSV files containing transcript
+abundance estimates. The pipeline will be nearly
+identical for other quantitation tools, which are shown below.
 First, read in some kallisto example files:
 
 ```{r}
 library(tximportData)
 dir <- system.file("extdata", package="tximportData")
 list.files(dir)
+
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
 names(files) <- paste0("sample",1:6)
@@ -44,40 +48,34 @@ A simple list with matrices, "abundance", "counts", and "length", is returned.
 The "length" matrix can be used to generate an offset matrix for downstream
 gene-level differential analysis of count matrices.
 
+While *tximport* works without any dependencies, it is much faster to read in files
+using the *readr* package. To use this, we pass the `read_delim` function to `tximport`.
+
 ```{r}
 library(tximport)
-txi <- tximport(files, type="kallisto", gene2tx=gene2tx)
+library(readr)
+txi <- tximport(files, type="kallisto", gene2tx=gene2tx, reader=read_tsv)
 names(txi)
 head(txi$counts)
 ```
 
-We can also generate counts from abundances, scaled to library size
-(scaledTPM) or additionally scaled using the average transcript length,
-averaged over samples and to library size (lengthScaledTPM). 
+We could alternatively generate counts from abundances, 
+using the argument `countsFromAbundance`,
+scaled to library size (`"scaledTPM"`) or additionally scaled 
+using the average transcript length,
+averaged over samples and to library size (`"lengthScaledTPM"`). 
 Using either of these approaches, the counts are not correlated 
 with length, and so the length matrix does not need to be provided as an offset
 for downstream analysis packages.
 
-```{r}
-txi.cfa <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance="scaledTPM")
-txi.cfa.len <- tximport(files, type="kallisto", gene2tx=gene2tx, countsFromAbundance="lengthScaledTPM")
-head(txi.cfa$counts)
-head(txi.cfa.len$counts)
-```
-
-We can also avoid gene-level summarization:
-
-```{r}
-txi.txout <- tximport(files, type="kallisto", txOut=TRUE)
-head(txi.txout$counts)
-```
+We can avoid gene-level summarization by setting `txOut=TRUE`.
 
 ## Salmon
 
 ```{r}
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
 names(files) <- paste0("sample",1:6)
-txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx)
+txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx, reader=read_tsv)
 head(txi.salmon$counts)
 ```
 
@@ -86,7 +84,7 @@ head(txi.salmon$counts)
 ```{r}
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results"))
 names(files) <- paste0("sample",1:6)
-txi.rsem <- tximport(files, type="rsem")
+txi.rsem <- tximport(files, type="rsem", reader=read_tsv)
 head(txi.rsem$counts)
 ```
 
