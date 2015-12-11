@@ -65,7 +65,7 @@ The "length" matrix can be used to generate an offset matrix for downstream
 gene-level differential analysis of count matrices.
 
 While *tximport* works without any dependencies, it is much faster to read in files
-using the *readr* package. To use this, we pass the `read_delim` function to `tximport`.
+using the *readr* package. To use this, we pass the `read_tsv` function to `tximport`.
 
 
 ```r
