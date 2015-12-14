@@ -1,7 +1,14 @@
 language: r
 
+sudo: required
+
 r_github_packages:
   - mikelove/tximportData
+
+r_binary_packages:
+  - testthat
+  - knitr
+  - readr
 
 r_build_args: "--no-build-vignettes"
 r_check_args: "--no-build-vignettes"
