@@ -76,10 +76,10 @@ tximport <- function(files,
     abundanceCol <- "TPM"
     countsCol <- "NumReads"
     lengthCol <- "Length" 
-    # because the comment lines have the same comment character as the header...
+    # because the comment lines have the same comment character as the header
     # need to name the column names
     importer <- function(x) {
-      tmp <- reader(x, skip=11)
+      tmp <- reader(x, comment="#")
       names(tmp) <- c("Name","Length","TPM","NumReads")
       tmp
     }

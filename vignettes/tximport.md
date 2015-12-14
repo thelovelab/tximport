@@ -186,6 +186,10 @@ An example of creating a `DGEList` for use with edgeR:
 library(edgeR)
 ```
 
+```
+## Loading required package: limma
+```
+
 
 ```r
 cts <- txi$counts
@@ -206,7 +210,6 @@ An example of creating a `DESeqDataSet` for use with DESeq2
 ```r
 library(DESeq2)
 ```
-
 
 ```r
 sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
@@ -258,13 +261,13 @@ sessionInfo()
 ## [8] methods   base     
 ## 
 ## other attached packages:
-##  [1] tximport_0.0.12            DESeq2_1.11.8             
-##  [3] RcppArmadillo_0.6.200.2.0  Rcpp_0.12.2               
-##  [5] SummarizedExperiment_1.1.7 Biobase_2.31.0            
-##  [7] GenomicRanges_1.23.5       GenomeInfoDb_1.7.3        
-##  [9] IRanges_2.5.14             S4Vectors_0.9.13          
-## [11] BiocGenerics_0.17.1        edgeR_3.13.2              
-## [13] limma_3.27.5               readr_0.2.2               
+##  [1] DESeq2_1.11.8              RcppArmadillo_0.6.200.2.0 
+##  [3] Rcpp_0.12.2                SummarizedExperiment_1.1.7
+##  [5] Biobase_2.31.0             GenomicRanges_1.23.5      
+##  [7] GenomeInfoDb_1.7.3         IRanges_2.5.14            
+##  [9] S4Vectors_0.9.13           BiocGenerics_0.17.1       
+## [11] edgeR_3.13.2               limma_3.27.5              
+## [13] readr_0.2.2                tximport_0.0.12           
 ## [15] tximportData_0.1           devtools_1.9.1            
 ## [17] knitr_1.11                 BiocInstaller_1.21.2      
 ## 
