@@ -5,11 +5,6 @@
 
 # tximport: import and summarize transcript-level estimates for gene-level analysis
 
-```{r, echo=FALSE, results="hide"}
-library(knitr)
-opts_chunk$set(cache=TRUE)
-```
-
 ## kallisto
 
 We start with some kallisto TSV files containing transcript
@@ -92,7 +87,7 @@ head(txi.rsem$counts)
 
 An example of creating a `DGEList` for use with edgeR:
 
-```{r, results="hide"}
+```{r, messages=FALSE}
 library(edgeR)
 ```
 
@@ -109,9 +104,11 @@ y$offset <- t(t(log(normMat)) + o)
 ```
 
 An example of creating a `DESeqDataSet` for use with DESeq2
-(requires version >= 1.11.6).
+(requires R-devel, Bioconductor 3.3 and DESeq2 version >= 1.11.6, or
+you can source the function from the 
+[development branch](https://github.com/Bioconductor-mirror/DESeq2/blob/master/R/AllClasses.R#L318-L333)).
 
-```{r, results="hide"}
+```{r, messages=FALSE}
 library(DESeq2)
 ```
 

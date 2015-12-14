@@ -5,8 +5,6 @@
 
 # tximport: import and summarize transcript-level estimates for gene-level analysis
 
-
-
 ## kallisto
 
 We start with some kallisto TSV files containing transcript
@@ -129,7 +127,7 @@ txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx, reader=read_tsv)
 ```
 ## reading in files
 ## 1 2 3 4 5 6 
-## transcripts missing genes: 3
+## transcripts missing genes: 2
 ## summarizing abundance
 ## summarizing counts
 ## summarizing length
@@ -186,10 +184,6 @@ An example of creating a `DGEList` for use with edgeR:
 library(edgeR)
 ```
 
-```
-## Loading required package: limma
-```
-
 
 ```r
 cts <- txi$counts
@@ -204,12 +198,15 @@ y$offset <- t(t(log(normMat)) + o)
 ```
 
 An example of creating a `DESeqDataSet` for use with DESeq2
-(requires version >= 1.11.6).
+(requires R-devel, Bioconductor 3.3 and DESeq2 version >= 1.11.6, or
+you can source the function from the 
+[development branch](https://github.com/Bioconductor-mirror/DESeq2/blob/master/R/AllClasses.R#L318-L333)).
 
 
 ```r
 library(DESeq2)
 ```
+
 
 ```r
 sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
@@ -244,32 +241,27 @@ sessionInfo()
 ```
 
 ```
-## R Under development (unstable) (2015-11-08 r69614)
-## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Ubuntu 15.10
+## R Under development (unstable) (2015-12-10 r69759)
+## Platform: x86_64-apple-darwin14.5.0 (64-bit)
+## Running under: OS X 10.10.5 (Yosemite)
 ## 
 ## locale:
-##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
-##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
-##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
-##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
-##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
 ## 
 ## attached base packages:
 ## [1] parallel  stats4    stats     graphics  grDevices datasets  utils    
 ## [8] methods   base     
 ## 
 ## other attached packages:
-##  [1] DESeq2_1.11.8              RcppArmadillo_0.6.200.2.0 
-##  [3] Rcpp_0.12.2                SummarizedExperiment_1.1.7
-##  [5] Biobase_2.31.0             GenomicRanges_1.23.5      
-##  [7] GenomeInfoDb_1.7.3         IRanges_2.5.14            
-##  [9] S4Vectors_0.9.13           BiocGenerics_0.17.1       
-## [11] edgeR_3.13.2               limma_3.27.5              
-## [13] readr_0.2.2                tximport_0.0.12           
-## [15] tximportData_0.1           devtools_1.9.1            
-## [17] knitr_1.11                 BiocInstaller_1.21.2      
+##  [1] tximport_0.0.13            tximportData_0.1          
+##  [3] devtools_1.9.1             DESeq2_1.11.9             
+##  [5] RcppArmadillo_0.6.300.2.2  Rcpp_0.12.2               
+##  [7] SummarizedExperiment_1.1.7 Biobase_2.31.1            
+##  [9] GenomicRanges_1.23.6       GenomeInfoDb_1.7.3        
+## [11] IRanges_2.5.16             S4Vectors_0.9.14          
+## [13] BiocGenerics_0.17.1        edgeR_3.13.4              
+## [15] limma_3.27.6               readr_0.2.2               
+## [17] knitr_1.11                
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] genefilter_1.53.0    locfit_1.5-9.1       reshape2_1.4.1      
@@ -278,14 +270,15 @@ sessionInfo()
 ## [10] DBI_0.3.1            BiocParallel_1.5.0   RColorBrewer_1.1-2  
 ## [13] lambda.r_1.1.7       plyr_1.8.3           stringr_1.0.0       
 ## [16] zlibbioc_1.17.0      munsell_0.4.2        gtable_0.1.2        
-## [19] futile.logger_1.4.1  codetools_0.2-14     memoise_0.2.1       
-## [22] evaluate_0.8         latticeExtra_0.6-26  geneplotter_1.49.0  
-## [25] AnnotationDbi_1.33.1 proto_0.3-10         acepack_1.3-3.3     
-## [28] xtable_1.8-0         scales_0.3.0         formatR_1.2.1       
-## [31] Hmisc_3.17-0         annotate_1.49.0      XVector_0.11.1      
-## [34] gridExtra_2.0.0      ggplot2_1.0.1        digest_0.6.8        
-## [37] stringi_1.0-1        grid_3.3.0           tools_3.3.0         
-## [40] magrittr_1.5         RSQLite_1.0.0        Formula_1.2-1       
-## [43] cluster_2.0.3        futile.options_1.0.0 MASS_7.3-45         
-## [46] rpart_4.1-10         nnet_7.3-11
+## [19] futile.logger_1.4.1  codetools_0.2-14     evaluate_0.8        
+## [22] memoise_0.2.1        latticeExtra_0.6-26  geneplotter_1.49.0  
+## [25] curl_0.9.4           AnnotationDbi_1.33.3 proto_0.3-10        
+## [28] acepack_1.3-3.3      xtable_1.8-0         scales_0.3.0        
+## [31] formatR_1.2.1        Hmisc_3.17-0         annotate_1.49.0     
+## [34] XVector_0.11.1       gridExtra_2.0.0      ggplot2_1.0.1       
+## [37] digest_0.6.8         stringi_1.0-1        grid_3.3.0          
+## [40] tools_3.3.0          magrittr_1.5         RSQLite_1.0.0       
+## [43] Formula_1.2-1        cluster_2.0.3        futile.options_1.0.0
+## [46] MASS_7.3-45          httr_1.0.0           R6_2.1.1            
+## [49] rpart_4.1-10         nnet_7.3-11          compiler_3.3.0
 ```
