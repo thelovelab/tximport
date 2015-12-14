@@ -1,7 +1,5 @@
 language: r
 
-sudo: required
-
 r_github_packages:
   - mikelove/tximportData
 
