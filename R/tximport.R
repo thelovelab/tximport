@@ -75,13 +75,24 @@ tximport <- function(files,
     txIdCol <- "Name"
     abundanceCol <- "TPM"
     countsCol <- "NumReads"
-    lengthCol <- "Length" 
-    # because the comment lines have the same comment character as the header
-    # need to name the column names
-    importer <- function(x) {
-      tmp <- reader(x, comment="#")
-      names(tmp) <- c("Name","Length","TPM","NumReads")
-      tmp
+    jsonFile <- file.path(dirname(head(files, n=1)), "cmd_info.json")
+    # for now, the simple existence of this file is proof enough 
+    # of the new format.
+    if (file.exists(jsonFile)) {
+        lengthCol <- "EffectiveLength" 
+        importer <- function(x) { 
+          tmp <- reader(x, comment='#') 
+          tmp
+        }
+    } else {
+        lengthCol <- "Length" 
+        # because the comment lines have the same comment character as the header
+        # need to name the column names
+        importer <- function(x) {
+          tmp <- reader(x, comment="#")
+          names(tmp) <- c("Name","Length","TPM","NumReads")
+          tmp
+        }
     }
   }
   
