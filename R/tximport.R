@@ -116,7 +116,7 @@ tximport <- function(files,
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
       raw <- as.data.frame(importer(files[i]))
-      head(raw)
+      
       # does the table contain gene association or was an external gene2tx table provided?
       if (is.null(gene2tx) & !txOut) {
         # e.g. Cufflinks includes the gene ID in the table
