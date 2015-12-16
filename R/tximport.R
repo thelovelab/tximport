@@ -76,25 +76,8 @@ tximport <- function(files,
     txIdCol <- "Name"
     abundanceCol <- "TPM"
     countsCol <- "NumReads"
-    jsonFile <- file.path(dirname(head(files, n=1)), "cmd_info.json")
-    # for now, the simple existence of this file is proof enough 
-    # of the new format.
-    if (file.exists(jsonFile)) {
-        lengthCol <- "EffectiveLength" 
-        importer <- function(x) { 
-          tmp <- reader(x, comment='#') 
-          tmp
-        }
-    } else {
-        lengthCol <- "Length" 
-        # because the comment lines have the same comment character as the header
-        # need to name the column names
-        importer <- function(x) {
-          tmp <- reader(x, comment="#")
-          names(tmp) <- c("Name","Length","TPM","NumReads")
-          tmp
-        }
-    }
+    lengthCol <- "EffectiveLength"
+    importer <- function(x) reader(x, comment='#') 
   }
   
   # rsem presets
@@ -117,6 +100,24 @@ tximport <- function(files,
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
       raw <- as.data.frame(importer(files[i]))
+
+      #####################################################################
+      # some temporary code for detecting older fishes
+      if ((i == 1) &
+          (type %in% c("salmon","sailfish")) &
+          !("EffectiveLength" %in% names(raw))) {
+        lengthCol <- "Length" 
+        # because the comment lines have the same comment character
+        # as the header, need to name the column names
+        importer <- function(x) {
+          tmp <- reader(x, comment="#")
+          names(tmp) <- c("Name","Length","TPM","NumReads")
+          tmp
+        }
+        # re-read the first file
+        raw <- as.data.frame(importer(files[i]))
+      }
+      #####################################################################
       
       # does the table contain gene association or was an external gene2tx table provided?
       if (is.null(gene2tx) & !txOut) {
