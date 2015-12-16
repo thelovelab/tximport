@@ -214,7 +214,7 @@ library(DESeq2)
 The user should make sure the rownames of `sampleTable` align with the
 colnames of `txi$counts`, if there are colnames. The best practice is
 to read `sampleTable` from a CSV file, and to construct `files` from a
-column of `sampleTable` before calling *tximport*.
+column of `sampleTable` before calling `tximport`.
 
 
 ```r
