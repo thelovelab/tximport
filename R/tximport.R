@@ -1,8 +1,9 @@
 #' Import transcript-level abundances and estimated counts for gene-level analysis packages
 #' 
 #' @param files a character vector of filenames for the transcript-level abundances
-#' @param type character, the type of software used to generate the abundances, 
-#' which will be used to autofill the arguments below (geneIdCol, etc.)
+#' @param type character, the type of software used to generate the abundances.
+#' Options are "kallisto", "salmon", "sailfish", "rsem".
+#' This argument is used to autofill the arguments below (geneIdCol, etc.)
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
 #' @param txOut logical, whether the function should just output transcript-level (default FALSE)
 #' @param countsFromAbundance character, either "no" (default), "scaledTPM", or "lengthScaledTPM",
@@ -31,16 +32,16 @@
 #' to remove version information, for easier matching with the tx id in gene2tx
 #' (default FALSE)
 #' 
-#' 
 #' @return a simple list with matrices: abundance, counts, length.
 #' A final element 'countsFromAbundance' carries through
 #' the character argument used in the tximport call.
 #' The length matrix contains the average transcript length for each
 #' gene which can be used as an offset for gene-level analysis.
+#' Note: tximport does not import bootstrap estimates from kallisto, Salmon, or Sailfish.
 #' 
 #' @export
 tximport <- function(files,
-                     type=c("kallisto","salmon","rsem","cufflinks"),
+                     type=c("kallisto","salmon","sailfish","rsem"),
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
@@ -55,7 +56,7 @@ tximport <- function(files,
                      collatedFiles,
                      ignoreTxVersion=FALSE) {
 
-  type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
+  type <- match.arg(type, c("kallisto","salmon","sailfish","rsem"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
   stopifnot(all(file.exists(files)))
   
@@ -69,8 +70,8 @@ tximport <- function(files,
     importer <- reader
     }
   
-  # salmon presets
-  if (type == "salmon") {
+  # salmon/sailfish presets
+  if (type %in% c("salmon","sailfish")) {
     geneIdCol="gene_id"
     txIdCol <- "Name"
     abundanceCol <- "TPM"
