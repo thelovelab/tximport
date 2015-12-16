@@ -75,7 +75,7 @@ tximport <- function(files,
     txIdCol <- "Name"
     abundanceCol <- "TPM"
     countsCol <- "NumReads"
-    jsonFile <- file.path(dirname(head(files)), "cmd_info.json")
+    jsonFile <- file.path(dirname(head(files, n=1)), "cmd_info.json")
     # for now, the simple existence of this file is proof enough 
     # of the new format.
     if (file.exists(jsonFile)) {
