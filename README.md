@@ -4,6 +4,12 @@
 
 Import and summarize transcript-level estimates for gene-level analysis
 
+Description of methods and analysis described in:
+
+* Charlotte Soneson, Michael I. Love, Mark D. Robinson.
+[Differential analyses for RNA-seq: transcript-level estimates improve gene-level inferences](http://f1000research.com/articles/4-1521/v1),
+*F1000Research*, 4:1521, December 2015. doi: 10.12688/f1000research.7563.1
+
 ---
 
 Imports transcript-level abundance, estimated counts and 
