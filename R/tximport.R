@@ -2,7 +2,8 @@
 #' 
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances, 
-#' which will be used to autofill the arguments below (geneIdCol, etc.)
+#' which will be used to autofill the arguments below (geneIdCol, etc.).
+#' "none" means that the user will specify these columns.
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
 #' @param txOut logical, whether the function should just output transcript-level (default FALSE)
 #' @param countsFromAbundance character, either "no" (default), "scaledTPM", or "lengthScaledTPM",
@@ -40,7 +41,7 @@
 #' 
 #' @export
 tximport <- function(files,
-                     type=c("kallisto","salmon","rsem","cufflinks"),
+                     type=c("none","kallisto","salmon","rsem","cufflinks"),
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
@@ -55,7 +56,7 @@ tximport <- function(files,
                      collatedFiles,
                      ignoreTxVersion=FALSE) {
 
-  type <- match.arg(type, c("kallisto","salmon","rsem","cufflinks"))
+  type <- match.arg(type, c("none","kallisto","salmon","rsem","cufflinks"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
   stopifnot(all(file.exists(files)))
   
