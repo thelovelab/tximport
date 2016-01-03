@@ -4,7 +4,7 @@
 \alias{tximport}
 \title{Import transcript-level abundances and estimated counts for gene-level analysis packages}
 \usage{
-tximport(files, type = c("none", "kallisto", "salmon", "rsem", "cufflinks"),
+tximport(files, type = c("none", "kallisto", "salmon", "sailfish", "rsem"),
   txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no", "scaledTPM",
   "lengthScaledTPM"), gene2tx = NULL, reader = read.delim, geneIdCol,
   txIdCol, abundanceCol, countsCol, lengthCol, importer, collatedFiles,
@@ -13,8 +13,9 @@ tximport(files, type = c("none", "kallisto", "salmon", "rsem", "cufflinks"),
 \arguments{
 \item{files}{a character vector of filenames for the transcript-level abundances}
 
-\item{type}{character, the type of software used to generate the abundances, 
-which will be used to autofill the arguments below (geneIdCol, etc.).
+\item{type}{character, the type of software used to generate the abundances.
+Options are "kallisto", "salmon", "sailfish", "rsem".
+This argument is used to autofill the arguments below (geneIdCol, etc.)
 "none" means that the user will specify these columns.}
 
 \item{txIn}{logical, whether the incoming files are transcript level (default TRUE)}
@@ -63,6 +64,7 @@ A final element 'countsFromAbundance' carries through
 the character argument used in the tximport call.
 The length matrix contains the average transcript length for each
 gene which can be used as an offset for gene-level analysis.
+Note: tximport does not import bootstrap estimates from kallisto, Salmon, or Sailfish.
 }
 \description{
 Import transcript-level abundances and estimated counts for gene-level analysis packages

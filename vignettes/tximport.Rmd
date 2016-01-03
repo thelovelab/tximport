@@ -43,8 +43,9 @@ A simple list with matrices, "abundance", "counts", and "length", is returned.
 The "length" matrix can be used to generate an offset matrix for downstream
 gene-level differential analysis of count matrices.
 
-While *tximport* works without any dependencies, it is much faster to read in files
-using the *readr* package. To use this, we pass the `read_tsv` function to `tximport`.
+While *tximport* works without any dependencies, it is much faster to
+read in files using the *readr* package (version >= 0.2.2).
+To use this, we pass the `read_tsv` function to `tximport`.
 
 ```{r}
 library(tximport)
@@ -65,7 +66,10 @@ for downstream analysis packages.
 
 We can avoid gene-level summarization by setting `txOut=TRUE`.
 
-## Salmon
+## Salmon / Sailfish
+
+Salmon or Sailfish `quant.sf` files can be imported by setting type to
+`"salmon"` or `"sailfish"`.
 
 ```{r}
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
@@ -87,7 +91,7 @@ head(txi.rsem$counts)
 
 An example of creating a `DGEList` for use with edgeR:
 
-```{r, messages=FALSE}
+```{r, results="hide", messages=FALSE}
 library(edgeR)
 ```
 
@@ -108,12 +112,21 @@ An example of creating a `DESeqDataSet` for use with DESeq2
 you can source the function from the 
 [development branch](https://github.com/Bioconductor-mirror/DESeq2/blob/master/R/AllClasses.R#L318-L333)).
 
-```{r, messages=FALSE}
+```{r, results="hide", messages=FALSE}
 library(DESeq2)
 ```
 
+The user should make sure the rownames of `sampleTable` align with the
+colnames of `txi$counts`, if there are colnames. The best practice is
+to read `sampleTable` from a CSV file, and to construct `files` from a
+column of `sampleTable` before calling `tximport`.
+
 ```{r}
 sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
+rownames(sampleTable) <- colnames(txi$counts)
+```
+
+```{r}
 dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
 # dds is now ready for DESeq()
 # see DESeq2 vignette

@@ -1,0 +1,14 @@
+citEntry(entry="article",
+         title = "Differential analyses for RNA-seq: transcript-level estimates improve gene-level inferences",
+         author = personList( as.person("Charlotte Soneson"),
+           as.person("Michael I. Love"),
+           as.person("Mark D. Robinson")),
+         year = 2015,
+         journal = "F1000Research",
+         doi = "10.12688/f1000research.7563.1",
+         volume = 4,
+         issue = 1521,
+         textVersion =
+           paste("Charlotte Soneson, Michael I. Love, Mark D. Robinson (2015):",
+                 "Differential analyses for RNA-seq: transcript-level estimates improve gene-level inferences.",
+                 "F1000Research" ) )
