@@ -75,10 +75,49 @@ txi <- tximport(files, type="kallisto", gene2tx=gene2tx, reader=read_tsv)
 
 ```
 ## reading in files
-## 1 2 3 4 5 6 
+```
+
+```
+## 1
+```
+
+```
+## 2
+```
+
+```
+## 3
+```
+
+```
+## 4
+```
+
+```
+## 5
+```
+
+```
+## 6
+```
+
+```
+## 
+```
+
+```
 ## transcripts missing genes: 3
+```
+
+```
 ## summarizing abundance
+```
+
+```
 ## summarizing counts
+```
+
+```
 ## summarizing length
 ```
 
@@ -130,10 +169,49 @@ txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx, reader=read_tsv)
 
 ```
 ## reading in files
-## 1 2 3 4 5 6 
+```
+
+```
+## 1
+```
+
+```
+## 2
+```
+
+```
+## 3
+```
+
+```
+## 4
+```
+
+```
+## 5
+```
+
+```
+## 6
+```
+
+```
+## 
+```
+
+```
 ## transcripts missing genes: 2
+```
+
+```
 ## summarizing abundance
+```
+
+```
 ## summarizing counts
+```
+
+```
 ## summarizing length
 ```
 
@@ -162,7 +240,34 @@ txi.rsem <- tximport(files, type="rsem", reader=read_tsv)
 
 ```
 ## reading in files
-## 1 2 3 4 5 6
+```
+
+```
+## 1
+```
+
+```
+## 2
+```
+
+```
+## 3
+```
+
+```
+## 4
+```
+
+```
+## 5
+```
+
+```
+## 6
+```
+
+```
+## 
 ```
 
 ```r
@@ -211,6 +316,103 @@ you can source the function from the
 library(DESeq2)
 ```
 
+```
+## Loading required package: S4Vectors
+```
+
+```
+## Loading required package: stats4
+```
+
+```
+## Loading required package: BiocGenerics
+```
+
+```
+## Loading required package: parallel
+```
+
+```
+## 
+## Attaching package: 'BiocGenerics'
+```
+
+```
+## The following objects are masked from 'package:parallel':
+## 
+##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+##     clusterExport, clusterMap, parApply, parCapply, parLapply,
+##     parLapplyLB, parRapply, parSapply, parSapplyLB
+```
+
+```
+## The following object is masked from 'package:limma':
+## 
+##     plotMA
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     IQR, mad, xtabs
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     anyDuplicated, append, as.data.frame, as.vector, cbind,
+##     colnames, do.call, duplicated, eval, evalq, Filter, Find, get,
+##     grep, grepl, intersect, is.unsorted, lapply, lengths, Map,
+##     mapply, match, mget, order, paste, pmax, pmax.int, pmin,
+##     pmin.int, Position, rank, rbind, Reduce, rownames, sapply,
+##     setdiff, sort, table, tapply, union, unique, unlist, unsplit
+```
+
+```
+## 
+## Attaching package: 'S4Vectors'
+```
+
+```
+## The following object is masked from 'package:base':
+## 
+##     expand.grid
+```
+
+```
+## Loading required package: IRanges
+```
+
+```
+## Loading required package: GenomicRanges
+```
+
+```
+## Loading required package: GenomeInfoDb
+```
+
+```
+## Warning: multiple methods tables found for 'relistToClass'
+
+## Warning: multiple methods tables found for 'relistToClass'
+```
+
+```
+## Loading required package: SummarizedExperiment
+```
+
+```
+## Loading required package: Biobase
+```
+
+```
+## Welcome to Bioconductor
+## 
+##     Vignettes contain introductory material; view with
+##     'browseVignettes()'. To cite Bioconductor, see
+##     'citation("Biobase")', and for packages 'citation("pkgname")'.
+```
+
 The user should make sure the rownames of `sampleTable` align with the
 colnames of `txi$counts`, if there are colnames. The best practice is
 to read `sampleTable` from a CSV file, and to construct `files` from a
@@ -236,11 +438,72 @@ dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
 # see DESeq2 vignette
 ```
 
-An example for use with limma-voom:
+An example for use with limma-voom. At the moment, limma-voom does not
+use the offset matrix stored in `y$offset`, so we recommend using
+the scaled counts generated from abundances, either `"scaledTPM"`
+or `"lengthScaledTPM"`.
 
 
 ```r
+files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
+names(files) <- paste0("sample",1:6)
+txi <- tximport(files, type="kallisto",
+                gene2tx=gene2tx, reader=read_tsv,
+                countsFromAbundance="lengthScaledTPM")
+```
+
+```
+## reading in files
+```
+
+```
+## 1
+```
+
+```
+## 2
+```
+
+```
+## 3
+```
+
+```
+## 4
+```
+
+```
+## 5
+```
+
+```
+## 6
+```
+
+```
+## 
+```
+
+```
+## transcripts missing genes: 3
+```
+
+```
+## summarizing abundance
+```
+
+```
+## summarizing counts
+```
+
+```
+## summarizing length
+```
+
+```r
 library(limma)
+y <- DGEList(txi$counts)
+y <- calcNormFactors(y)
 design <- model.matrix(~ condition, data=sampleTable)
 v <- voom(y, design)
 # v is now ready for lmFit()
@@ -255,44 +518,46 @@ sessionInfo()
 ```
 
 ```
-## R Under development (unstable) (2015-12-10 r69759)
-## Platform: x86_64-apple-darwin14.5.0 (64-bit)
-## Running under: OS X 10.10.5 (Yosemite)
+## R Under development (unstable) (2015-11-08 r69614)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## Running under: Ubuntu 15.10
 ## 
 ## locale:
-## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 ## 
 ## attached base packages:
 ## [1] parallel  stats4    stats     graphics  grDevices datasets  utils    
 ## [8] methods   base     
 ## 
 ## other attached packages:
-##  [1] DESeq2_1.11.9              RcppArmadillo_0.6.300.2.2 
-##  [3] Rcpp_0.12.2                SummarizedExperiment_1.1.9
-##  [5] Biobase_2.31.1             GenomicRanges_1.23.6      
-##  [7] GenomeInfoDb_1.7.3         IRanges_2.5.16            
-##  [9] S4Vectors_0.9.14           BiocGenerics_0.17.1       
-## [11] edgeR_3.13.4               limma_3.27.6              
-## [13] readr_0.2.2                tximport_0.0.14           
-## [15] tximportData_0.1           knitr_1.11                
-## [17] testthat_0.11.0            devtools_1.9.1            
-## [19] BiocInstaller_1.21.2      
+##  [1] DESeq2_1.11.14              SummarizedExperiment_1.1.12
+##  [3] Biobase_2.31.3              GenomicRanges_1.23.9       
+##  [5] GenomeInfoDb_1.7.3          IRanges_2.5.18             
+##  [7] S4Vectors_0.9.16            BiocGenerics_0.17.2        
+##  [9] tximport_0.0.17             edgeR_3.13.4               
+## [11] limma_3.27.7                readr_0.2.2                
+## [13] tximportData_0.1            devtools_1.9.1             
+## [15] knitr_1.12                  BiocInstaller_1.21.2       
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] genefilter_1.53.0    locfit_1.5-9.1       reshape2_1.4.1      
-##  [4] splines_3.3.0        lattice_0.20-33      colorspace_1.2-6    
-##  [7] survival_2.38-3      XML_3.98-1.3         foreign_0.8-66      
-## [10] DBI_0.3.1            BiocParallel_1.5.0   RColorBrewer_1.1-2  
-## [13] lambda.r_1.1.7       plyr_1.8.3           stringr_1.0.0       
-## [16] zlibbioc_1.17.0      munsell_0.4.2        gtable_0.1.2        
-## [19] futile.logger_1.4.1  memoise_0.2.1        evaluate_0.8        
-## [22] latticeExtra_0.6-26  geneplotter_1.49.0   AnnotationDbi_1.33.3
-## [25] proto_0.3-10         acepack_1.3-3.3      xtable_1.8-0        
-## [28] scales_0.3.0         formatR_1.2.1        Hmisc_3.17-0        
-## [31] annotate_1.49.0      XVector_0.11.1       gridExtra_2.0.0     
-## [34] ggplot2_1.0.1        digest_0.6.8         stringi_1.0-1       
-## [37] grid_3.3.0           tools_3.3.0          magrittr_1.5        
-## [40] RSQLite_1.0.0        Formula_1.2-1        cluster_2.0.3       
-## [43] futile.options_1.0.0 crayon_1.3.1         MASS_7.3-45         
-## [46] rpart_4.1-10         nnet_7.3-11          compiler_3.3.0
+##  [1] Rcpp_0.12.2          RColorBrewer_1.1-2   compiler_3.3.0      
+##  [4] formatR_1.2.1        plyr_1.8.3           XVector_0.11.1      
+##  [7] tools_3.3.0          zlibbioc_1.17.0      rpart_4.1-10        
+## [10] digest_0.6.8         RSQLite_1.0.0        annotate_1.49.0     
+## [13] evaluate_0.8         memoise_0.2.1        gtable_0.1.2        
+## [16] lattice_0.20-33      DBI_0.3.1            gridExtra_2.0.0     
+## [19] genefilter_1.53.0    cluster_2.0.3        stringr_1.0.0       
+## [22] roxygen2_5.0.1       locfit_1.5-9.1       nnet_7.3-11         
+## [25] grid_3.3.0           AnnotationDbi_1.33.4 XML_3.98-1.3        
+## [28] survival_2.38-3      BiocParallel_1.5.12  foreign_0.8-66      
+## [31] latticeExtra_0.6-26  Formula_1.2-1        geneplotter_1.49.0  
+## [34] ggplot2_2.0.0        magrittr_1.5         Hmisc_3.17-1        
+## [37] scales_0.3.0         splines_3.3.0        xtable_1.8-0        
+## [40] colorspace_1.2-6     stringi_1.0-1        acepack_1.3-3.3     
+## [43] munsell_0.4.2
 ```

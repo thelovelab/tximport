@@ -132,10 +132,20 @@ dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
 # see DESeq2 vignette
 ```
 
-An example for use with limma-voom:
+An example for use with limma-voom. At the moment, limma-voom does not
+use the offset matrix stored in `y$offset`, so we recommend using
+the scaled counts generated from abundances, either `"scaledTPM"`
+or `"lengthScaledTPM"`.
 
 ```{r}
+files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
+names(files) <- paste0("sample",1:6)
+txi <- tximport(files, type="kallisto",
+                gene2tx=gene2tx, reader=read_tsv,
+                countsFromAbundance="lengthScaledTPM")
 library(limma)
+y <- DGEList(txi$counts)
+y <- calcNormFactors(y)
 design <- model.matrix(~ condition, data=sampleTable)
 v <- voom(y, design)
 # v is now ready for lmFit()
