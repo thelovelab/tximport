@@ -3,7 +3,10 @@
 %\VignetteIndexEntry{tximport}
 -->
 
-# tximport: import and summarize transcript-level estimates for gene-level analysis
+# tximport vignette
+
+Import and summarize transcript-level abundance estimates for
+gene-level analysis.
 
 ## kallisto
 
@@ -24,16 +27,31 @@ names(files) <- paste0("sample",1:6)
 
 Transcripts need to be associated with gene IDs for summarization.
 If that information is present in the files, we can skip this step.
-But for kallisto and Salmon, the files just provide the transcript ID.
-So we first make a `data.frame` with two columns: gene ID (column 1)
-and transcript ID (column 2).
-The column names are not relevant but this column order must be used.
-This can be accomplished from a *TxDb* object and the `select` function. 
-(TODO: show example)
+But for kallisto, Salmon and Sailfish, the files only provide the transcript ID.
+We first make a `data.frame` with two columns: transcript ID (column
+1) and gene ID (column 1).
+The column names do not matter but this column order must be used.
+The transcript ID must be the same one used in the abundance/quantification
+files. There is no restriction on the gene ID.
+
+Creating this `data.frame` can be accomplished from a *TxDb* object
+and the `select` function from the *AnnotationDbi* package. The
+following code is not evaluated, but could be used to construct
+such a table:
+
+```{r, eval=FALSE}
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+k <- keys(txdb, keytype="GENEID")
+df <- select(txdb, keys=k, keytype="GENEID"), columns="TXNAME")
+tx2gene <- df[,2:1] # tx ID first
+```
+
+Here we read in a pre-constructed `tx2gene` table:
 
 ```{r}
-gene2tx <- read.csv(file.path(dir, "gene2tx.csv"))
-head(gene2tx)
+tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
+head(tx2gene)
 ```
 
 The *tximport* package has a single function for importing transcript-level estimates.
@@ -50,7 +68,7 @@ To use this, we pass the `read_tsv` function to `tximport`.
 ```{r}
 library(tximport)
 library(readr)
-txi <- tximport(files, type="kallisto", gene2tx=gene2tx, reader=read_tsv)
+txi <- tximport(files, type="kallisto", tx2gene=tx2gene, reader=read_tsv)
 names(txi)
 head(txi$counts)
 ```
@@ -74,7 +92,7 @@ Salmon or Sailfish `quant.sf` files can be imported by setting type to
 ```{r}
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
 names(files) <- paste0("sample",1:6)
-txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx, reader=read_tsv)
+txi.salmon <- tximport(files, type="salmon", tx2gene=tx2gene, reader=read_tsv)
 head(txi.salmon$counts)
 ```
 
@@ -141,7 +159,7 @@ or `"lengthScaledTPM"`.
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
 names(files) <- paste0("sample",1:6)
 txi <- tximport(files, type="kallisto",
-                gene2tx=gene2tx, reader=read_tsv,
+                tx2gene=tx2gene, reader=read_tsv,
                 countsFromAbundance="lengthScaledTPM")
 library(limma)
 y <- DGEList(txi$counts)

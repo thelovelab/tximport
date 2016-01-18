@@ -3,7 +3,10 @@
 %\VignetteIndexEntry{tximport}
 -->
 
-# tximport: import and summarize transcript-level estimates for gene-level analysis
+# tximport vignette
+
+Import and summarize transcript-level abundance estimates for
+gene-level analysis.
 
 ## kallisto
 
@@ -20,8 +23,8 @@ list.files(dir)
 ```
 
 ```
-## [1] "cufflinks"   "gene2tx.csv" "kallisto"    "rsem"        "salmon"     
-## [6] "samples.txt" "tmp"
+## [1] "cufflinks"   "kallisto"    "rsem"        "sailfish"    "salmon"     
+## [6] "samples.txt" "tmp"         "tx2gene.csv"
 ```
 
 ```r
@@ -32,27 +35,43 @@ names(files) <- paste0("sample",1:6)
 
 Transcripts need to be associated with gene IDs for summarization.
 If that information is present in the files, we can skip this step.
-But for kallisto and Salmon, the files just provide the transcript ID.
-So we first make a `data.frame` with two columns: gene ID (column 1)
-and transcript ID (column 2).
-The column names are not relevant but this column order must be used.
-This can be accomplished from a *TxDb* object and the `select` function. 
-(TODO: show example)
+But for kallisto, Salmon and Sailfish, the files only provide the transcript ID.
+We first make a `data.frame` with two columns: transcript ID (column
+1) and gene ID (column 1).
+The column names do not matter but this column order must be used.
+The transcript ID must be the same one used in the abundance/quantification
+files. There is no restriction on the gene ID.
+
+Creating this `data.frame` can be accomplished from a *TxDb* object
+and the `select` function from the *AnnotationDbi* package. The
+following code is not evaluated, but could be used to construct
+such a table:
 
 
 ```r
-gene2tx <- read.csv(file.path(dir, "gene2tx.csv"))
-head(gene2tx)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+k <- keys(txdb, keytype="GENEID")
+df <- select(txdb, keys=k, keytype="GENEID"), columns="TXNAME")
+tx2gene <- df[,2:1] # tx ID first
+```
+
+Here we read in a pre-constructed `tx2gene` table:
+
+
+```r
+tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
+head(tx2gene)
 ```
 
 ```
-##     GENEID       TXNAME
-## 1     A1BG    NM_130786
-## 2 A1BG-AS1    NR_015380
-## 3     A1CF NM_001198818
-## 4     A1CF NM_001198819
-## 5     A1CF NM_001198820
-## 6     A1CF    NM_014576
+##         TXNAME   GENEID
+## 1    NM_130786     A1BG
+## 2    NR_015380 A1BG-AS1
+## 3 NM_001198818     A1CF
+## 4 NM_001198819     A1CF
+## 5 NM_001198820     A1CF
+## 6    NM_014576     A1CF
 ```
 
 The *tximport* package has a single function for importing transcript-level estimates.
@@ -70,54 +89,15 @@ To use this, we pass the `read_tsv` function to `tximport`.
 ```r
 library(tximport)
 library(readr)
-txi <- tximport(files, type="kallisto", gene2tx=gene2tx, reader=read_tsv)
+txi <- tximport(files, type="kallisto", tx2gene=tx2gene, reader=read_tsv)
 ```
 
 ```
 ## reading in files
-```
-
-```
-## 1
-```
-
-```
-## 2
-```
-
-```
-## 3
-```
-
-```
-## 4
-```
-
-```
-## 5
-```
-
-```
-## 6
-```
-
-```
-## 
-```
-
-```
+## 1 2 3 4 5 6 
 ## transcripts missing genes: 3
-```
-
-```
 ## summarizing abundance
-```
-
-```
 ## summarizing counts
-```
-
-```
 ## summarizing length
 ```
 
@@ -136,12 +116,12 @@ head(txi$counts)
 
 ```
 ##             sample1   sample2    sample3   sample4   sample5  sample6
-## A1BG     107.612000 314.47100 109.020000 115.00000  85.87900 76.00740
-## A1BG-AS1  82.991700 137.25100 127.188000 142.94000 132.74500 91.08470
-## A1CF       9.003612  12.00968   3.005026  15.01005  24.01227 22.01550
-## A2M       24.000000   2.00000  20.000000   6.00000  38.00000  8.00000
+## A1BG     108.581000 314.42400 110.450000 116.00000  85.80300 75.91360
+## A1BG-AS1  86.163600 140.10700 129.994000 146.40800 136.92800 97.29540
+## A1CF       9.003863  12.01096   3.005232  15.01082  24.01285 22.01611
+## A2M       24.000000   2.00000  21.000000   6.00000  38.00000  8.00000
 ## A2M-AS1    1.000000   1.00000   1.000000   1.00000   0.00000  0.00000
-## A2ML1      3.013540   1.01697   3.049390   2.05004   2.02494  3.04791
+## A2ML1      3.012760   1.01650   3.049480   2.04965   2.02477  3.04483
 ```
 
 We could alternatively generate counts from abundances, 
@@ -164,54 +144,15 @@ Salmon or Sailfish `quant.sf` files can be imported by setting type to
 ```r
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
 names(files) <- paste0("sample",1:6)
-txi.salmon <- tximport(files, type="salmon", gene2tx=gene2tx, reader=read_tsv)
+txi.salmon <- tximport(files, type="salmon", tx2gene=tx2gene, reader=read_tsv)
 ```
 
 ```
 ## reading in files
-```
-
-```
-## 1
-```
-
-```
-## 2
-```
-
-```
-## 3
-```
-
-```
-## 4
-```
-
-```
-## 5
-```
-
-```
-## 6
-```
-
-```
-## 
-```
-
-```
-## transcripts missing genes: 2
-```
-
-```
+## 1 2 3 4 5 6 
+## transcripts missing genes: 3
 ## summarizing abundance
-```
-
-```
 ## summarizing counts
-```
-
-```
 ## summarizing length
 ```
 
@@ -220,13 +161,13 @@ head(txi.salmon$counts)
 ```
 
 ```
-##             sample1   sample2   sample3   sample4   sample5   sample6
-## A1BG     109.473000 317.44800 110.83600 116.35000  87.30210  76.46970
-## A1BG-AS1  81.548100 134.82700 136.27800 154.00100 137.40000 101.87300
-## A1CF       9.035861  11.05221   5.02241  14.03400  25.36073  25.07424
-## A2M       24.000000   2.00000  21.00000   6.00000  38.00000   8.00000
-## A2M-AS1    1.000000   1.00000   1.00000   1.00000   0.00000   0.00000
-## A2ML1      3.075060   1.03979   4.12350   1.07323   2.13262   6.24507
+##             sample1   sample2    sample3   sample4   sample5   sample6
+## A1BG     109.232000 316.22400 110.638000 116.00000  86.38430  76.91630
+## A1BG-AS1  83.969700 138.44900 119.274000 151.08300 123.98500 103.25100
+## A1CF       9.030691  10.01847   5.019242  13.01820  25.21914  25.07356
+## A2M       24.000000   2.00000  21.000000   6.00000  38.00000   8.00000
+## A2M-AS1    1.000000   1.00000   1.000000   1.00000   0.00000   0.00000
+## A2ML1      3.047950   1.02987   4.076160   1.04945   3.07761   5.12409
 ```
 
 ## RSEM
@@ -240,34 +181,7 @@ txi.rsem <- tximport(files, type="rsem", reader=read_tsv)
 
 ```
 ## reading in files
-```
-
-```
-## 1
-```
-
-```
-## 2
-```
-
-```
-## 3
-```
-
-```
-## 4
-```
-
-```
-## 5
-```
-
-```
-## 6
-```
-
-```
-## 
+## 1 2 3 4 5 6
 ```
 
 ```r
@@ -316,103 +230,6 @@ you can source the function from the
 library(DESeq2)
 ```
 
-```
-## Loading required package: S4Vectors
-```
-
-```
-## Loading required package: stats4
-```
-
-```
-## Loading required package: BiocGenerics
-```
-
-```
-## Loading required package: parallel
-```
-
-```
-## 
-## Attaching package: 'BiocGenerics'
-```
-
-```
-## The following objects are masked from 'package:parallel':
-## 
-##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
-##     clusterExport, clusterMap, parApply, parCapply, parLapply,
-##     parLapplyLB, parRapply, parSapply, parSapplyLB
-```
-
-```
-## The following object is masked from 'package:limma':
-## 
-##     plotMA
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     IQR, mad, xtabs
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     anyDuplicated, append, as.data.frame, as.vector, cbind,
-##     colnames, do.call, duplicated, eval, evalq, Filter, Find, get,
-##     grep, grepl, intersect, is.unsorted, lapply, lengths, Map,
-##     mapply, match, mget, order, paste, pmax, pmax.int, pmin,
-##     pmin.int, Position, rank, rbind, Reduce, rownames, sapply,
-##     setdiff, sort, table, tapply, union, unique, unlist, unsplit
-```
-
-```
-## 
-## Attaching package: 'S4Vectors'
-```
-
-```
-## The following object is masked from 'package:base':
-## 
-##     expand.grid
-```
-
-```
-## Loading required package: IRanges
-```
-
-```
-## Loading required package: GenomicRanges
-```
-
-```
-## Loading required package: GenomeInfoDb
-```
-
-```
-## Warning: multiple methods tables found for 'relistToClass'
-
-## Warning: multiple methods tables found for 'relistToClass'
-```
-
-```
-## Loading required package: SummarizedExperiment
-```
-
-```
-## Loading required package: Biobase
-```
-
-```
-## Welcome to Bioconductor
-## 
-##     Vignettes contain introductory material; view with
-##     'browseVignettes()'. To cite Bioconductor, see
-##     'citation("Biobase")', and for packages 'citation("pkgname")'.
-```
-
 The user should make sure the rownames of `sampleTable` align with the
 colnames of `txi$counts`, if there are colnames. The best practice is
 to read `sampleTable` from a CSV file, and to construct `files` from a
@@ -448,55 +265,16 @@ or `"lengthScaledTPM"`.
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
 names(files) <- paste0("sample",1:6)
 txi <- tximport(files, type="kallisto",
-                gene2tx=gene2tx, reader=read_tsv,
+                tx2gene=tx2gene, reader=read_tsv,
                 countsFromAbundance="lengthScaledTPM")
 ```
 
 ```
 ## reading in files
-```
-
-```
-## 1
-```
-
-```
-## 2
-```
-
-```
-## 3
-```
-
-```
-## 4
-```
-
-```
-## 5
-```
-
-```
-## 6
-```
-
-```
-## 
-```
-
-```
+## 1 2 3 4 5 6 
 ## transcripts missing genes: 3
-```
-
-```
 ## summarizing abundance
-```
-
-```
 ## summarizing counts
-```
-
-```
 ## summarizing length
 ```
 
@@ -518,46 +296,68 @@ sessionInfo()
 ```
 
 ```
-## R Under development (unstable) (2015-11-08 r69614)
-## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Ubuntu 15.10
+## R Under development (unstable) (2015-12-10 r69759)
+## Platform: x86_64-apple-darwin14.5.0 (64-bit)
+## Running under: OS X 10.10.5 (Yosemite)
 ## 
 ## locale:
-##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
-##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
-##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
-##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
-##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
 ## 
 ## attached base packages:
 ## [1] parallel  stats4    stats     graphics  grDevices datasets  utils    
 ## [8] methods   base     
 ## 
 ## other attached packages:
-##  [1] DESeq2_1.11.14              SummarizedExperiment_1.1.12
-##  [3] Biobase_2.31.3              GenomicRanges_1.23.9       
-##  [5] GenomeInfoDb_1.7.3          IRanges_2.5.18             
-##  [7] S4Vectors_0.9.16            BiocGenerics_0.17.2        
-##  [9] tximport_0.0.17             edgeR_3.13.4               
-## [11] limma_3.27.7                readr_0.2.2                
-## [13] tximportData_0.1            devtools_1.9.1             
-## [15] knitr_1.12                  BiocInstaller_1.21.2       
+##  [1] TxDb.Hsapiens.UCSC.hg19.knownGene_3.2.2
+##  [2] GenomicFeatures_1.23.17                
+##  [3] AnnotationDbi_1.33.3                   
+##  [4] tximport_0.0.18                        
+##  [5] DESeq2_1.11.9                          
+##  [6] RcppArmadillo_0.6.300.2.2              
+##  [7] Rcpp_0.12.2                            
+##  [8] SummarizedExperiment_1.1.9             
+##  [9] Biobase_2.31.1                         
+## [10] GenomicRanges_1.23.11                  
+## [11] GenomeInfoDb_1.7.3                     
+## [12] IRanges_2.5.20                         
+## [13] S4Vectors_0.9.20                       
+## [14] BiocGenerics_0.17.1                    
+## [15] edgeR_3.13.4                           
+## [16] limma_3.27.6                           
+## [17] readr_0.2.2                            
+## [18] tximportData_0.1.1                     
+## [19] knitr_1.11                             
+## [20] testthat_0.11.0                        
+## [21] devtools_1.9.1                         
+## [22] BiocInstaller_1.21.2                   
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.2          RColorBrewer_1.1-2   compiler_3.3.0      
-##  [4] formatR_1.2.1        plyr_1.8.3           XVector_0.11.1      
-##  [7] tools_3.3.0          zlibbioc_1.17.0      rpart_4.1-10        
-## [10] digest_0.6.8         RSQLite_1.0.0        annotate_1.49.0     
-## [13] evaluate_0.8         memoise_0.2.1        gtable_0.1.2        
-## [16] lattice_0.20-33      DBI_0.3.1            gridExtra_2.0.0     
-## [19] genefilter_1.53.0    cluster_2.0.3        stringr_1.0.0       
-## [22] roxygen2_5.0.1       locfit_1.5-9.1       nnet_7.3-11         
-## [25] grid_3.3.0           AnnotationDbi_1.33.4 XML_3.98-1.3        
-## [28] survival_2.38-3      BiocParallel_1.5.12  foreign_0.8-66      
-## [31] latticeExtra_0.6-26  Formula_1.2-1        geneplotter_1.49.0  
-## [34] ggplot2_2.0.0        magrittr_1.5         Hmisc_3.17-1        
-## [37] scales_0.3.0         splines_3.3.0        xtable_1.8-0        
-## [40] colorspace_1.2-6     stringi_1.0-1        acepack_1.3-3.3     
-## [43] munsell_0.4.2
+##  [1] locfit_1.5-9.1           lattice_0.20-33         
+##  [3] Rsamtools_1.23.2         Biostrings_2.39.6       
+##  [5] digest_0.6.8             plyr_1.8.3              
+##  [7] futile.options_1.0.0     acepack_1.3-3.3         
+##  [9] RSQLite_1.0.0            evaluate_0.8            
+## [11] ggplot2_1.0.1            zlibbioc_1.17.0         
+## [13] annotate_1.49.0          rpart_4.1-10            
+## [15] proto_0.3-10             splines_3.3.0           
+## [17] BiocParallel_1.5.0       geneplotter_1.49.0      
+## [19] stringr_1.0.0            foreign_0.8-66          
+## [21] biomaRt_2.27.2           RCurl_1.95-4.7          
+## [23] munsell_0.4.2            rtracklayer_1.31.3      
+## [25] compiler_3.3.0           nnet_7.3-11             
+## [27] gridExtra_2.0.0          Hmisc_3.17-0            
+## [29] XML_3.98-1.3             crayon_1.3.1            
+## [31] GenomicAlignments_1.7.12 MASS_7.3-45             
+## [33] bitops_1.0-6             grid_3.3.0              
+## [35] xtable_1.8-0             gtable_0.1.2            
+## [37] DBI_0.3.1                magrittr_1.5            
+## [39] formatR_1.2.1            scales_0.3.0            
+## [41] stringi_1.0-1            XVector_0.11.1          
+## [43] reshape2_1.4.1           genefilter_1.53.0       
+## [45] latticeExtra_0.6-26      futile.logger_1.4.1     
+## [47] Formula_1.2-1            lambda.r_1.1.7          
+## [49] RColorBrewer_1.1-2       tools_3.3.0             
+## [51] markdown_0.7.7           survival_2.38-3         
+## [53] colorspace_1.2-6         cluster_2.0.3           
+## [55] memoise_0.2.1
 ```

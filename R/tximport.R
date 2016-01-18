@@ -13,10 +13,11 @@
 #' the library size (lengthScaledTPM). if using scaledTPM or lengthScaledTPM, 
 #' then the counts are no longer correlated with average transcript length,
 #' and so the length offset matrix should not be used.
-#' @param gene2tx a two-column data.frame linking gene id (column 1) and transcript id (column 2).
+#' @param tx2gene a two-column data.frame linking transcript id (column 1) to gene id (column 2).
 #' the column names are not relevant, but this column order must be used. 
-#' this is necessary for software which does not provide such information in the file
-#' (kallisto and Salmon)
+#' this argument is required for gene-level summarization for methods
+#' that provides transcript-level estimates only
+#' (kallisto, Salmon, Sailfish)
 #' @param reader a function to replace read.delim in the pre-set importer functions,
 #' for example substituting read_tsv from the readr package will substantially 
 #' speed up tximport
@@ -46,7 +47,7 @@ tximport <- function(files,
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
-                     gene2tx=NULL,
+                     tx2gene=NULL,
                      reader=read.delim,
                      geneIdCol,
                      txIdCol,
@@ -120,8 +121,8 @@ tximport <- function(files,
       }
       #####################################################################
       
-      # does the table contain gene association or was an external gene2tx table provided?
-      if (is.null(gene2tx) & !txOut) {
+      # does the table contain gene association or was an external tx2gene table provided?
+      if (is.null(tx2gene) & !txOut) {
         # e.g. Cufflinks includes the gene ID in the table
         stopifnot(all(c(geneIdCol, lengthCol, abundanceCol) %in% names(raw)))
         if (i == 1) {
@@ -161,24 +162,24 @@ tximport <- function(files,
     
     # need to associate tx to genes
     # potentially remove unassociated transcript rows and warn user
-    if (!is.null(gene2tx)) {
-      colnames(gene2tx) <- c("gene","tx")
+    if (!is.null(tx2gene)) {
+      colnames(tx2gene) <- c("tx","gene")
       if (ignoreTxVersion) {
         txId <- sapply(strsplit(as.character(txId), "\\."), "[[", 1)
       }
-      gene2tx$gene <- factor(gene2tx$gene)
-      gene2tx$tx <- factor(gene2tx$tx)
+      tx2gene$gene <- factor(tx2gene$gene)
+      tx2gene$tx <- factor(tx2gene$tx)
       # remove transcripts (and genes) not in the abundances
-      gene2tx <- gene2tx[gene2tx$tx %in% txId,]
-      gene2tx$gene <- droplevels(gene2tx$gene)
-      ntxmissing <- sum(!txId %in% gene2tx$tx)
+      tx2gene <- tx2gene[tx2gene$tx %in% txId,]
+      tx2gene$gene <- droplevels(tx2gene$gene)
+      ntxmissing <- sum(!txId %in% tx2gene$tx)
       if (ntxmissing > 0) message("transcripts missing genes: ", ntxmissing)
-      sub.idx <- txId %in% gene2tx$tx
+      sub.idx <- txId %in% tx2gene$tx
       abundanceMatTx <- abundanceMatTx[sub.idx,,drop=FALSE]
       countsMatTx <- countsMatTx[sub.idx,,drop=FALSE]
       lengthMatTx <- lengthMatTx[sub.idx,,drop=FALSE]
       txId <- txId[sub.idx]
-      geneId <- gene2tx$gene[match(txId, gene2tx$tx)]
+      geneId <- tx2gene$gene[match(txId, tx2gene$tx)]
     }
     
     # summarize abundance and counts

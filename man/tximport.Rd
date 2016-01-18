@@ -6,7 +6,7 @@
 \usage{
 tximport(files, type = c("none", "kallisto", "salmon", "sailfish", "rsem"),
   txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no", "scaledTPM",
-  "lengthScaledTPM"), gene2tx = NULL, reader = read.delim, geneIdCol,
+  "lengthScaledTPM"), tx2gene = NULL, reader = read.delim, geneIdCol,
   txIdCol, abundanceCol, countsCol, lengthCol, importer, collatedFiles,
   ignoreTxVersion = FALSE)
 }
@@ -29,10 +29,11 @@ the library size (lengthScaledTPM). if using scaledTPM or lengthScaledTPM,
 then the counts are no longer correlated with average transcript length,
 and so the length offset matrix should not be used.}
 
-\item{gene2tx}{a two-column data.frame linking gene id (column 1) and transcript id (column 2).
+\item{tx2gene}{a two-column data.frame linking transcript id (column 1) to gene id (column 2).
 the column names are not relevant, but this column order must be used. 
-this is necessary for software which does not provide such information in the file
-(kallisto and Salmon)}
+this argument is required for gene-level summarization for methods
+that provides transcript-level estimates only
+(kallisto, Salmon, Sailfish)}
 
 \item{reader}{a function to replace read.delim in the pre-set importer functions,
 for example substituting read_tsv from the readr package will substantially 
