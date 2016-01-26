@@ -19,7 +19,9 @@ First, read in some kallisto example files:
 library(tximportData)
 dir <- system.file("extdata", package="tximportData")
 list.files(dir)
+```
 
+```{r}
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
 names(files) <- paste0("sample",1:6)
@@ -44,7 +46,7 @@ library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
 k <- keys(txdb, keytype="GENEID")
 df <- select(txdb, keys=k, keytype="GENEID"), columns="TXNAME")
-tx2gene <- df[,2:1] # tx ID first
+tx2gene <- df[,2:1] # tx ID, then gene ID
 ```
 
 Here we read in a pre-constructed `tx2gene` table:
@@ -83,6 +85,19 @@ with length, and so the length matrix does not need to be provided as an offset
 for downstream analysis packages.
 
 We can avoid gene-level summarization by setting `txOut=TRUE`.
+
+```{r}
+txi.tx <- tximport(files, type="kallisto", txOut=TRUE, tx2gene=tx2gene, reader=read_tsv)
+```
+
+These can then be summarized after the fact using the function
+`summarizeToGene`, which gives the same matrices as using
+`txOut=FALSE` in the first `tximport` call.
+
+```{r}
+txi.sum <- summarizeToGene(txi.tx, tx2gene)
+all.equal(txi$counts, txi.sum$counts)
+```
 
 ## Salmon / Sailfish
 

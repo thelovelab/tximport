@@ -33,6 +33,8 @@
 #' @param ignoreTxVersion logical, whether to split the tx id on the '.' character
 #' to remove version information, for easier matching with the tx id in gene2tx
 #' (default FALSE)
+#' @param txi list of matrices of trancript-level abundances, counts, and
+#' lengths produced by tximport(), only used by summarizeToGene()
 #' 
 #' @return a simple list with matrices: abundance, counts, length.
 #' A final element 'countsFromAbundance' carries through
@@ -153,78 +155,18 @@ tximport <- function(files,
       lengthMatTx[,i] <- raw[[lengthCol]]
     }
     message("")
-    
+
+    txi <- list(abundance=abundanceMatTx, counts=countsMatTx, length=lengthMatTx,
+                countsFromAbundance="no")
+
     # if the user requested just the transcript-level data:
     if (txOut) {
-      return(list(abundance=abundanceMatTx, counts=countsMatTx, length=lengthMatTx,
-                  countsFromAbundance="no"))
+      return(txi)
     }
-    
-    # need to associate tx to genes
-    # potentially remove unassociated transcript rows and warn user
-    if (!is.null(tx2gene)) {
-      colnames(tx2gene) <- c("tx","gene")
-      if (ignoreTxVersion) {
-        txId <- sapply(strsplit(as.character(txId), "\\."), "[[", 1)
-      }
-      tx2gene$gene <- factor(tx2gene$gene)
-      tx2gene$tx <- factor(tx2gene$tx)
-      # remove transcripts (and genes) not in the abundances
-      tx2gene <- tx2gene[tx2gene$tx %in% txId,]
-      tx2gene$gene <- droplevels(tx2gene$gene)
-      ntxmissing <- sum(!txId %in% tx2gene$tx)
-      if (ntxmissing > 0) message("transcripts missing genes: ", ntxmissing)
-      sub.idx <- txId %in% tx2gene$tx
-      abundanceMatTx <- abundanceMatTx[sub.idx,,drop=FALSE]
-      countsMatTx <- countsMatTx[sub.idx,,drop=FALSE]
-      lengthMatTx <- lengthMatTx[sub.idx,,drop=FALSE]
-      txId <- txId[sub.idx]
-      geneId <- tx2gene$gene[match(txId, tx2gene$tx)]
-    }
-    
-    # summarize abundance and counts
-    message("summarizing abundance")
-    abundanceMat <- fastby(abundanceMatTx, geneId, colSums)
-    message("summarizing counts")
-    countsMat <- fastby(countsMatTx, geneId, colSums)
-    message("summarizing length")
-    
-    # the next lines calculate a weighted average of transcript length, 
-    # weighting by transcript abundance.
-    # this can be used as an offset / normalization factor which removes length bias
-    # for the differential analysis of estimated counts summarized at the gene level.
-    weightedLength <- fastby(abundanceMatTx * lengthMatTx, geneId, colSums)
-    lengthMat <- weightedLength / abundanceMat   
 
-    # pre-calculate a simple average transcript length
-    # for the case the abundances are all zero for all samples.
-    # first, average the tx lengths over samples
-    aveLengthSamp <- rowMeans(lengthMatTx)
-    # then simple average of lengths within genes (not weighted by abundance)
-    aveLengthSampGene <- tapply(aveLengthSamp, geneId, mean)
-
-    stopifnot(all(names(aveLengthSampGene) == rownames(lengthMat)))
-    
-    # check for NaN and if possible replace these values with geometric mean of other samples.
-    # (the geometic mean here implies an offset of 0 on the log scale)
-    # NaN come from samples which have abundance of 0 for all isoforms of a gene, and 
-    # so we cannot calculate the weighted average. our best guess is to use the average
-    # transcript length from the other samples.
-    lengthMat <- replaceMissingLength(lengthMat, aveLengthSampGene)
-    
-    if (countsFromAbundance != "no") {
-      countsSum <- colSums(countsMat)
-      if (countsFromAbundance == "lengthScaledTPM") {
-        newCounts <- abundanceMat * rowMeans(lengthMat)
-      } else {
-        newCounts <- abundanceMat
-      }
-      newSum <- colSums(newCounts)
-      countsMat <- t(t(newCounts) * (countsSum/newSum))
-    }
-    
-    return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
-                countsFromAbundance=countsFromAbundance))
+    txi[["countsFromAbundance"]] <- NULL
+    txiGene <- summarizeToGene(txi, tx2gene, ignoreTxVersion, countsFromAbundance)
+    return(txiGene)  
     
   # e.g. RSEM already has gene-level summaries
   # just combine the gene-level summaries across files
@@ -253,6 +195,96 @@ tximport <- function(files,
   message("")
   return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
               countsFromAbundance="no"))
+}
+
+# summarizeToGene() splits out the summarization functions
+# in tximport(), so it can be called by users to summarize
+# transcript-level lists of matrices
+
+#' @describeIn tximport Summarize tx-level matrices to gene-level
+#' @export
+summarizeToGene <- function(txi,
+                            tx2gene,
+                            ignoreTxVersion=FALSE,
+                            countsFromAbundance=c("no","scaledTPM","lengthScaledTPM")
+                            ) {
+
+  countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
+
+  # unpack matrices from list for cleaner code
+  abundanceMatTx <- txi$abundance
+  countsMatTx <- txi$counts
+  lengthMatTx <- txi$length
+  
+  txId <- rownames(abundanceMatTx)
+  stopifnot(all(txId == rownames(countsMatTx)))
+  stopifnot(all(txId == rownames(lengthMatTx)))
+  
+  # need to associate tx to genes
+  # potentially remove unassociated transcript rows and warn user
+  if (!is.null(tx2gene)) {
+    colnames(tx2gene) <- c("tx","gene")
+    if (ignoreTxVersion) {
+      txId <- sapply(strsplit(as.character(txId), "\\."), "[[", 1)
+    }
+    tx2gene$gene <- factor(tx2gene$gene)
+    tx2gene$tx <- factor(tx2gene$tx)
+    # remove transcripts (and genes) not in the abundances
+    tx2gene <- tx2gene[tx2gene$tx %in% txId,]
+    tx2gene$gene <- droplevels(tx2gene$gene)
+    ntxmissing <- sum(!txId %in% tx2gene$tx)
+    if (ntxmissing > 0) message("transcripts missing genes: ", ntxmissing)
+    sub.idx <- txId %in% tx2gene$tx
+    abundanceMatTx <- abundanceMatTx[sub.idx,,drop=FALSE]
+    countsMatTx <- countsMatTx[sub.idx,,drop=FALSE]
+    lengthMatTx <- lengthMatTx[sub.idx,,drop=FALSE]
+    txId <- txId[sub.idx]
+    geneId <- tx2gene$gene[match(txId, tx2gene$tx)]
+  }
+  
+  # summarize abundance and counts
+  message("summarizing abundance")
+  abundanceMat <- fastby(abundanceMatTx, geneId, colSums)
+  message("summarizing counts")
+  countsMat <- fastby(countsMatTx, geneId, colSums)
+  message("summarizing length")
+  
+  # the next lines calculate a weighted average of transcript length, 
+  # weighting by transcript abundance.
+  # this can be used as an offset / normalization factor which removes length bias
+  # for the differential analysis of estimated counts summarized at the gene level.
+  weightedLength <- fastby(abundanceMatTx * lengthMatTx, geneId, colSums)
+  lengthMat <- weightedLength / abundanceMat   
+
+  # pre-calculate a simple average transcript length
+  # for the case the abundances are all zero for all samples.
+  # first, average the tx lengths over samples
+  aveLengthSamp <- rowMeans(lengthMatTx)
+  # then simple average of lengths within genes (not weighted by abundance)
+  aveLengthSampGene <- tapply(aveLengthSamp, geneId, mean)
+
+  stopifnot(all(names(aveLengthSampGene) == rownames(lengthMat)))
+  
+  # check for NaN and if possible replace these values with geometric mean of other samples.
+  # (the geometic mean here implies an offset of 0 on the log scale)
+  # NaN come from samples which have abundance of 0 for all isoforms of a gene, and 
+  # so we cannot calculate the weighted average. our best guess is to use the average
+  # transcript length from the other samples.
+  lengthMat <- replaceMissingLength(lengthMat, aveLengthSampGene)
+  
+  if (countsFromAbundance != "no") {
+    countsSum <- colSums(countsMat)
+    if (countsFromAbundance == "lengthScaledTPM") {
+      newCounts <- abundanceMat * rowMeans(lengthMat)
+    } else {
+        newCounts <- abundanceMat
+      }
+    newSum <- colSums(newCounts)
+    countsMat <- t(t(newCounts) * (countsSum/newSum))
+  }
+  
+  return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
+              countsFromAbundance=countsFromAbundance))
 }
 
 # this is much faster than by(), a bit slower than dplyr summarize_each()
