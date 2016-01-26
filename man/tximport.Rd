@@ -64,7 +64,7 @@ to remove version information, for easier matching with the tx id in gene2tx
 (default FALSE)}
 
 \item{txi}{list of matrices of trancript-level abundances, counts, and
-lengths produced by tximport(), only used by summarizeToGene()}
+lengths produced by \code{tximport}, only used by \code{summarizeToGene}}
 }
 \value{
 a simple list with matrices: abundance, counts, length.
@@ -75,7 +75,14 @@ gene which can be used as an offset for gene-level analysis.
 Note: tximport does not import bootstrap estimates from kallisto, Salmon, or Sailfish.
 }
 \description{
-Import transcript-level abundances and estimated counts for gene-level analysis packages
+\code{tximport} helps to import transcript-level estimates from various
+external software and can summarize abundances, counts, and transcript lengths
+to the gene-level (default) or output transcript-level (see \code{txOut} argument).
+}
+\details{
+\code{summarizeToGene} can be used to summarize a list of transcript-level
+matrices produced by \code{tximport} to the gene level. This is equivalent
+to \code{tximport} with \code{txOut=FALSE}.
 }
 \section{Functions}{
 \itemize{

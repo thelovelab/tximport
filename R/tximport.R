@@ -1,4 +1,12 @@
 #' Import transcript-level abundances and estimated counts for gene-level analysis packages
+#'
+#' \code{tximport} helps to import transcript-level estimates from various
+#' external software and can summarize abundances, counts, and transcript lengths
+#' to the gene-level (default) or output transcript-level (see \code{txOut} argument).
+#'
+#' \code{summarizeToGene} can be used to summarize a list of transcript-level
+#' matrices produced by \code{tximport} to the gene level. This is equivalent
+#' to \code{tximport} with \code{txOut=FALSE}.
 #' 
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
@@ -34,7 +42,7 @@
 #' to remove version information, for easier matching with the tx id in gene2tx
 #' (default FALSE)
 #' @param txi list of matrices of trancript-level abundances, counts, and
-#' lengths produced by tximport(), only used by summarizeToGene()
+#' lengths produced by \code{tximport}, only used by \code{summarizeToGene}
 #' 
 #' @return a simple list with matrices: abundance, counts, length.
 #' A final element 'countsFromAbundance' carries through
