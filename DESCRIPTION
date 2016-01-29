@@ -20,4 +20,4 @@ Suggests:
     edgeR,
     DESeq2 (>= 1.11.6)
 RoxygenNote: 5.0.1
-biocViews: RNASeq, Transcription, GeneExpression, DataImport
+
