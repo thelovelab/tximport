@@ -88,4 +88,22 @@ to \code{tximport} with \code{txOut=FALSE}.
 \itemize{
 \item \code{summarizeToGene}: Summarize tx-level matrices to gene-level
 }}
+\examples{
+
+# load data for demonstrating tximport
+# note that the vignette shows more examples
+# including how to read in files quickly using the readr package
+
+library(tximportData)
+dir <- system.file("extdata", package="tximportData")
+samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
+files <- file.path(dir,"salmon", samples$run, "quant.sf")
+names(files) <- paste0("sample",1:6)
+
+# tx2gene links transcript IDs to gene IDs for summarization
+tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
+
+txi <- tximport(files, type="salmon", tx2gene=tx2gene)
+
+}
 
