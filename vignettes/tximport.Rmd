@@ -8,6 +8,10 @@
 Import and summarize transcript-level abundance estimates for
 gene-level analysis.
 
+```{r, echo=FALSE}
+opts_chunk$set(tidy=TRUE, message=FALSE)
+```
+
 ## kallisto
 
 We start with some kallisto TSV files containing transcript
@@ -45,7 +49,7 @@ such a table:
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
 k <- keys(txdb, keytype="GENEID")
-df <- select(txdb, keys=k, keytype="GENEID"), columns="TXNAME")
+df <- select(txdb, keys=k, keytype="GENEID", columns="TXNAME")
 tx2gene <- df[,2:1] # tx ID, then gene ID
 ```
 
@@ -122,6 +126,18 @@ head(txi.rsem$counts)
 
 ## Import with edgeR, DESeq2, limma-voom
 
+**Note**: there are two suggested ways of importing estimates
+for use with gene-level differential expression methods. The first method,
+which we show below for *edgeR* and for *DESeq2*, is to use the
+estimated counts from the quantification tools, and additionally to use the
+transcript-level abundance estimates to calculate an offset that
+corrects for changes to the average transcript length across samples.
+The code examples below accomplish these steps for you.
+The second method is to use the *tximport* argument
+`countsFromAbundance="lengthScaledTPM"` or `"scaledTPM"`,
+and then to use the count matrix `txi$counts` directly
+as you would a regular count matrix with these software.
+
 An example of creating a `DGEList` for use with edgeR:
 
 ```{r, results="hide", messages=FALSE}
@@ -168,7 +184,7 @@ dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
 An example for use with limma-voom. At the moment, limma-voom does not
 use the offset matrix stored in `y$offset`, so we recommend using
 the scaled counts generated from abundances, either `"scaledTPM"`
-or `"lengthScaledTPM"`.
+or `"lengthScaledTPM"`:
 
 ```{r}
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
