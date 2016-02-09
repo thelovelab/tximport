@@ -2,3 +2,4 @@
 
 export(summarizeToGene)
 export(tximport)
+importFrom(utils,read.delim)

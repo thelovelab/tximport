@@ -7,6 +7,9 @@
 #' \code{summarizeToGene} can be used to summarize a list of transcript-level
 #' matrices produced by \code{tximport} to the gene level. This is equivalent
 #' to \code{tximport} with \code{txOut=FALSE}.
+#'
+#' The last known supported versions of the external quantifiers are:
+#' kallisto 0.42.4, Salmon 0.6.0, Sailfish 0.9.0, RSEM 1.2.11.
 #' 
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
@@ -67,7 +70,8 @@
 #' tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
 #'
 #' txi <- tximport(files, type="salmon", tx2gene=tx2gene)
-#' 
+#'
+#' @importFrom utils read.delim
 #' @export
 tximport <- function(files,
                      type=c("none","kallisto","salmon","sailfish","rsem"),
@@ -88,6 +92,7 @@ tximport <- function(files,
   type <- match.arg(type, c("none","kallisto","salmon","sailfish","rsem"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
   stopifnot(all(file.exists(files)))
+  if (!txIn & txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
   
   # kallisto presets
   if (type == "kallisto") {
@@ -196,8 +201,6 @@ tximport <- function(files,
   # e.g. RSEM already has gene-level summaries
   # just combine the gene-level summaries across files
   } else {
-    # stating the obvious:
-    if (txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
   
     message("reading in files")
     for (i in seq_along(files)) {
@@ -269,16 +272,16 @@ summarizeToGene <- function(txi,
   
   # summarize abundance and counts
   message("summarizing abundance")
-  abundanceMat <- fastby(abundanceMatTx, geneId, colSums)
+  abundanceMat <- rowsum(abundanceMatTx, geneId)
   message("summarizing counts")
-  countsMat <- fastby(countsMatTx, geneId, colSums)
+  countsMat <- rowsum(countsMatTx, geneId)
   message("summarizing length")
   
   # the next lines calculate a weighted average of transcript length, 
   # weighting by transcript abundance.
   # this can be used as an offset / normalization factor which removes length bias
   # for the differential analysis of estimated counts summarized at the gene level.
-  weightedLength <- fastby(abundanceMatTx * lengthMatTx, geneId, colSums)
+  weightedLength <- rowsum(abundanceMatTx * lengthMatTx, geneId)
   lengthMat <- weightedLength / abundanceMat   
 
   # pre-calculate a simple average transcript length
@@ -312,17 +315,6 @@ summarizeToGene <- function(txi,
               countsFromAbundance=countsFromAbundance))
 }
 
-# this is much faster than by(), a bit slower than dplyr summarize_each()
-fastby <- function(m, f, fun) {
-  idx <- split(1:nrow(m), f)
-  if (ncol(m) > 1) {
-    t(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
-  } else {
-    matrix(sapply(idx, function(i) fun(m[i,,drop=FALSE])),
-           dimnames=list(levels(f), colnames(m)))
-  }
-}
-
 # function for replacing missing average transcript length values
 replaceMissingLength <- function(lengthMat, aveLengthSampGene) {
   nanRows <- which(apply(lengthMat, 1, function(row) any(is.nan(row))))
@@ -340,3 +332,15 @@ replaceMissingLength <- function(lengthMat, aveLengthSampGene) {
   }
   lengthMat
 }
+
+# this is much faster than by(), a bit slower than dplyr summarize_each()
+## fastby <- function(m, f, fun) {
+##   idx <- split(1:nrow(m), f)
+##   if (ncol(m) > 1) {
+##     t(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
+##   } else {
+##     matrix(vapply(idx, function(i) fun(m[i,,drop=FALSE], FUN.VALUE=numeric(ncol(m)))),
+##            dimnames=list(levels(f), colnames(m)))
+##   }
+## }
+

@@ -83,6 +83,9 @@ to the gene-level (default) or output transcript-level (see \code{txOut} argumen
 \code{summarizeToGene} can be used to summarize a list of transcript-level
 matrices produced by \code{tximport} to the gene level. This is equivalent
 to \code{tximport} with \code{txOut=FALSE}.
+
+The last known supported versions of the external quantifiers are:
+kallisto 0.42.4, Salmon 0.6.0, Sailfish 0.9.0, RSEM 1.2.11.
 }
 \section{Functions}{
 \itemize{

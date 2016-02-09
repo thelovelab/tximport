@@ -9,15 +9,19 @@ Import and summarize transcript-level abundance estimates for
 gene-level analysis.
 
 ```{r, echo=FALSE}
+library(knitr)
 opts_chunk$set(tidy=TRUE, message=FALSE)
 ```
 
 ## kallisto
 
-We start with some kallisto TSV files containing transcript
-abundance estimates. The pipeline will be nearly
-identical for other quantitation tools, which are shown below.
-First, read in some kallisto example files:
+We begin by locating some prepared kallisto TSV files that contain
+transcript abundance estimates for six samples, from the
+*tximportData* package.  The *tximport* pipeline will be nearly
+identical for other quantitation tools, which are shown below.  First,
+we locate the directory containing the files. (Here we use
+`system.file` to locate the package directory, but for a typical use,
+we would just provide a path, e.g. `"/path/to/dir"`.)
 
 ```{r}
 library(tximportData)
@@ -25,27 +29,32 @@ dir <- system.file("extdata", package="tximportData")
 list.files(dir)
 ```
 
+Next, we create a named vector pointing to the kallisto files. We will
+create a vector of filenames first by reading in a table that contains
+the sample IDs, and then combining this with `dir` and
+`"abundance.tsv"`.
+
 ```{r}
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
-files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
+samples
+files <- file.path(dir, "kallisto", samples$run, "abundance.tsv")
 names(files) <- paste0("sample",1:6)
+all(file.exists(files))
 ```
 
-Transcripts need to be associated with gene IDs for summarization.
-If that information is present in the files, we can skip this step.
-But for kallisto, Salmon and Sailfish, the files only provide the transcript ID.
-We first make a `data.frame` with two columns: transcript ID (column
-1) and gene ID (column 1).
-The column names do not matter but this column order must be used.
-The transcript ID must be the same one used in the abundance/quantification
-files. There is no restriction on the gene ID.
+Transcripts need to be associated with gene IDs for gene-level
+summarization.  If that information is present in the files, we can
+skip this step.  But for kallisto, Salmon and Sailfish, the files only
+provide the transcript ID.  We first make a `data.frame` with two
+columns: 1) transcript ID and 2) gene ID.  The column names do not
+matter but this column order must be used.  The transcript ID must be
+the same one used in the abundance files. 
 
 Creating this `data.frame` can be accomplished from a *TxDb* object
 and the `select` function from the *AnnotationDbi* package. The
-following code is not evaluated, but could be used to construct
-such a table:
+following code could be used to construct such a table:
 
-```{r, eval=FALSE}
+```{r}
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
 k <- keys(txdb, keytype="GENEID")
@@ -60,12 +69,15 @@ tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
 head(tx2gene)
 ```
 
-The *tximport* package has a single function for importing transcript-level estimates.
-The `type` argument is used to specify what software was used for estimation
-("kallisto", "salmon", "rsem" implemented so far).
-A simple list with matrices, "abundance", "counts", and "length", is returned.
-The "length" matrix can be used to generate an offset matrix for downstream
-gene-level differential analysis of count matrices.
+The *tximport* package has a single function for importing
+transcript-level estimates.  The `type` argument is used to specify
+what software was used for estimation ("kallisto", "salmon",
+"sailfish", and "rsem" are implemented).  A simple list with
+matrices, "abundance", "counts", and "length", is returned, where the
+transcript level information is summarized to the gene-level.  The
+"length" matrix can be used to generate an offset matrix for
+downstream gene-level differential analysis of count matrices, as
+shown below.
 
 While *tximport* works without any dependencies, it is much faster to
 read in files using the *readr* package (version >= 0.2.2).
@@ -79,24 +91,25 @@ names(txi)
 head(txi$counts)
 ```
 
-We could alternatively generate counts from abundances, 
-using the argument `countsFromAbundance`,
-scaled to library size (`"scaledTPM"`) or additionally scaled 
-using the average transcript length,
-averaged over samples and to library size (`"lengthScaledTPM"`). 
-Using either of these approaches, the counts are not correlated 
-with length, and so the length matrix does not need to be provided as an offset
-for downstream analysis packages.
+We could alternatively generate counts from abundances, using the
+argument `countsFromAbundance`, scaled to library size, `"scaledTPM"`,
+or additionally scaled using the average transcript length, averaged
+over samples and to library size, `"lengthScaledTPM"`.  Using either
+of these approaches, the counts are not correlated with length, and so
+the length matrix should not be provided as an offset for
+downstream analysis packages. For more details on these approaches,
+see the article listed under `citation("tximport")`.
 
-We can avoid gene-level summarization by setting `txOut=TRUE`.
+We can avoid gene-level summarization by setting `txOut=TRUE`, giving
+the original transcript level estimates as a list of matrices.
 
 ```{r}
 txi.tx <- tximport(files, type="kallisto", txOut=TRUE, tx2gene=tx2gene, reader=read_tsv)
 ```
 
-These can then be summarized after the fact using the function
-`summarizeToGene`, which gives the same matrices as using
-`txOut=FALSE` in the first `tximport` call.
+These matrices can then be summarized afterwards using the function
+`summarizeToGene`. This then gives the identical list of matrices as using
+`txOut=FALSE` (default) in the first `tximport` call.
 
 ```{r}
 txi.sum <- summarizeToGene(txi.tx, tx2gene)
@@ -117,6 +130,9 @@ head(txi.salmon$counts)
 
 ## RSEM
 
+Likewise, RSEM `sample.genes.results` files can be imported by setting
+type to `"rsem"`.
+
 ```{r}
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results"))
 names(files) <- paste0("sample",1:6)
@@ -126,17 +142,17 @@ head(txi.rsem$counts)
 
 ## Import with edgeR, DESeq2, limma-voom
 
-**Note**: there are two suggested ways of importing estimates
-for use with gene-level differential expression methods. The first method,
+**Note**: there are two suggested ways of importing estimates for use
+with gene-level differential expression methods. The first method,
 which we show below for *edgeR* and for *DESeq2*, is to use the
-estimated counts from the quantification tools, and additionally to use the
-transcript-level abundance estimates to calculate an offset that
-corrects for changes to the average transcript length across samples.
-The code examples below accomplish these steps for you.
-The second method is to use the *tximport* argument
-`countsFromAbundance="lengthScaledTPM"` or `"scaledTPM"`,
-and then to use the count matrix `txi$counts` directly
-as you would a regular count matrix with these software.
+estimated counts from the quantification tools, and additionally to
+use the transcript-level abundance estimates to calculate an offset
+that corrects for changes to the average transcript length across
+samples.  The code examples below accomplish these steps for you.  The
+second method is to use the `tximport` argument
+`countsFromAbundance="lengthScaledTPM"` or `"scaledTPM"`, and then to
+use the count matrix `txi$counts` directly as you would a regular
+count matrix with these software.
 
 An example of creating a `DGEList` for use with edgeR:
 
@@ -156,10 +172,7 @@ y$offset <- t(t(log(normMat)) + o)
 # see edgeR User's Guide
 ```
 
-An example of creating a `DESeqDataSet` for use with DESeq2
-(requires R-devel, Bioconductor 3.3 and DESeq2 version >= 1.11.6, or
-you can source the function from the 
-[development branch](https://github.com/Bioconductor-mirror/DESeq2/blob/master/R/AllClasses.R#L318-L333)).
+An example of creating a `DESeqDataSet` for use with DESeq2:
 
 ```{r, results="hide", messages=FALSE}
 library(DESeq2)
@@ -168,7 +181,7 @@ library(DESeq2)
 The user should make sure the rownames of `sampleTable` align with the
 colnames of `txi$counts`, if there are colnames. The best practice is
 to read `sampleTable` from a CSV file, and to construct `files` from a
-column of `sampleTable` before calling `tximport`.
+column of `sampleTable`, as was shown in the *tximport* examples above.
 
 ```{r}
 sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
@@ -181,10 +194,10 @@ dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
 # see DESeq2 vignette
 ```
 
-An example for use with limma-voom. At the moment, limma-voom does not
-use the offset matrix stored in `y$offset`, so we recommend using
-the scaled counts generated from abundances, either `"scaledTPM"`
-or `"lengthScaledTPM"`:
+An example for use with limma-voom. limma-voom does not use the offset
+matrix stored in `y$offset`, so we recommend using the scaled counts
+generated from abundances, either `"scaledTPM"` or
+`"lengthScaledTPM"`:
 
 ```{r}
 files <- file.path(dir,"kallisto", samples$run, "abundance.tsv")
