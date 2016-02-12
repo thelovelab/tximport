@@ -10,6 +10,18 @@ Description of methods and analysis described in:
 
 ---
 
+# Update: now hosted on Bioconductor
+
+tximport is now hosted on Bioconductor, and will become part of the release
+branch in April 2016. The latest version of tximport can be installed via:
+
+```
+source("http://bioconductor.org/biocLite.R")
+biocLite("tximport")
+```
+
+# Description
+
 Imports transcript-level abundance, estimated counts and 
 transcript lengths, and summarizes into matrices for use with downstream
 gene-level analysis packages such as edgeR, DESeq2, limma-voom. 
