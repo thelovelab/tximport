@@ -12,8 +12,12 @@ Description of methods and analysis described in:
 
 # Update: now hosted on Bioconductor
 
-tximport is now hosted on Bioconductor, and will become part of the release
-branch in April 2016. The latest version of tximport can be installed via:
+tximport is now hosted on Bioconductor. 
+
+http://bioconductor.org/packages/tximport
+
+It will become part of the release branch in April 2016. 
+The latest version of tximport can be installed via:
 
 ```
 source("http://bioconductor.org/biocLite.R")
