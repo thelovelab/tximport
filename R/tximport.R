@@ -1,3 +1,18 @@
+.onAttach <- function(...) {
+  packageStartupMessage("
+************************************************
+* NOTE: tximport is now hosted on Bioconductor *
+* and should be installed via:                 *
+*                                              *
+* source('http://bioconductor.org/biocLite.R') *
+* biocLite('tximport')                         *
+*                                              *
+* tximport will be available in the release    *
+* branch of Bioconductor starting April 2016.  *
+************************************************
+")
+}
+
 #' Import transcript-level abundances and estimated counts for gene-level analysis packages
 #'
 #' \code{tximport} helps to import transcript-level estimates from various
