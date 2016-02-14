@@ -109,4 +109,10 @@ tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
 txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 
 }
+\references{
+Charlotte Soneson, Michael I. Love, Mark D. Robinson (2015):
+Differential analyses for RNA-seq: transcript-level estimates
+improve gene-level inferences. F1000Research.
+\url{http://dx.doi.org/10.12688/f1000research.7563.1}
+}
 

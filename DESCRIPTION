@@ -1,5 +1,5 @@
 Package: tximport
-Version: 0.99.3
+Version: 0.99.4
 Title: Import and summarize transcript-level estimates for gene-level
         analysis
 Description: Imports transcript-level abundance, estimated counts and

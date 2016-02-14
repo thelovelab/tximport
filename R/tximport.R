@@ -54,6 +54,13 @@
 #' gene which can be used as an offset for gene-level analysis.
 #' Note: tximport does not import bootstrap estimates from kallisto, Salmon, or Sailfish.
 #'
+#' @references
+#'
+#' Charlotte Soneson, Michael I. Love, Mark D. Robinson (2015):
+#' Differential analyses for RNA-seq: transcript-level estimates
+#' improve gene-level inferences. F1000Research.
+#' \url{http://dx.doi.org/10.12688/f1000research.7563.1}
+#' 
 #' @examples
 #'
 #' # load data for demonstrating tximport
