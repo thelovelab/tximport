@@ -54,6 +54,10 @@
 #' gene which can be used as an offset for gene-level analysis.
 #' Note: tximport does not import bootstrap estimates from kallisto, Salmon, or Sailfish.
 #'
+#' @describeIn tximport Import tx-level quantifications and summarize
+#' abundances, counts and lengths to gene-level (default)
+#' or simply output tx-level matrices
+#' 
 #' @references
 #'
 #' Charlotte Soneson, Michael I. Love, Mark D. Robinson (2015):

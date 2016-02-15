@@ -89,6 +89,10 @@ kallisto 0.42.4, Salmon 0.6.0, Sailfish 0.9.0, RSEM 1.2.11.
 }
 \section{Functions}{
 \itemize{
+\item \code{tximport}: Import tx-level quantifications and summarize
+abundances, counts and lengths to gene-level (default)
+or simply output tx-level matrices
+
 \item \code{summarizeToGene}: Summarize tx-level matrices to gene-level
 }}
 \examples{
