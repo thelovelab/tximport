@@ -228,6 +228,18 @@ v <- voom(y, design)
 # see limma User's Guide
 ```
 
+## Acknowledgments
+
+The development of *tximport* has benefited from contributions and
+suggestions from:
+
+[Matt Shirley](https://twitter.com/mdshw5),
+[Stephen Turner](https://twitter.com/genetics_blog),
+[Rob Patro](https://twitter.com/nomad421),
+[Richard Smith-Unna](https://twitter.com/blahah404),
+[Rory Kirchner](https://twitter.com/RoryKirchner),
+[Martin Morgan](https://twitter.com/mt_morgan)
+
 ## Session info
 
 ```{r}
