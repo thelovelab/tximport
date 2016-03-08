@@ -167,7 +167,29 @@ tximport <- function(files,
       # does the table contain gene association or was an external tx2gene table provided?
       if (is.null(tx2gene) & !txOut) {
         # e.g. Cufflinks includes the gene ID in the table
-        stopifnot(all(c(geneIdCol, lengthCol, abundanceCol) %in% names(raw)))
+        if (!geneIdCol %in% names(raw)) {
+          stop("
+
+  tximport failed at summarizing to the gene-level. either:
+
+  1) provide a 'tx2gene' data.frame linking transcripts to genes
+  2) avoid gene-level summarization by specifying txOut=TRUE
+  3) set 'geneIdCol' to an appropriate column in the files
+
+  Some example code for generating a 'tx2gene' data.frame,
+  which works for summarizing RefSeq tx IDs to UCSC genes:
+
+    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+    txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+    k <- keys(txdb, keytype = 'GENEID')
+    df <- select(txdb, keys = k, keytype = 'GENEID', columns = 'TXNAME')
+    tx2gene <- df[, 2:1]
+
+  For more details, see ?tximport and vignette('tximport')
+
+")
+        }
+        stopifnot(all(c(lengthCol, abundanceCol) %in% names(raw)))
         if (i == 1) {
           geneId <- raw[[geneIdCol]]
         } else {
