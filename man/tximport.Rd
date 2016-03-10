@@ -75,16 +75,36 @@ gene which can be used as an offset for gene-level analysis.
 Note: tximport does not import bootstrap estimates from kallisto, Salmon, or Sailfish.
 }
 \description{
-\code{tximport} helps to import transcript-level estimates from various
-external software and can summarize abundances, counts, and transcript lengths
-to the gene-level (default) or output transcript-level (see \code{txOut} argument).
+\code{tximport} imports transcript-level estimates from various
+external software and optionally summarizes abundances, counts, and transcript lengths
+to the gene-level (default) or outputs transcript-level matrices
+(see \code{txOut} argument).
+While \code{tximport} summarizes to the gene-level by default, 
+the user can also perform the import and summarization steps manually,
+by specifing \code{txOut=TRUE} and then using the function \code{summarizeToGene}.
+Note however that this is equivalent to \code{tximport} with
+\code{txOut=FALSE} (the default).
 }
 \details{
-\code{summarizeToGene} can be used to summarize a list of transcript-level
-matrices produced by \code{tximport} to the gene level. This is equivalent
-to \code{tximport} with \code{txOut=FALSE}.
+\strong{Solutions} to the error "tximport failed at summarizing to the gene-level":
 
-The last known supported versions of the external quantifiers are:
+\enumerate{
+  \item provide a \code{tx2gene} data.frame linking transcripts to genes (more below)
+  \item avoid gene-level summarization by specifying \code{txOut=TRUE}
+  \item set \code{geneIdCol} to an appropriate column in the files
+}
+
+See \code{vignette('tximport')} for example code for generating a
+\code{tx2gene} data.frame from a \code{TxDb} object.
+Note that the \code{keys} and \code{select} functions used
+to create the \code{tx2gene} object are documented
+in the man page for \link[AnnotationDbi]{AnnotationDb-class} objects
+in the AnnotationDbi package (TxDb inherits from AnnotationDb).
+For further details on generating TxDb objects from various inputs
+see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
+
+\strong{Version support}: The last known supported versions of the
+external quantifiers are:
 kallisto 0.42.4, Salmon 0.6.0, Sailfish 0.9.0, RSEM 1.2.11.
 }
 \section{Functions}{

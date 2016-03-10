@@ -1,16 +1,36 @@
 #' Import transcript-level abundances and estimated counts for gene-level analysis packages
 #'
-#' \code{tximport} helps to import transcript-level estimates from various
-#' external software and can summarize abundances, counts, and transcript lengths
-#' to the gene-level (default) or output transcript-level (see \code{txOut} argument).
+#' \code{tximport} imports transcript-level estimates from various
+#' external software and optionally summarizes abundances, counts, and transcript lengths
+#' to the gene-level (default) or outputs transcript-level matrices
+#' (see \code{txOut} argument).
+#' While \code{tximport} summarizes to the gene-level by default, 
+#' the user can also perform the import and summarization steps manually,
+#' by specifing \code{txOut=TRUE} and then using the function \code{summarizeToGene}.
+#' Note however that this is equivalent to \code{tximport} with
+#' \code{txOut=FALSE} (the default).
 #'
-#' \code{summarizeToGene} can be used to summarize a list of transcript-level
-#' matrices produced by \code{tximport} to the gene level. This is equivalent
-#' to \code{tximport} with \code{txOut=FALSE}.
+#' \strong{Solutions} to the error "tximport failed at summarizing to the gene-level":
 #'
-#' The last known supported versions of the external quantifiers are:
-#' kallisto 0.42.4, Salmon 0.6.0, Sailfish 0.9.0, RSEM 1.2.11.
+#' \enumerate{
+#'   \item provide a \code{tx2gene} data.frame linking transcripts to genes (more below)
+#'   \item avoid gene-level summarization by specifying \code{txOut=TRUE}
+#'   \item set \code{geneIdCol} to an appropriate column in the files
+#' }
 #' 
+#' See \code{vignette('tximport')} for example code for generating a
+#' \code{tx2gene} data.frame from a \code{TxDb} object.
+#' Note that the \code{keys} and \code{select} functions used
+#' to create the \code{tx2gene} object are documented
+#' in the man page for \link[AnnotationDbi]{AnnotationDb-class} objects
+#' in the AnnotationDbi package (TxDb inherits from AnnotationDb).
+#' For further details on generating TxDb objects from various inputs
+#' see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
+#'
+#' \strong{Version support}: The last known supported versions of the
+#' external quantifiers are:
+#' kallisto 0.42.4, Salmon 0.6.0, Sailfish 0.9.0, RSEM 1.2.11.
+#'
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
 #' Options are "kallisto", "salmon", "sailfish", "rsem".
@@ -168,24 +188,11 @@ tximport <- function(files,
       if (is.null(tx2gene) & !txOut) {
         # e.g. Cufflinks includes the gene ID in the table
         if (!geneIdCol %in% names(raw)) {
+          message()
           stop("
 
-  tximport failed at summarizing to the gene-level. either:
-
-  1) provide a 'tx2gene' data.frame linking transcripts to genes
-  2) avoid gene-level summarization by specifying txOut=TRUE
-  3) set 'geneIdCol' to an appropriate column in the files
-
-  Some example code for generating a 'tx2gene' data.frame,
-  which works for summarizing RefSeq tx IDs to UCSC genes:
-
-    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-    txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
-    k <- keys(txdb, keytype = 'GENEID')
-    df <- select(txdb, keys = k, keytype = 'GENEID', columns = 'TXNAME')
-    tx2gene <- df[, 2:1]
-
-  For more details, see ?tximport and vignette('tximport')
+  tximport failed at summarizing to the gene-level.
+  Please see 'Solutions' in the Details section of the man page: ?tximport
 
 ")
         }
