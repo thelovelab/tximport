@@ -14,3 +14,7 @@ expect_true(ncol(txi.txout$counts) == length(files))
 # test reading in slow way
 txi <- tximport(files[1:2], type="salmon", tx2gene=tx2gene)
 expect_true(ncol(txi$counts) == 2)
+
+# test wrong tx2gene
+tx2gene.bad <- data.frame(letters,letters)
+expect_error(tximport(files, type="salmon", tx2gene=tx2gene.bad, reader=read_tsv))

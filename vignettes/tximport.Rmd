@@ -57,14 +57,14 @@ all(file.exists(files))
 ```
 
 Transcripts need to be associated with gene IDs for gene-level
-summarization.  If that information is present in the files, we can
-skip this step.  But for kallisto, Salmon and Sailfish, the files only
-provide the transcript ID.  We first make a `data.frame` with two
-columns: 1) transcript ID and 2) gene ID.  The column names do not
+summarization. If that information is present in the files, we can
+skip this step. But for kallisto, Salmon and Sailfish, the files only
+provide the transcript ID.  We first make a data.frame called
+`tx2gene` with two columns: 1) transcript ID and 2) gene ID. The column names do not
 matter but this column order must be used.  The transcript ID must be
 the same one used in the abundance files. 
 
-Creating this `data.frame` can be accomplished from a *TxDb* object
+Creating this `tx2gene` data.frame can be accomplished from a *TxDb* object
 and the `select` function from the *AnnotationDbi* package. The
 following code could be used to construct such a table:
 
@@ -75,6 +75,15 @@ k <- keys(txdb, keytype="GENEID")
 df <- select(txdb, keys=k, keytype="GENEID", columns="TXNAME")
 tx2gene <- df[,2:1] # tx ID, then gene ID
 ```
+
+Note: if you are using an *Ensembl* transcriptome, the easiest way to
+create the `tx2gene` data.frame is to use the
+[ensembldb](http://bioconductor.org/packages/ensembldb) packages.
+The annotation packages can be found by version number, and use
+the pattern `EnsDb.Hsapiens.vXX`. The `transcripts` function can
+be used with `return.type="Data.Frame"`, in order to obtain
+something like the `df` object constructed in the code chunk above.
+See the *ensembldb* package vignette for more details.
 
 Here we read in a pre-constructed `tx2gene` table:
 

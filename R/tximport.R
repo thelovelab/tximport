@@ -300,6 +300,12 @@ summarizeToGene <- function(txi,
     # remove transcripts (and genes) not in the abundances
     tx2gene <- tx2gene[tx2gene$tx %in% txId,]
     tx2gene$gene <- droplevels(tx2gene$gene)
+    if (!any(txId %in% tx2gene$tx)) {
+      stop("
+  None of the transcripts in the quantification files are present
+  in the first column of tx2gene. Check to see that you are using
+  the same annotation for both.\n\n")
+    }
     ntxmissing <- sum(!txId %in% tx2gene$tx)
     if (ntxmissing > 0) message("transcripts missing genes: ", ntxmissing)
     sub.idx <- txId %in% tx2gene$tx
