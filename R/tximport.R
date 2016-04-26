@@ -291,28 +291,39 @@ summarizeToGene <- function(txi,
   # need to associate tx to genes
   # potentially remove unassociated transcript rows and warn user
   if (!is.null(tx2gene)) {
-    colnames(tx2gene) <- c("tx","gene")
+
+    # code to strip dots from the rownames of matrices
     if (ignoreTxVersion) {
       txId <- sapply(strsplit(as.character(txId), "\\."), "[[", 1)
     }
+    
+    colnames(tx2gene) <- c("tx","gene")
     tx2gene$gene <- factor(tx2gene$gene)
     tx2gene$tx <- factor(tx2gene$tx)
-    # remove transcripts (and genes) not in the abundances
-    tx2gene <- tx2gene[tx2gene$tx %in% txId,]
-    tx2gene$gene <- droplevels(tx2gene$gene)
+
+    # if none of the rownames of the matrices (txId) are
+    # in the tx2gene table something is wrong
     if (!any(txId %in% tx2gene$tx)) {
       stop("
   None of the transcripts in the quantification files are present
   in the first column of tx2gene. Check to see that you are using
   the same annotation for both.\n\n")
     }
+
+    # remove transcripts (and genes) not in the rownames of matrices
+    tx2gene <- tx2gene[tx2gene$tx %in% txId,]
+    tx2gene$gene <- droplevels(tx2gene$gene)
     ntxmissing <- sum(!txId %in% tx2gene$tx)
     if (ntxmissing > 0) message("transcripts missing genes: ", ntxmissing)
+
+    # subset to transcripts in the tx2gene table
     sub.idx <- txId %in% tx2gene$tx
     abundanceMatTx <- abundanceMatTx[sub.idx,,drop=FALSE]
     countsMatTx <- countsMatTx[sub.idx,,drop=FALSE]
     lengthMatTx <- lengthMatTx[sub.idx,,drop=FALSE]
     txId <- txId[sub.idx]
+
+    # now create a vector of geneId which aligns to the matrices
     geneId <- tx2gene$gene[match(txId, tx2gene$tx)]
   }
   
