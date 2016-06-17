@@ -180,7 +180,7 @@ tximport <- function(files,
           tmp
         }
         # re-read the first file
-        raw <- try(as.data.frame(importer(files[i])))
+        raw <- try(as.data.frame(importer(files[i])), silent=TRUE)
         # if this didn't work, reader is likely read_tsv and
         # different importer() code is needed
         if (inherits(raw, "try-error")) {
