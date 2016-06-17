@@ -175,12 +175,22 @@ tximport <- function(files,
         # because the comment lines have the same comment character
         # as the header, need to name the column names
         importer <- function(x) {
-          tmp <- reader(x, comment="#")
+          tmp <- reader(x, comment="#", header=FALSE)
           names(tmp) <- c("Name","Length","TPM","NumReads")
           tmp
         }
         # re-read the first file
-        raw <- as.data.frame(importer(files[i]))
+        raw <- try(as.data.frame(importer(files[i])))
+        # if this didn't work, reader is likely read_tsv and
+        # different importer() code is needed
+        if (inherits(raw, "try-error")) {
+          importer <- function(x) {
+            reader(x, comment="#", col_names=c("Name","Length","TPM","NumReads"))
+          }
+          raw <- try(as.data.frame(importer(files[i])))
+          if (inherits(raw, "try-error")) stop("tried but couldn't use reader() without error
+  user will need to define the importer() as well")
+        }
       }
       #####################################################################
       
