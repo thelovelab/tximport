@@ -81,7 +81,7 @@ create the `tx2gene` data.frame is to use the
 [ensembldb](http://bioconductor.org/packages/ensembldb) packages.
 The annotation packages can be found by version number, and use
 the pattern `EnsDb.Hsapiens.vXX`. The `transcripts` function can
-be used with `return.type="Data.Frame"`, in order to obtain
+be used with `return.type="DataFrame"`, in order to obtain
 something like the `df` object constructed in the code chunk above.
 See the *ensembldb* package vignette for more details.
 
