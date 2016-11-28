@@ -154,11 +154,7 @@ tximport <- function(files,
     lengthCol <- "effective_length"
     importer <- reader
   }
-  
-  if (type == "cufflinks") {
-    stop("reading from collated files not yet implemented")
-  }
-  
+    
   # if input is tx-level, need to summarize abundances, counts and lengths to gene-level
   if (txIn) {
     message("reading in files")
