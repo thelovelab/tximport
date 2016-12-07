@@ -13,6 +13,7 @@ License: GPL (>=2)
 VignetteBuilder: knitr
 Imports: utils
 Suggests:
+	hdf5,
     knitr,
     testthat,
     tximportData,
