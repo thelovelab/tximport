@@ -39,7 +39,7 @@ sensitivity [@Robert2015Errors].
 
 ```{r, echo=FALSE}
 library(knitr)
-opts_chunk$set(tidy=TRUE, message=FALSE)
+opts_chunk$set(tidy=TRUE)
 ```
 
 ## Import transcript-level estimates
@@ -128,13 +128,13 @@ downstream gene-level differential analysis of count matrices, as
 shown below.
 
 While *tximport* works without any dependencies, it is much faster to
-read in files using the *readr* package (version >= 0.2.2).
-To use this, we pass the `read_tsv` function to `tximport`.
+read in files using the *readr* package.  If *readr* is loaded, then
+tximport uses the `read_tsv` function from *readr* by default.
 
 ```{r}
 library(tximport)
 library(readr)
-txi <- tximport(files, type="salmon", tx2gene=tx2gene, reader=read_tsv)
+txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 names(txi)
 head(txi$counts)
 ```
@@ -152,7 +152,7 @@ We can avoid gene-level summarization by setting `txOut=TRUE`, giving
 the original transcript level estimates as a list of matrices.
 
 ```{r}
-txi.tx <- tximport(files, type="salmon", txOut=TRUE, tx2gene=tx2gene, reader=read_tsv)
+txi.tx <- tximport(files, type="salmon", txOut=TRUE, tx2gene=tx2gene)
 ```
 
 These matrices can then be summarized afterwards using the function
@@ -172,15 +172,27 @@ Salmon or Sailfish `quant.sf` files can be imported by setting type to
 ```{r}
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
 names(files) <- paste0("sample",1:6)
-txi.salmon <- tximport(files, type="salmon", tx2gene=tx2gene, reader=read_tsv)
+txi.salmon <- tximport(files, type="salmon", tx2gene=tx2gene)
 head(txi.salmon$counts)
 ```
 
 ```{r}
 files <- file.path(dir,"sailfish", samples$run, "quant.sf")
 names(files) <- paste0("sample",1:6)
-txi.sailfish <- tximport(files, type="sailfish", tx2gene=tx2gene, reader=read_tsv)
+txi.sailfish <- tximport(files, type="sailfish", tx2gene=tx2gene)
 head(txi.sailfish$counts)
+```
+
+*Note*: for previous version of Salmon or Sailfish, in which the
+ `quant.sf` files start with comment lines, it is recommended to
+ specify the `importer` argument as a function which reads in the 
+ lines beginning with the header. For example:
+ 
+```{r eval=FALSE}
+txi <- tximport("quant.sf", type="none", txOut=TRUE,
+                txIdCol="Name", abundanceCol="TPM",
+                countsCol="NumReads", lengthCol="Length",
+                importer=function(x) read_tsv(x, skip=8))
 ```
 
 ## kallisto
@@ -190,9 +202,13 @@ kallisto `abundance.tsv` files can be imported by setting type to `"kallisto"`.
 ```{r}
 files <- file.path(dir, "kallisto", samples$run, "abundance.tsv")
 names(files) <- paste0("sample",1:6)
-txi.kallisto <- tximport(files, type="kallisto", tx2gene=tx2gene, reader=read_tsv)
+txi.kallisto <- tximport(files, type="kallisto", tx2gene=tx2gene)
 head(txi.kallisto$counts)
 ```
+
+In order to read from `abundance.h5` files, set type to
+`"kallisto.h5"`. This requires that you have the Bioconductor package 
+[rhdf5](http://bioconductor.org/packages/rhdf5) installed.
 
 ## RSEM
 
@@ -202,7 +218,7 @@ type to `"rsem"`.
 ```{r}
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results"))
 names(files) <- paste0("sample",1:6)
-txi.rsem <- tximport(files, type="rsem", reader=read_tsv)
+txi.rsem <- tximport(files, type="rsem")
 head(txi.rsem$counts)
 ```
 
@@ -278,7 +294,7 @@ abundances, either `"scaledTPM"` or `"lengthScaledTPM"`:
 files <- file.path(dir,"salmon", samples$run, "quant.sf")
 names(files) <- paste0("sample",1:6)
 txi <- tximport(files, type="salmon",
-                tx2gene=tx2gene, reader=read_tsv,
+                tx2gene=tx2gene,
                 countsFromAbundance="lengthScaledTPM")
 library(limma)
 y <- DGEList(txi$counts)
@@ -294,12 +310,14 @@ v <- voom(y, design)
 The development of *tximport* has benefited from contributions and
 suggestions from:
 
-[Matt Shirley](https://twitter.com/mdshw5),
+[Andrew Parker Morgan](https://github.com/andrewparkermorgan) (RHDF5 support),
+[Ryan C. Thompson](https://github.com/DarwinAwardWinner) (RHDF5 support),
+[Matt Shirley](https://twitter.com/mdshw5) (ignoreTxVersion),
 [Stephen Turner](https://twitter.com/genetics_blog),
 [Rob Patro](https://twitter.com/nomad421),
 [Richard Smith-Unna](https://twitter.com/blahah404),
 [Rory Kirchner](https://twitter.com/RoryKirchner),
-[Martin Morgan](https://twitter.com/mt_morgan)
+[Martin Morgan](https://twitter.com/mt_morgan),
 
 ## Session info
 

@@ -5,11 +5,11 @@
 \alias{tximport}
 \title{Import transcript-level abundances and estimated counts for gene-level analysis packages}
 \usage{
-tximport(files, type = c("none", "kallisto", "salmon", "sailfish", "rsem"),
-  txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no", "scaledTPM",
-  "lengthScaledTPM"), tx2gene = NULL, reader = read.delim, geneIdCol,
-  txIdCol, abundanceCol, countsCol, lengthCol, importer, collatedFiles,
-  ignoreTxVersion = FALSE)
+tximport(files, type = c("none", "salmon", "sailfish", "kallisto",
+  "kallisto.h5", "rsem"), txIn = TRUE, txOut = FALSE,
+  countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM"),
+  tx2gene = NULL, geneIdCol, txIdCol, abundanceCol, countsCol, lengthCol,
+  importer = NULL, collatedFiles, ignoreTxVersion = FALSE)
 
 summarizeToGene(txi, tx2gene, ignoreTxVersion = FALSE,
   countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM"))
@@ -18,7 +18,7 @@ summarizeToGene(txi, tx2gene, ignoreTxVersion = FALSE,
 \item{files}{a character vector of filenames for the transcript-level abundances}
 
 \item{type}{character, the type of software used to generate the abundances.
-Options are "kallisto", "salmon", "sailfish", "rsem".
+Options are "salmon", "sailfish", "kallisto", "kallisto.h5" (HDF5), "rsem".
 This argument is used to autofill the arguments below (geneIdCol, etc.)
 "none" means that the user will specify these columns.}
 
@@ -38,10 +38,6 @@ the column names are not relevant, but this column order must be used.
 this argument is required for gene-level summarization for methods
 that provides transcript-level estimates only
 (kallisto, Salmon, Sailfish)}
-
-\item{reader}{a function to replace read.delim in the pre-set importer functions,
-for example substituting read_tsv from the readr package will substantially 
-speed up tximport}
 
 \item{geneIdCol}{name of column with gene id. if missing, the gene2tx argument can be used}
 

@@ -9,9 +9,9 @@ test_that("getting counts from abundance works", {
   tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
   
   txi.cfa <- tximport(files, type="kallisto", tx2gene=tx2gene, 
-                      countsFromAbundance="scaledTPM", reader=read_tsv)
+                      countsFromAbundance="scaledTPM")
   txi.cfa.len <- tximport(files, type="kallisto", tx2gene=tx2gene, 
-                          countsFromAbundance="lengthScaledTPM", reader=read_tsv)
+                          countsFromAbundance="lengthScaledTPM")
   
   expect_true(ncol(txi.cfa$counts) == length(files))
   expect_true(ncol(txi.cfa.len$counts) == length(files))

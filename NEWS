@@ -1,3 +1,17 @@
+CHANGES IN VERSION 1.3.4
+------------------------
+
+    o Support for kallisto HDF5 files thanks to
+      Andrew Parker Morgan and Ryan C Thompson
+
+    o Removing 'reader' argument, leaving only
+      'importer' argument. In addition, read_tsv
+      will be used by default if readr package is
+      installed.
+
+    o Messages from the importing function are
+      captured to avoid screen clutter.
+
 CHANGES IN VERSION 0.99.0
 -------------------------
 

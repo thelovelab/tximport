@@ -33,7 +33,7 @@
 #'
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
-#' Options are "kallisto", "salmon", "sailfish", "rsem".
+#' Options are "salmon", "sailfish", "kallisto", "kallisto.h5" (HDF5), "rsem".
 #' This argument is used to autofill the arguments below (geneIdCol, etc.)
 #' "none" means that the user will specify these columns.
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
@@ -49,9 +49,6 @@
 #' this argument is required for gene-level summarization for methods
 #' that provides transcript-level estimates only
 #' (kallisto, Salmon, Sailfish)
-#' @param reader a function to replace read.delim in the pre-set importer functions,
-#' for example substituting read_tsv from the readr package will substantially 
-#' speed up tximport
 #' @param geneIdCol name of column with gene id. if missing, the gene2tx argument can be used
 #' @param txIdCol name of column with tx id
 #' @param abundanceCol name of column with abundances (e.g. TPM or FPKM)
@@ -102,38 +99,44 @@
 #'
 #' txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 #'
-#' @importFrom utils read.delim
+#' @importFrom utils read.delim capture.output
+#' 
 #' @export
 tximport <- function(files,
-                     type=c("none","kallisto","salmon","sailfish","rsem"),
+                     type=c("none",
+                            "salmon","sailfish",
+                            "kallisto", "kallisto.h5", 
+                            "rsem"),
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
                      tx2gene=NULL,
-                     reader=read.delim,
                      geneIdCol,
                      txIdCol,
                      abundanceCol,
                      countsCol,
                      lengthCol,
-                     importer,
+                     importer=NULL,
                      collatedFiles,
                      ignoreTxVersion=FALSE) {
 
-  type <- match.arg(type, c("none","kallisto","salmon","sailfish","rsem"))
+  type <- match.arg(type, c("none","salmon","sailfish",
+                            "kallisto","kallisto.h5","rsem"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
   stopifnot(all(file.exists(files)))
   if (!txIn & txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
-  
-  # kallisto presets
-  if (type == "kallisto") {
-    geneIdCol="gene_id"
-    txIdCol <- "target_id"
-    abundanceCol <- "tpm"
-    countsCol <- "est_counts"
-    lengthCol <- "eff_length"
-    importer <- reader
+
+  readrStatus <- FALSE
+  if (is.null(importer)) {
+    if (!requireNamespace("readr", quietly=TRUE)) {
+      message("reading in files with read.delim (install 'readr' package for speed up)")
+      importer <- read.delim
+    } else {
+      message("reading in files with read_tsv")
+      readrStatus <- TRUE
+      importer <- function(x) readr::read_tsv(x, progress=FALSE)
     }
+  }
   
   # salmon/sailfish presets
   if (type %in% c("salmon","sailfish")) {
@@ -142,7 +145,25 @@ tximport <- function(files,
     abundanceCol <- "TPM"
     countsCol <- "NumReads"
     lengthCol <- "EffectiveLength"
-    importer <- function(x) reader(x, comment='#') 
+  }
+
+  # kallisto presets
+  if (type == "kallisto") {
+    geneIdCol="gene_id"
+    txIdCol <- "target_id"
+    abundanceCol <- "tpm"
+    countsCol <- "est_counts"
+    lengthCol <- "eff_length"
+    }
+
+  # kallisto.h5 presets
+  if (type == "kallisto.h5") {
+    geneIdCol="gene_id"
+    txIdCol <- "target_id"
+    abundanceCol <- "tpm"
+    countsCol <- "est_counts"
+    lengthCol <- "eff_length"
+    importer <- read_kallisto_h5
   }
   
   # rsem presets
@@ -152,62 +173,25 @@ tximport <- function(files,
     abundanceCol <- "FPKM"
     countsCol <- "expected_count"
     lengthCol <- "effective_length"
-    importer <- reader
   }
     
   # if input is tx-level, need to summarize abundances, counts and lengths to gene-level
   if (txIn) {
-    message("reading in files")
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
-      raw <- as.data.frame(importer(files[i]))
 
-      #####################################################################
-      # some temporary code for detecting older fishes
-      if ((i == 1) &
-          (type %in% c("salmon","sailfish")) &
-          !("EffectiveLength" %in% names(raw))) {
-        lengthCol <- "Length" 
-        # because the comment lines have the same comment character
-        # as the header, need to name the column names
-        importer <- function(x) {
-          tmp <- reader(x, comment="#", header=FALSE)
-          names(tmp) <- c("Name","Length","TPM","NumReads")
-          tmp
-        }
-        # re-read the first file
-        raw <- try(as.data.frame(importer(files[i])), silent=TRUE)
-        # if this didn't work, reader is likely read_tsv and
-        # different importer() code is needed
-        if (inherits(raw, "try-error")) {
-          importer <- function(x) {
-            reader(x, comment="#", col_names=c("Name","Length","TPM","NumReads"))
-          }
-          raw <- try(as.data.frame(importer(files[i])))
-          if (inherits(raw, "try-error")) stop("tried but couldn't use reader() without error
-  user will need to define the importer() as well")
-        }
-      }
-      #####################################################################
+      out <- capture.output({
+        raw <- as.data.frame(importer(files[i]))
+      }, type="message")
       
-      # does the table contain gene association or was an external tx2gene table provided?
+      # if external tx2gene table not provided, send user to vignette
       if (is.null(tx2gene) & !txOut) {
-        # e.g. Cufflinks includes the gene ID in the table
-        if (!geneIdCol %in% names(raw)) {
-          message()
           stop("
 
   tximport failed at summarizing to the gene-level.
   Please see 'Solutions' in the Details section of the man page: ?tximport
 
 ")
-        }
-        stopifnot(all(c(lengthCol, abundanceCol) %in% names(raw)))
-        if (i == 1) {
-          geneId <- raw[[geneIdCol]]
-        } else {
-          stopifnot(all(geneId == raw[[geneIdCol]]))
-        }
       } else {
         # e.g. Salmon and kallisto do not include the gene ID, need an external table
         stopifnot(all(c(lengthCol, abundanceCol) %in% names(raw)))
@@ -248,10 +232,13 @@ tximport <- function(files,
   # just combine the gene-level summaries across files
   } else {
   
-    message("reading in files")
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
-      raw <- as.data.frame(importer(files[i]))
+
+      out <- capture.output({
+        raw <- as.data.frame(importer(files[i]))
+      }, type="message")
+      
       stopifnot(all(c(geneIdCol, abundanceCol, lengthCol) %in% names(raw)))
       if (i == 1) {
         mat <- matrix(nrow=nrow(raw),ncol=length(files))
@@ -395,6 +382,33 @@ replaceMissingLength <- function(lengthMat, aveLengthSampGene) {
   }
   lengthMat
 }
+
+# code contributed from Andrew Morgan
+read_kallisto_h5 <- function(fpath, ...) {
+  if (!requireNamespace("rhdf5", quietly=TRUE)) {
+    stop("Reading kallisto result from hdf5 files requires Bioconductor package `rhdf5`.")
+  }
+  counts <- rhdf5::h5read(fpath, "est_counts")
+  ids <- rhdf5::h5read(fpath, "aux/ids")
+  efflens <- rhdf5::h5read(fpath, "aux/eff_lengths")
+
+  if (length(efflens) != length(ids)) {
+    stop("Different number of target IDs and effective lengths.")
+  }
+  
+  if (length(ids) != length(counts)) {
+    stop("Dimensions of counts and targets don't match. Bootstraps are not yet supported.")
+  }
+
+  result <- data.frame(target_id = ids,
+                       eff_length = efflens,
+                       est_counts = counts,
+                       stringsAsFactors = FALSE)
+  normfac <- with(result, (1e6)/sum(est_counts/eff_length))
+  result$tpm <- with(result, normfac*(est_counts/eff_length))
+  return(result)
+}
+
 
 # this is much faster than by(), a bit slower than dplyr summarize_each()
 ## fastby <- function(m, f, fun) {
