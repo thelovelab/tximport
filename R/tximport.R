@@ -7,8 +7,7 @@
 * source('http://bioconductor.org/biocLite.R') *
 * biocLite('tximport')                         *
 *                                              *
-* tximport will be available in the release    *
-* branch of Bioconductor starting April 2016.  *
+* the version on GitHub is not up-to-date!     *
 ************************************************
 ")
 }
