@@ -1,22 +1,14 @@
-# Update: now hosted on Bioconductor
+# Update: tximport now hosted on Bioconductor
+
+# therefore, warning for pull request-ers:
 
 tximport is now hosted on Bioconductor. 
 Be aware that this GitHub repo is therefore
-not up to date with the current version available here:
+*not up to date* with the current version of tximport.
 
 http://bioconductor.org/packages/tximport
 
-tximport will become part of the Bioconductor release branch in April 2016. 
-The latest version of tximport can be installed via:
-
-```
-source("http://bioconductor.org/biocLite.R")
-biocLite("tximport")
-```
-
-Although, these installation steps will only be available for R-devel
-until April 2016, at which point, this will also work for 
-the latest version of R.
+---
 
 # tximport
 
