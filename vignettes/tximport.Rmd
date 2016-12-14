@@ -39,7 +39,7 @@ sensitivity [@Robert2015Errors].
 
 ```{r, echo=FALSE}
 library(knitr)
-opts_chunk$set(tidy=TRUE)
+opts_chunk$set(tidy=TRUE,message=FALSE)
 ```
 
 ## Import transcript-level estimates
@@ -127,9 +127,14 @@ transcript level information is summarized to the gene-level.  The
 downstream gene-level differential analysis of count matrices, as
 shown below.
 
-While *tximport* works without any dependencies, it is much faster to
-read in files using the *readr* package.  If *readr* is loaded, then
-tximport uses the `read_tsv` function from *readr* by default.
+**Note**: While *tximport* works without any dependencies, it is
+significantly faster to read in files using the *readr* package.  If
+*tximport* detects that *readr* is installed, then it will use the
+`readr::read_tsv` function by default. A change from version 1.2 to
+1.4 is that the reader is not specified by the user anymore, but
+chosen automatically based on the availability of the *readr*
+package. Advanced users can still customize the import of files using
+the `importer` argument.
 
 ```{r}
 library(tximport)
