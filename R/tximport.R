@@ -217,10 +217,16 @@ tximport <- function(files,
     message("")
 
     txi <- list(abundance=abundanceMatTx, counts=countsMatTx, length=lengthMatTx,
-                countsFromAbundance="no")
+                countsFromAbundance=countsFromAbundance)
 
     # if the user requested just the transcript-level data:
     if (txOut) {
+      if (countsFromAbundance != "no") {
+        txi$counts <- makeCountsFromAbundance(txi$counts,
+                                              txi$abundance,
+                                              txi$length,
+                                              countsFromAbundance)
+      }
       return(txi)
     }
 
@@ -349,21 +355,33 @@ summarizeToGene <- function(txi,
   # so we cannot calculate the weighted average. our best guess is to use the average
   # transcript length from the other samples.
   lengthMat <- replaceMissingLength(lengthMat, aveLengthSampGene)
-  
+
   if (countsFromAbundance != "no") {
-    countsSum <- colSums(countsMat)
-    if (countsFromAbundance == "lengthScaledTPM") {
-      newCounts <- abundanceMat * rowMeans(lengthMat)
-    } else {
-        newCounts <- abundanceMat
-      }
-    newSum <- colSums(newCounts)
-    countsMat <- t(t(newCounts) * (countsSum/newSum))
+    countsMat <- makeCountsFromAbundance(countsMat,
+                                         abundanceMat,
+                                         lengthMat,
+                                         countsFromAbundance)
   }
-  
+    
   return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
               countsFromAbundance=countsFromAbundance))
 }
+
+# function for generating counts from abundances
+makeCountsFromAbundance <- function(countsMat, abundanceMat, lengthMat, countsFromAbundance) {
+  countsSum <- colSums(countsMat)
+  if (countsFromAbundance == "lengthScaledTPM") {
+    newCounts <- abundanceMat * rowMeans(lengthMat)
+  } else if (countsFromAbundance == "scaledTPM") {
+    newCounts <- abundanceMat
+  } else {
+    stop("expecting 'lengthScaledTPM' or 'scaledTPM'")
+  }
+  newSum <- colSums(newCounts)
+  countsMat <- t(t(newCounts) * (countsSum/newSum))
+  countsMat
+}
+
 
 # function for replacing missing average transcript length values
 replaceMissingLength <- function(lengthMat, aveLengthSampGene) {
