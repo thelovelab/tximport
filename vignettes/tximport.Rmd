@@ -15,7 +15,7 @@ vignette: >
 ---
 
 Import and summarize transcript-level abundance estimates for
-gene-level analysis with Bioconductor packages, such as *edgeR*,
+transcript- and gene-level analysis with Bioconductor packages, such as *edgeR*,
 *DESeq2*, and *limma-voom*.
 The motivation and methods for the functions
 provided by the *tximport* package are described in the following
@@ -200,20 +200,67 @@ txi <- tximport("quant.sf", type="none", txOut=TRUE,
                 importer=function(x) read_tsv(x, skip=8))
 ```
 
+## Salmon with inferential replicates
+
+If inferential replicates (Gibbs or bootstrap samples) are present in
+expected locations relative to the `quant.sf` file, *tximport* will 
+import these as well, if `txOut=TRUE`. *tximport* will not summarize
+inferential replicate information to the gene-level. Here we
+demonstrate using Salmon, run with only 5 Gibbs replicates (usually
+more Gibbs samples would be useful for estimating variability).
+
+```{r}
+files <- file.path(dir,"salmon_gibbs", samples$run, "quant.sf")
+names(files) <- paste0("sample",1:6)
+txi.inf.rep <- tximport(files, type="salmon", txOut=TRUE)
+names(txi.inf.rep)
+names(txi.inf.rep$infReps)
+dim(txi.inf.rep$infReps$sample1)
+```
+
+The *tximport* arguments `varReduce` and `dropInfReps` can be used to
+summarize the inferential replicates into a single variance per
+transcript and per sample, or to not import inferential replicates,
+respectively. 
+
 ## kallisto
 
-kallisto `abundance.tsv` files can be imported by setting type to `"kallisto"`.
+kallisto `abundance.h5` files can be imported by setting type to
+`"kallisto"`. Note that this requires that you have the Bioconductor package 
+[rhdf5](http://bioconductor.org/packages/rhdf5) installed.
+(Here we only demonstrate reading in transcript-level information.)
+
+```{r}
+files <- file.path(dir, "kallisto_boot", samples$run, "abundance.h5")
+names(files) <- paste0("sample",1:6)
+txi.kallisto <- tximport(files, type="kallisto", txOut=TRUE)
+head(txi.kallisto$counts)
+```
+
+## kallisto with inferential replicates
+
+Because the `kallisto_boot` directory also has inferential replicate
+information, it was imported as well (and because `txOut=TRUE`).
+As with Salmon, inferential replicate information will not be
+summarized to the gene level.
+
+```{r}
+names(txi.kallisto)
+names(txi.kallisto$infReps)
+dim(txi.kallisto$infReps$sample1)
+```
+
+## kallisto with TSV files
+
+kallisto `abundance.tsv` files can be imported as well, but this is
+typically slower than the approach above.
 
 ```{r}
 files <- file.path(dir, "kallisto", samples$run, "abundance.tsv")
 names(files) <- paste0("sample",1:6)
-txi.kallisto <- tximport(files, type="kallisto", tx2gene=tx2gene)
-head(txi.kallisto$counts)
+txi.kallisto.tsv <- tximport(files, type="kallisto", tx2gene=tx2gene)
+head(txi.kallisto.tsv$counts)
 ```
-
-In order to read from `abundance.h5` files, set type to
-`"kallisto.h5"`. This requires that you have the Bioconductor package 
-[rhdf5](http://bioconductor.org/packages/rhdf5) installed.
 
 ## RSEM
 
@@ -315,11 +362,11 @@ v <- voom(y, design)
 The development of *tximport* has benefited from contributions and
 suggestions from:
 
+[Rob Patro](https://twitter.com/nomad421) (inferential replicates import),
 [Andrew Parker Morgan](https://github.com/andrewparkermorgan) (RHDF5 support),
 [Ryan C. Thompson](https://github.com/DarwinAwardWinner) (RHDF5 support),
 [Matt Shirley](https://twitter.com/mdshw5) (ignoreTxVersion),
 [Stephen Turner](https://twitter.com/genetics_blog),
-[Rob Patro](https://twitter.com/nomad421),
 [Richard Smith-Unna](https://twitter.com/blahah404),
 [Rory Kirchner](https://twitter.com/RoryKirchner),
 [Martin Morgan](https://twitter.com/mt_morgan),

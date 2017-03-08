@@ -25,4 +25,15 @@ test_that("import salmon works", {
   tx2gene.bad <- data.frame(letters,letters)
   expect_error(tximport(files, type="salmon", tx2gene=tx2gene.bad))
 
+  # test inferential replicate code
+  files <- file.path(dir,"salmon_gibbs", samples$run, "quant.sf")
+  names(files) <- paste0("sample",1:6)
+
+  txi <- tximport(files, type="salmon", txOut=TRUE)
+  expect_true("infReps" %in% names(txi))
+  txi <- tximport(files, type="salmon", txOut=TRUE, varReduce=TRUE)
+  expect_true("variance" %in% names(txi))
+  txi <- tximport(files, type="salmon", txOut=TRUE, dropInfReps=TRUE)
+  expect_true(!any(c("infReps","variance") %in% names(txi)))
+  
 })
