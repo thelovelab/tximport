@@ -200,7 +200,7 @@ txi <- tximport("quant.sf", type="none", txOut=TRUE,
                 importer=function(x) read_tsv(x, skip=8))
 ```
 
-## Salmon with inferential replicates
+## Salmon / Sailfish with inferential replicates
 
 If inferential replicates (Gibbs or bootstrap samples) are present in
 expected locations relative to the `quant.sf` file, *tximport* will 
