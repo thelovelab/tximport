@@ -27,7 +27,7 @@
 #' 
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
-#' Options are "kallisto", "salmon", "sailfish", "rsem".
+#' Options are "kallisto" (kallisto plain-text), "kallisto.h5" (kallisto HDF5), "salmon", "sailfish", "rsem".
 #' This argument is used to autofill the arguments below (geneIdCol, etc.)
 #' "none" means that the user will specify these columns.
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
@@ -88,7 +88,7 @@
 #' @importFrom utils read.delim
 #' @export
 tximport <- function(files,
-                     type=c("none","kallisto","salmon","sailfish","rsem"),
+                     type=c("none","kallisto","kallisto.h5","salmon","sailfish","rsem"),
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
@@ -103,7 +103,7 @@ tximport <- function(files,
                      collatedFiles,
                      ignoreTxVersion=FALSE) {
 
-  type <- match.arg(type, c("none","kallisto","salmon","sailfish","rsem"))
+  type <- match.arg(type, c("none","kallisto","kallisto.h5","salmon","sailfish","rsem"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
   stopifnot(all(file.exists(files)))
   if (!txIn & txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
@@ -116,7 +116,17 @@ tximport <- function(files,
     countsCol <- "est_counts"
     lengthCol <- "eff_length"
     importer <- reader
-    }
+  }
+  
+  # kallisto-HDF5 presets
+  if (type == "kallisto.h5") {
+  	geneIdCol="gene_id"
+  	txIdCol <- "target_id"
+  	abundanceCol <- "tpm"
+  	countsCol <- "est_counts"
+  	lengthCol <- "eff_length"
+  	importer <- read_kallisto_h5
+  }
   
   # salmon/sailfish presets
   if (type %in% c("salmon","sailfish")) {
@@ -357,4 +367,28 @@ replaceMissingLength <- function(lengthMat, aveLengthSampGene) {
 ##            dimnames=list(levels(f), colnames(m)))
 ##   }
 ## }
+
+read_kallisto_h5 <- function(fpath, ...) {
+	if (!requireNamespace("rhdf5", quietly = TRUE)) {
+		stop("Reading kallisto result from hdf5 files requires Biodoncuctor package `rhdf5`.", call. = FALSE)
+	}
+	counts <- rhdf5::h5read(fpath, "est_counts")
+	ids <- rhdf5::h5read(fpath, "aux/ids")
+	efflens <- rhdf5::h5read(fpath, "aux/eff_lengths")
+	
+	if (length(efflens) != length(ids)) {
+		stop("Different number of target IDs and effective lengths.")
+	}
+	if (length(ids) != length(counts)) {
+		stop("Dimensions of counts and targets don't match.  Do you have bootstraps? They aren't supported yet.")
+	}
+	
+	result <- data.frame(target_id = ids,
+						 eff_length = efflens,
+						 est_counts = counts,
+						 stringsAsFactors = FALSE)
+	normfac <- with(result, (1e6)/sum(est_counts/eff_length))
+	result$tpm <- with(result, normfac*(est_counts/eff_length))
+	return(result)
+}
 
