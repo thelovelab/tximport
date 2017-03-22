@@ -11,7 +11,7 @@ RowVar <- function(x) {
 readInfRepFish <- function(fish_dir, meth) {
   # aux_info is the default auxiliary directory in salmon
   # aux is the default directory in sailfish
-  aux_dir <- if (meth == "sailfish") { "aux" } else { "aux_info" }
+  aux_dir <- "aux_info"
 
   if (!requireNamespace("rjson", quietly=TRUE)) {
     stop("importing inferential replicates for Salmon or Sailfish requires package `rjson`.
