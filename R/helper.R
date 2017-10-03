@@ -41,6 +41,9 @@ read_kallisto_h5 <- function(fpath, ...) {
   ids <- rhdf5::h5read(fpath, "aux/ids")
   efflens <- rhdf5::h5read(fpath, "aux/eff_lengths")
 
+  # as suggested by https://support.bioconductor.org/p/96958/#101090
+  ids <- as.character(ids)
+  
   stopifnot(length(counts) == length(ids)) 
   stopifnot(length(efflens) == length(ids))
 
