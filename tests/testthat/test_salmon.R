@@ -1,16 +1,39 @@
-dir <- system.file("extdata", package="tximportData")
-samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
-files <- file.path(dir,"salmon", samples$run, "quant.sf")
-names(files) <- paste0("sample",1:6)
-tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
+context("salmon")
+test_that("import salmon works", {
 
-txi <- tximport(files, type="salmon", tx2gene=tx2gene, reader=read_tsv)
-expect_true(ncol(txi$counts) == length(files))
+  library(readr)
+  dir <- system.file("extdata", package="tximportData")
+  samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
+  files <- file.path(dir,"salmon", samples$run, "quant.sf")
+  names(files) <- paste0("sample",1:6)
+  tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
 
-# also test txOut here
-txi.txout <- tximport(files, type="salmon", txOut=TRUE, reader=read_tsv)
-expect_true(ncol(txi.txout$counts) == length(files))
+  txi <- tximport(files, type="salmon", tx2gene=tx2gene)
+  expect_true(ncol(txi$counts) == length(files))
 
-# test reading in slow way
-txi <- tximport(files[1:2], type="salmon", tx2gene=tx2gene)
-expect_true(ncol(txi$counts) == 2)
+  # also test txOut here
+  txi.txout <- tximport(files, type="salmon", txOut=TRUE)
+  expect_true(ncol(txi.txout$counts) == length(files))
+
+  # test error for txOut and not txIn
+  expect_error(tximport(files, type="salmon", txIn=FALSE, txOut=TRUE))
+
+  # test ignore tx version
+  txi.ign.ver <- tximport(files, type="salmon", tx2gene=tx2gene, ignoreTxVersion=TRUE)
+  
+  # test wrong tx2gene
+  tx2gene.bad <- data.frame(letters,letters)
+  expect_error(tximport(files, type="salmon", tx2gene=tx2gene.bad))
+
+  # test inferential replicate code
+  files <- file.path(dir,"salmon_gibbs", samples$run, "quant.sf")
+  names(files) <- paste0("sample",1:6)
+
+  txi <- tximport(files, type="salmon", txOut=TRUE)
+  expect_true("infReps" %in% names(txi))
+  txi <- tximport(files, type="salmon", txOut=TRUE, varReduce=TRUE)
+  expect_true("variance" %in% names(txi))
+  txi <- tximport(files, type="salmon", txOut=TRUE, dropInfReps=TRUE)
+  expect_true(!any(c("infReps","variance") %in% names(txi)))
+  
+})

@@ -1,10 +1,32 @@
-# Update: tximport now hosted on Bioconductor
+# tximport
 
-# therefore, warning for pull request-ers:
+Import and summarize transcript-level estimates for transcript- and gene-level analysis
 
-tximport is now hosted on Bioconductor. 
-Be aware that this GitHub repo is therefore
-*not up to date* with the current version of tximport.
+Description of methods and analysis described in:
 
-http://bioconductor.org/packages/tximport
+* Charlotte Soneson, Michael I. Love, Mark D. Robinson.
+[Differential analyses for RNA-seq: transcript-level estimates improve gene-level inferences](http://f1000research.com/articles/4-1521),
+*F1000Research*, 4:1521, December 2015. doi: 10.12688/f1000research.7563.1
 
+---
+
+Imports transcript-level abundance, estimated counts and 
+transcript lengths, and summarizes into matrices for use with downstream
+statistical analysis packages such as edgeR, DESeq2, limma-voom. 
+Average transcript length, weighted by 
+sample-specific transcript abundance estimates, is provided as a matrix
+which can be used as an offset for different expression of 
+gene-level counts.
+
+See examples in the [vignette](http://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html).
+
+Notes:
+
+* tximport as of version 1.3.9 will import inferential replicates
+  (Gibbs samples or bootstrap samples) from Salmon, Sailfish or kallisto.
+* Though we provide here functionality for performing gene-level
+  differential expression using summarized transcript-level estimates,
+  this is does not mean we suggest that users *only* perform gene-level
+  analysis. Gene-level differential expression can be complemented
+  with transcript- or exon-level analysis. The argument `txOut=TRUE`
+  can be used to generate transcript-level matrices.

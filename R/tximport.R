@@ -1,73 +1,104 @@
-.onAttach <- function(...) {
-  packageStartupMessage("
-************************************************
-* NOTE: tximport is now hosted on Bioconductor *
-* and should be installed via:                 *
-*                                              *
-* source('http://bioconductor.org/biocLite.R') *
-* biocLite('tximport')                         *
-*                                              *
-* the version on GitHub is not up-to-date!     *
-************************************************
-")
-}
-
-#' Import transcript-level abundances and estimated counts for gene-level analysis packages
+#' Import transcript-level abundances and counts
+#' for transcript- and gene-level analysis packages
 #'
-#' \code{tximport} helps to import transcript-level estimates from various
-#' external software and can summarize abundances, counts, and transcript lengths
-#' to the gene-level (default) or output transcript-level (see \code{txOut} argument).
+#' \code{tximport} imports transcript-level estimates from various
+#' external software and optionally summarizes abundances, counts,
+#' and transcript lengths
+#' to the gene-level (default) or outputs transcript-level matrices
+#' (see \code{txOut} argument).
 #'
-#' \code{summarizeToGene} can be used to summarize a list of transcript-level
-#' matrices produced by \code{tximport} to the gene level. This is equivalent
-#' to \code{tximport} with \code{txOut=FALSE}.
+#' \code{tximport} will also load in information about inferential replicates --
+#' a list of matrices of the Gibbs samples from the posterior, or bootstrap replicates,
+#' per sample -- if these data are available in the expected locations
+#' relative to the \code{files}, and if \code{txOut=TRUE}.
+#' The inferential replicates, stored in \code{infReps} in the output list,
+#' are on estimated counts, and therefore follow \code{counts} in the output list.
+#' By setting \code{varReduce=TRUE}, the inferential replicate matrices
+#' will be replaced by a single matrix with the sample variance
+#' per transcript and per sample.
+#' Inferential replicate information is not summarized to the gene level.
 #'
-#' The last known supported versions of the external quantifiers are:
-#' kallisto 0.42.4, Salmon 0.6.0, Sailfish 0.9.0, RSEM 1.2.11.
+#' While \code{tximport} summarizes to the gene-level by default, 
+#' the user can also perform the import and summarization steps manually,
+#' by specifing \code{txOut=TRUE} and then using the function
+#' \code{summarizeToGene}.
+#' Note however that this is equivalent to \code{tximport} with
+#' \code{txOut=FALSE} (the default).
+#'
+#' Solutions to the error "tximport failed at summarizing to the gene-level":
+#'
+#' \enumerate{
+#'   \item provide a \code{tx2gene} data.frame linking transcripts to genes (more below)
+#'   \item avoid gene-level summarization by specifying \code{txOut=TRUE}
+#'   \item set \code{geneIdCol} to an appropriate column in the files
+#' }
 #' 
+#' See \code{vignette('tximport')} for example code for generating a
+#' \code{tx2gene} data.frame from a \code{TxDb} object.
+#' Note that the \code{keys} and \code{select} functions used
+#' to create the \code{tx2gene} object are documented
+#' in the man page for \link[AnnotationDbi]{AnnotationDb-class} objects
+#' in the AnnotationDbi package (TxDb inherits from AnnotationDb).
+#' For further details on generating TxDb objects from various inputs
+#' see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
+#'
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
-#' Options are "kallisto", "salmon", "sailfish", "rsem".
+#' Options are "salmon", "sailfish", "kallisto", "rsem".
 #' This argument is used to autofill the arguments below (geneIdCol, etc.)
 #' "none" means that the user will specify these columns.
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
-#' @param txOut logical, whether the function should just output transcript-level (default FALSE)
-#' @param countsFromAbundance character, either "no" (default), "scaledTPM", or "lengthScaledTPM",
-#' for whether to generate estimated counts using abundance estimates scaled up to library size
-#' (scaledTPM) or additionally scaled using the average transcript length over samples and
+#' @param txOut logical, whether the function should just output
+#' transcript-level (default FALSE)
+#' @param countsFromAbundance character, either "no" (default), "scaledTPM",
+#' or "lengthScaledTPM",
+#' for whether to generate estimated counts using abundance estimates
+#' scaled up to library size (scaledTPM) or additionally scaled using
+#' the average transcript length over samples and
 #' the library size (lengthScaledTPM). if using scaledTPM or lengthScaledTPM, 
 #' then the counts are no longer correlated with average transcript length,
 #' and so the length offset matrix should not be used.
-#' @param tx2gene a two-column data.frame linking transcript id (column 1) to gene id (column 2).
+#' @param tx2gene a two-column data.frame linking transcript id (column 1)
+#' to gene id (column 2).
 #' the column names are not relevant, but this column order must be used. 
 #' this argument is required for gene-level summarization for methods
 #' that provides transcript-level estimates only
 #' (kallisto, Salmon, Sailfish)
-#' @param reader a function to replace read.delim in the pre-set importer functions,
-#' for example substituting read_tsv from the readr package will substantially 
-#' speed up tximport
-#' @param geneIdCol name of column with gene id. if missing, the gene2tx argument can be used
+#' @param varReduce whether to reduce per-sample inferential replicates
+#' information into a matrix of sample variances \code{variance} (default FALSE)
+#' @param dropInfReps whether to skip reading in inferential replicates
+#' (default FALSE)
+#' @param ignoreTxVersion logical, whether to split the tx id on the '.' character
+#' to remove version information, for easier matching with the tx id in gene2tx
+#' (default FALSE)
+#' @param geneIdCol name of column with gene id. if missing,
+#' the gene2tx argument can be used
 #' @param txIdCol name of column with tx id
 #' @param abundanceCol name of column with abundances (e.g. TPM or FPKM)
 #' @param countsCol name of column with estimated counts
 #' @param lengthCol name of column with feature length information
 #' @param importer a function used to read in the files
-#' @param collatedFiles a character vector of filenames for software which provides
-#' abundances and counts in matrix form (e.g. Cufflinks). The files should be, in order,
-#' abundances, counts, and a third file with length information
-#' @param ignoreTxVersion logical, whether to split the tx id on the '.' character
-#' to remove version information, for easier matching with the tx id in gene2tx
-#' (default FALSE)
 #' @param txi list of matrices of trancript-level abundances, counts, and
 #' lengths produced by \code{tximport}, only used by \code{summarizeToGene}
 #' 
-#' @return a simple list with matrices: abundance, counts, length.
-#' A final element 'countsFromAbundance' carries through
+#' @return a simple list containing matrices: abundance, counts, length.
+#' Another list element 'countsFromAbundance' carries through
 #' the character argument used in the tximport call.
+#' If detected, and \code{txOut=TRUE}, inferential replicates for
+#' each sample will be imported and stored as a list of matrices,
+#' itself an element \code{infReps} in the returned list.
+#' If \code{varReduce=TRUE} the inferential replicates will be summarized
+#' according to the sample variance, and stored as a matrix \code{variance}.
 #' The length matrix contains the average transcript length for each
 #' gene which can be used as an offset for gene-level analysis.
-#' Note: tximport does not import bootstrap estimates from kallisto, Salmon, or Sailfish.
+#' 
+#' @references
 #'
+#' Charlotte Soneson, Michael I. Love, Mark D. Robinson (2015):
+#' Differential analyses for RNA-seq: transcript-level estimates
+#' improve gene-level inferences. F1000Research.
+#' \url{http://dx.doi.org/10.12688/f1000research.7563.1}
+#' 
 #' @examples
 #'
 #' # load data for demonstrating tximport
@@ -85,38 +116,51 @@
 #'
 #' txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 #'
-#' @importFrom utils read.delim
+#' @importFrom utils read.delim capture.output
+#'
+#' @describeIn tximport Import estimates of abundances and counts
 #' @export
 tximport <- function(files,
-                     type=c("none","kallisto","salmon","sailfish","rsem"),
+                     type=c("none","salmon","sailfish","kallisto","rsem"),
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
                      tx2gene=NULL,
-                     reader=read.delim,
+                     varReduce=FALSE,
+                     dropInfReps=FALSE,
+                     ignoreTxVersion=FALSE,
                      geneIdCol,
                      txIdCol,
                      abundanceCol,
                      countsCol,
                      lengthCol,
-                     importer,
-                     collatedFiles,
-                     ignoreTxVersion=FALSE) {
+                     importer=NULL) {
 
-  type <- match.arg(type, c("none","kallisto","salmon","sailfish","rsem"))
+  # inferential replicate importer
+  infRepImporter <- NULL
+
+  type <- match.arg(type, c("none","salmon","sailfish","kallisto","rsem"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
+
   stopifnot(all(file.exists(files)))
   if (!txIn & txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
+
+  kallisto.h5 <- basename(files[1]) == "abundance.h5"
+  if (type == "kallisto" & !kallisto.h5) {
+    message("Note: importing `abundance.h5` is typically faster than `abundance.tsv`")
+  }
   
-  # kallisto presets
-  if (type == "kallisto") {
-    geneIdCol="gene_id"
-    txIdCol <- "target_id"
-    abundanceCol <- "tpm"
-    countsCol <- "est_counts"
-    lengthCol <- "eff_length"
-    importer <- reader
+  readrStatus <- FALSE
+  if (is.null(importer) & !kallisto.h5) {
+    if (!requireNamespace("readr", quietly=TRUE)) {
+      message("reading in files with read.delim (install 'readr' package for speed up)")
+      importer <- read.delim
+    } else {
+      message("reading in files with read_tsv")
+      readrStatus <- TRUE
+      importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=readr::cols())
     }
+  }
   
   # salmon/sailfish presets
   if (type %in% c("salmon","sailfish")) {
@@ -125,7 +169,20 @@ tximport <- function(files,
     abundanceCol <- "TPM"
     countsCol <- "NumReads"
     lengthCol <- "EffectiveLength"
-    importer <- function(x) reader(x, comment='#') 
+    infRepImporter <- if (dropInfReps) { NULL } else { function(x) readInfRepFish(x, type) }
+  }
+
+  # kallisto presets
+  if (type == "kallisto") {
+    geneIdCol="gene_id"
+    txIdCol <- "target_id"
+    abundanceCol <- "tpm"
+    countsCol <- "est_counts"
+    lengthCol <- "eff_length"
+    if (kallisto.h5) {
+      importer <- read_kallisto_h5
+    }
+    infRepImporter <- if (dropInfReps) { NULL } else { readInfRepKallisto }
   }
   
   # rsem presets
@@ -135,47 +192,33 @@ tximport <- function(files,
     abundanceCol <- "FPKM"
     countsCol <- "expected_count"
     lengthCol <- "effective_length"
-    importer <- reader
   }
-  
-  if (type == "cufflinks") {
-    stop("reading from collated files not yet implemented")
+
+  infRepType <- "none"
+  if (type %in% c("salmon", "sailfish", "kallisto") & !dropInfReps) {
+    infRepType <- if (varReduce) { "var" } else { "full" }
   }
   
   # if input is tx-level, need to summarize abundances, counts and lengths to gene-level
   if (txIn) {
-    message("reading in files")
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
+
       raw <- as.data.frame(importer(files[i]))
 
-      #####################################################################
-      # some temporary code for detecting older fishes
-      if ((i == 1) &
-          (type %in% c("salmon","sailfish")) &
-          !("EffectiveLength" %in% names(raw))) {
-        lengthCol <- "Length" 
-        # because the comment lines have the same comment character
-        # as the header, need to name the column names
-        importer <- function(x) {
-          tmp <- reader(x, comment="#")
-          names(tmp) <- c("Name","Length","TPM","NumReads")
-          tmp
+      # if we expect inferential replicate info
+      repInfo <- NULL
+      if (infRepType != "none") {
+        repInfo <- infRepImporter(dirname(files[i]))
+        # if we didn't find inferential replicate info
+        if (is.null(repInfo)) {
+          infRepType <- "none"
         }
-        # re-read the first file
-        raw <- as.data.frame(importer(files[i]))
       }
-      #####################################################################
-      
-      # does the table contain gene association or was an external tx2gene table provided?
+
+      # if external tx2gene table not provided, send user to vignette
       if (is.null(tx2gene) & !txOut) {
-        # e.g. Cufflinks includes the gene ID in the table
-        stopifnot(all(c(geneIdCol, lengthCol, abundanceCol) %in% names(raw)))
-        if (i == 1) {
-          geneId <- raw[[geneIdCol]]
-        } else {
-          stopifnot(all(geneId == raw[[geneIdCol]]))
-        }
+        summarizeFail() # ...long message in helper.R
       } else {
         # e.g. Salmon and kallisto do not include the gene ID, need an external table
         stopifnot(all(c(lengthCol, abundanceCol) %in% names(raw)))
@@ -193,18 +236,59 @@ tximport <- function(files,
         abundanceMatTx <- mat
         countsMatTx <- mat
         lengthMatTx <- mat
+        if (infRepType == "var") {
+          varMatTx <- mat
+        } else if (infRepType == "full") {
+          infRepMatTx <- list()
+        }
       }
       abundanceMatTx[,i] <- raw[[abundanceCol]]
       countsMatTx[,i] <- raw[[countsCol]]
       lengthMatTx[,i] <- raw[[lengthCol]]
+      if (infRepType == "var") {
+        varMatTx[,i] <- repInfo$vars
+      } else if (infRepType == "full") {
+        infRepMatTx[[i]] <- repInfo$reps
+      }
     }
+
+    # propagate names to inferential replicate list
+    if (infRepType == "full") {
+      names(infRepMatTx) <- names(files)
+    }
+    
     message("")
 
-    txi <- list(abundance=abundanceMatTx, counts=countsMatTx, length=lengthMatTx,
-                countsFromAbundance="no")
+    # if there is no information about inferential replicates
+    if (infRepType == "none") {
+      txi <- list(abundance=abundanceMatTx,
+                  counts=countsMatTx,
+                  length=lengthMatTx,
+                  countsFromAbundance=countsFromAbundance)
+    } else if (infRepType == "var") {
+    # if we're keeping only the variance from inferential replicates
+      txi <- list(abundance=abundanceMatTx,
+                  counts=countsMatTx,
+                  variance=varMatTx,
+                  length=lengthMatTx,
+                  countsFromAbundance=countsFromAbundance)
+    } else if (infRepType == "full") {
+    # if we're keeping the full samples from inferential replicates
+      txi <- list(abundance=abundanceMatTx,
+                  counts=countsMatTx,
+                  infReps=infRepMatTx,
+                  length=lengthMatTx,
+                  countsFromAbundance=countsFromAbundance)
+    }
 
     # if the user requested just the transcript-level data:
     if (txOut) {
+      if (countsFromAbundance != "no") {
+        txi$counts <- makeCountsFromAbundance(txi$counts,
+                                              txi$abundance,
+                                              txi$length,
+                                              countsFromAbundance)
+      }
       return(txi)
     }
 
@@ -216,10 +300,13 @@ tximport <- function(files,
   # just combine the gene-level summaries across files
   } else {
   
-    message("reading in files")
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
-      raw <- as.data.frame(importer(files[i]))
+
+      out <- capture.output({
+        raw <- as.data.frame(importer(files[i]))
+      }, type="message")
+      
       stopifnot(all(c(geneIdCol, abundanceCol, lengthCol) %in% names(raw)))
       if (i == 1) {
         mat <- matrix(nrow=nrow(raw),ncol=length(files))
@@ -238,123 +325,4 @@ tximport <- function(files,
   return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
               countsFromAbundance="no"))
 }
-
-# summarizeToGene() splits out the summarization functions
-# in tximport(), so it can be called by users to summarize
-# transcript-level lists of matrices
-
-#' @describeIn tximport Summarize tx-level matrices to gene-level
-#' @export
-summarizeToGene <- function(txi,
-                            tx2gene,
-                            ignoreTxVersion=FALSE,
-                            countsFromAbundance=c("no","scaledTPM","lengthScaledTPM")
-                            ) {
-
-  countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
-
-  # unpack matrices from list for cleaner code
-  abundanceMatTx <- txi$abundance
-  countsMatTx <- txi$counts
-  lengthMatTx <- txi$length
-  
-  txId <- rownames(abundanceMatTx)
-  stopifnot(all(txId == rownames(countsMatTx)))
-  stopifnot(all(txId == rownames(lengthMatTx)))
-  
-  # need to associate tx to genes
-  # potentially remove unassociated transcript rows and warn user
-  if (!is.null(tx2gene)) {
-    colnames(tx2gene) <- c("tx","gene")
-    if (ignoreTxVersion) {
-      txId <- sapply(strsplit(as.character(txId), "\\."), "[[", 1)
-    }
-    tx2gene$gene <- factor(tx2gene$gene)
-    tx2gene$tx <- factor(tx2gene$tx)
-    # remove transcripts (and genes) not in the abundances
-    tx2gene <- tx2gene[tx2gene$tx %in% txId,]
-    tx2gene$gene <- droplevels(tx2gene$gene)
-    ntxmissing <- sum(!txId %in% tx2gene$tx)
-    if (ntxmissing > 0) message("transcripts missing genes: ", ntxmissing)
-    sub.idx <- txId %in% tx2gene$tx
-    abundanceMatTx <- abundanceMatTx[sub.idx,,drop=FALSE]
-    countsMatTx <- countsMatTx[sub.idx,,drop=FALSE]
-    lengthMatTx <- lengthMatTx[sub.idx,,drop=FALSE]
-    txId <- txId[sub.idx]
-    geneId <- tx2gene$gene[match(txId, tx2gene$tx)]
-  }
-  
-  # summarize abundance and counts
-  message("summarizing abundance")
-  abundanceMat <- rowsum(abundanceMatTx, geneId)
-  message("summarizing counts")
-  countsMat <- rowsum(countsMatTx, geneId)
-  message("summarizing length")
-  
-  # the next lines calculate a weighted average of transcript length, 
-  # weighting by transcript abundance.
-  # this can be used as an offset / normalization factor which removes length bias
-  # for the differential analysis of estimated counts summarized at the gene level.
-  weightedLength <- rowsum(abundanceMatTx * lengthMatTx, geneId)
-  lengthMat <- weightedLength / abundanceMat   
-
-  # pre-calculate a simple average transcript length
-  # for the case the abundances are all zero for all samples.
-  # first, average the tx lengths over samples
-  aveLengthSamp <- rowMeans(lengthMatTx)
-  # then simple average of lengths within genes (not weighted by abundance)
-  aveLengthSampGene <- tapply(aveLengthSamp, geneId, mean)
-
-  stopifnot(all(names(aveLengthSampGene) == rownames(lengthMat)))
-  
-  # check for NaN and if possible replace these values with geometric mean of other samples.
-  # (the geometic mean here implies an offset of 0 on the log scale)
-  # NaN come from samples which have abundance of 0 for all isoforms of a gene, and 
-  # so we cannot calculate the weighted average. our best guess is to use the average
-  # transcript length from the other samples.
-  lengthMat <- replaceMissingLength(lengthMat, aveLengthSampGene)
-  
-  if (countsFromAbundance != "no") {
-    countsSum <- colSums(countsMat)
-    if (countsFromAbundance == "lengthScaledTPM") {
-      newCounts <- abundanceMat * rowMeans(lengthMat)
-    } else {
-        newCounts <- abundanceMat
-      }
-    newSum <- colSums(newCounts)
-    countsMat <- t(t(newCounts) * (countsSum/newSum))
-  }
-  
-  return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
-              countsFromAbundance=countsFromAbundance))
-}
-
-# function for replacing missing average transcript length values
-replaceMissingLength <- function(lengthMat, aveLengthSampGene) {
-  nanRows <- which(apply(lengthMat, 1, function(row) any(is.nan(row))))
-  if (length(nanRows) > 0) {
-    for (i in nanRows) {
-      if (all(is.nan(lengthMat[i,]))) {
-        # if all samples have 0 abundances for all tx, use the simple average
-        lengthMat[i,] <- aveLengthSampGene[i]
-      } else {
-          # otherwise use the geometric mean of the lengths from the other samples
-          idx <- is.nan(lengthMat[i,])
-          lengthMat[i,idx] <-  exp(mean(log(lengthMat[i,!idx]), na.rm=TRUE))
-        }
-    }
-  }
-  lengthMat
-}
-
-# this is much faster than by(), a bit slower than dplyr summarize_each()
-## fastby <- function(m, f, fun) {
-##   idx <- split(1:nrow(m), f)
-##   if (ncol(m) > 1) {
-##     t(sapply(idx, function(i) fun(m[i,,drop=FALSE])))
-##   } else {
-##     matrix(vapply(idx, function(i) fun(m[i,,drop=FALSE], FUN.VALUE=numeric(ncol(m)))),
-##            dimnames=list(levels(f), colnames(m)))
-##   }
-## }
 
