@@ -2,7 +2,9 @@
 # in tximport(), so it can be called by users to summarize
 # transcript-level lists of matrices
 
-#' @describeIn tximport Summarize transcript-level to gene-level
+#' @rdname tximport
+#' @name tximport
+#' 
 #' @export
 summarizeToGene <- function(txi,
                             tx2gene,

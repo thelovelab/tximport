@@ -13,8 +13,8 @@ readInfRepFish <- function(fish_dir, meth) {
   # aux is the default directory in sailfish
   aux_dir <- "aux_info"
 
-  if (!requireNamespace("rjson", quietly=TRUE)) {
-    stop("importing inferential replicates for Salmon or Sailfish requires package `rjson`.
+  if (!requireNamespace("jsonlite", quietly=TRUE)) {
+    stop("importing inferential replicates for Salmon or Sailfish requires package `jsonlite`.
   to skip this step, set dropInfReps=TRUE")
   }
   
@@ -24,7 +24,7 @@ readInfRepFish <- function(fish_dir, meth) {
     return(NULL)
   }
   
-  cmd_info <- rjson::fromJSON(file=jsonPath)
+  cmd_info <- jsonlite::fromJSON(jsonPath)
   if (is.element("auxDir", names(cmd_info))) {
     aux_dir <- cmd_info$auxDir
   }
@@ -34,7 +34,7 @@ readInfRepFish <- function(fish_dir, meth) {
   }
 
   # get all of the meta info
-  minfo <- rjson::fromJSON(file=file.path(auxPath, "meta_info.json"))
+  minfo <- jsonlite::fromJSON(file.path(auxPath, "meta_info.json"))
 
   if ("salmon_version" %in% names(minfo)) {
     stopifnot(package_version(minfo$salmon_version) >= "0.8.0")

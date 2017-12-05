@@ -118,7 +118,6 @@
 #'
 #' @importFrom utils read.delim capture.output
 #'
-#' @describeIn tximport Import estimates of abundances and counts
 #' @export
 tximport <- function(files,
                      type=c("none","salmon","sailfish","kallisto","rsem"),
@@ -149,6 +148,8 @@ tximport <- function(files,
   if (type == "kallisto" & !kallisto.h5) {
     message("Note: importing `abundance.h5` is typically faster than `abundance.tsv`")
   }
+
+  # TODO importer needs to set col_types for each present method below...
   
   readrStatus <- FALSE
   if (is.null(importer) & !kallisto.h5) {
@@ -187,9 +188,10 @@ tximport <- function(files,
   
   # rsem presets
   if (type == "rsem") {
+    # TODO fix RSEM so it works with transcript level
     txIn <- FALSE
     geneIdCol <- "gene_id"
-    abundanceCol <- "FPKM"
+    abundanceCol <- "TPM"
     countsCol <- "expected_count"
     lengthCol <- "effective_length"
   }
