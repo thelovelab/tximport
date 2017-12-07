@@ -71,6 +71,7 @@
 #' @param ignoreTxVersion logical, whether to split the tx id on the '.' character
 #' to remove version information, for easier matching with the tx id in gene2tx
 #' (default FALSE)
+#' @param ignoreAfterBar logical, whether to split the tx id on the '|' character (default FALSE)
 #' @param geneIdCol name of column with gene id. if missing,
 #' the gene2tx argument can be used
 #' @param txIdCol name of column with tx id
@@ -108,11 +109,11 @@
 #' library(tximportData)
 #' dir <- system.file("extdata", package="tximportData")
 #' samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
-#' files <- file.path(dir,"salmon", samples$run, "quant.sf")
+#' files <- file.path(dir,"salmon", samples$run, "quant.sf.gz")
 #' names(files) <- paste0("sample",1:6)
 #'
 #' # tx2gene links transcript IDs to gene IDs for summarization
-#' tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
+#' tx2gene <- read.csv(file.path(dir, "tx2gene.gencode.v27.csv"))
 #'
 #' txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 #'
@@ -128,6 +129,7 @@ tximport <- function(files,
                      varReduce=FALSE,
                      dropInfReps=FALSE,
                      ignoreTxVersion=FALSE,
+                     ignoreAfterBar=FALSE,
                      geneIdCol,
                      txIdCol,
                      abundanceCol,
@@ -295,7 +297,7 @@ tximport <- function(files,
     }
 
     txi[["countsFromAbundance"]] <- NULL
-    txiGene <- summarizeToGene(txi, tx2gene, ignoreTxVersion, countsFromAbundance)
+    txiGene <- summarizeToGene(txi, tx2gene, ignoreTxVersion, ignoreAfterBar, countsFromAbundance)
     return(txiGene)  
     
   # e.g. RSEM already has gene-level summaries

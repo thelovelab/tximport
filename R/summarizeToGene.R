@@ -9,6 +9,7 @@
 summarizeToGene <- function(txi,
                             tx2gene,
                             ignoreTxVersion=FALSE,
+                            ignoreAfterBar=FALSE,
                             countsFromAbundance=c("no","scaledTPM","lengthScaledTPM")
                             ) {
 
@@ -27,9 +28,11 @@ summarizeToGene <- function(txi,
   # potentially remove unassociated transcript rows and warn user
   if (!is.null(tx2gene)) {
     
-    # code to strip dots from the rownames of matrices
+    # code to strip dots or bars and all remaining chars from the rownames of matrices
     if (ignoreTxVersion) {
-      txId <- sapply(strsplit(as.character(txId), "\\."), "[[", 1)
+      txId <- sub("\\..*", "", txId)
+    } else if (ignoreAfterBar) {
+      txId <- sub("\\|.*", "", txId)
     }
     
     colnames(tx2gene) <- c("tx","gene")

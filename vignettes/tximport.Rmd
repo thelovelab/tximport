@@ -71,12 +71,14 @@ list.files(dir)
 Next, we create a named vector pointing to the quantification
 files. We will create a vector of filenames first by reading in a
 table that contains the sample IDs, and then combining this with `dir`
-and `"quant.sf"`.
+and `"quant.sf.gz"`. (We gzipped the quantification files to make the
+data package smaller, this is not a problem for R functions that we
+use to import the files.)
 
 ```{r}
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
 samples
-files <- file.path(dir, "salmon", samples$run, "quant.sf")
+files <- file.path(dir, "salmon", samples$run, "quant.sf.gz")
 names(files) <- paste0("sample",1:6)
 all(file.exists(files))
 ```
@@ -96,9 +98,8 @@ following code could be used to construct such a table:
 ```{r}
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
-k <- keys(txdb, keytype="GENEID")
-df <- select(txdb, keys=k, keytype="GENEID", columns="TXNAME")
-tx2gene <- df[,2:1] # tx ID, then gene ID
+k <- keys(txdb, keytype="TXNAME")
+tx2gene <- select(txdb, k, "GENEID", "TXNAME")
 ```
 
 Note: if you are using an *Ensembl* transcriptome, the easiest way to
@@ -110,10 +111,14 @@ be used with `return.type="DataFrame"`, in order to obtain
 something like the `df` object constructed in the code chunk above.
 See the *ensembldb* package vignette for more details.
 
-Here we read in a pre-constructed `tx2gene` table:
+In this case, we've used the Gencode v27 CHR transcripts to build our
+index, and we used `makeTxDbFromGFF` and code similar to the chunk
+above to build the `tx2gene` table. We then read in a pre-constructed
+`tx2gene` table:
 
 ```{r}
-tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
+library(readr)
+tx2gene <- read_csv(file.path(dir, "tx2gene.gencode.v27.csv"))
 head(tx2gene)
 ```
 
@@ -138,7 +143,6 @@ the `importer` argument.
 
 ```{r}
 library(tximport)
-library(readr)
 txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 names(txi)
 head(txi$counts)
@@ -157,7 +161,7 @@ We can avoid gene-level summarization by setting `txOut=TRUE`, giving
 the original transcript level estimates as a list of matrices.
 
 ```{r}
-txi.tx <- tximport(files, type="salmon", txOut=TRUE, tx2gene=tx2gene)
+txi.tx <- tximport(files, type="salmon", txOut=TRUE)
 ```
 
 These matrices can then be summarized afterwards using the function
@@ -175,23 +179,28 @@ Salmon or Sailfish `quant.sf` files can be imported by setting type to
 `"salmon"` or `"sailfish"`.
 
 ```{r}
-files <- file.path(dir,"salmon", samples$run, "quant.sf")
+files <- file.path(dir,"salmon", samples$run, "quant.sf.gz")
 names(files) <- paste0("sample",1:6)
 txi.salmon <- tximport(files, type="salmon", tx2gene=tx2gene)
 head(txi.salmon$counts)
 ```
 
+We quantified with Sailfish against a different transcriptome, so we
+need to read in a different `tx2gene` for this next code chunk.
+
 ```{r}
+tx2knownGene <- read_csv(file.path(dir, "tx2gene.csv"))
 files <- file.path(dir,"sailfish", samples$run, "quant.sf")
 names(files) <- paste0("sample",1:6)
-txi.sailfish <- tximport(files, type="sailfish", tx2gene=tx2gene)
+txi.sailfish <- tximport(files, type="sailfish", tx2gene=tx2knownGene)
 head(txi.sailfish$counts)
 ```
 
 *Note*: for previous version of Salmon or Sailfish, in which the
- `quant.sf` files start with comment lines, it is recommended to
- specify the `importer` argument as a function which reads in the 
- lines beginning with the header. For example:
+`quant.sf` files start with comment lines, it is recommended to
+specify the `importer` argument as a function which reads in the 
+lines beginning with the header. For example, using the following
+code chunk (un-evaluated): 
  
 ```{r eval=FALSE}
 txi <- tximport("quant.sf", type="none", txOut=TRUE,
@@ -253,12 +262,21 @@ dim(txi.kallisto$infReps$sample1)
 ## kallisto with TSV files
 
 kallisto `abundance.tsv` files can be imported as well, but this is
-typically slower than the approach above.
+typically slower than the approach above. Note that we add an
+additional argument in this code chunk, `ignoreAfterBar=TRUE`. This is
+because the Gencode transcripts have names like
+"ENST00000456328.2|ENSG00000223972.5|...", though our `tx2gene` table
+only includes the first "ENST" identifier. We therefore want to split
+the incoming quantification matrix rownames at the first bar "|", and
+only use this as an identifier. (We didn't use this option earlier with
+Salmon, because we used the argument `--gencode` when running Salmon,
+which itself does the splitting upstream of `tximport`.)
 
 ```{r}
-files <- file.path(dir, "kallisto", samples$run, "abundance.tsv")
+files <- file.path(dir, "kallisto", samples$run, "abundance.tsv.gz")
 names(files) <- paste0("sample",1:6)
-txi.kallisto.tsv <- tximport(files, type="kallisto", tx2gene=tx2gene)
+txi.kallisto.tsv <- tximport(files, type="kallisto", tx2gene=tx2gene,
+                             ignoreAfterBar=TRUE)
 head(txi.kallisto.tsv$counts)
 ```
 
@@ -268,9 +286,9 @@ RSEM `sample.genes.results` files can be imported by setting
 type to `"rsem"`.
 
 ```{r}
-files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results"))
+files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results.gz"))
 names(files) <- paste0("sample",1:6)
-txi.rsem <- tximport(files, type="rsem")
+txi.rsem <- tximport(files, type="rsem", txOut=FALSE)
 head(txi.rsem$counts)
 ```
 
@@ -343,7 +361,7 @@ Because limma-voom does not use the offset matrix stored in
 abundances, either `"scaledTPM"` or `"lengthScaledTPM"`:
 
 ```{r}
-files <- file.path(dir,"salmon", samples$run, "quant.sf")
+files <- file.path(dir,"salmon", samples$run, "quant.sf.gz")
 names(files) <- paste0("sample",1:6)
 txi <- tximport(files, type="salmon",
                 tx2gene=tx2gene,

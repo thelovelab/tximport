@@ -8,13 +8,14 @@
 for transcript- and gene-level analysis packages}
 \usage{
 summarizeToGene(txi, tx2gene, ignoreTxVersion = FALSE,
-  countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM"))
+  ignoreAfterBar = FALSE, countsFromAbundance = c("no", "scaledTPM",
+  "lengthScaledTPM"))
 
 tximport(files, type = c("none", "salmon", "sailfish", "kallisto", "rsem"),
   txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no", "scaledTPM",
   "lengthScaledTPM"), tx2gene = NULL, varReduce = FALSE,
-  dropInfReps = FALSE, ignoreTxVersion = FALSE, geneIdCol, txIdCol,
-  abundanceCol, countsCol, lengthCol, importer = NULL)
+  dropInfReps = FALSE, ignoreTxVersion = FALSE, ignoreAfterBar = FALSE,
+  geneIdCol, txIdCol, abundanceCol, countsCol, lengthCol, importer = NULL)
 }
 \arguments{
 \item{txi}{list of matrices of trancript-level abundances, counts, and
@@ -30,6 +31,8 @@ that provides transcript-level estimates only
 \item{ignoreTxVersion}{logical, whether to split the tx id on the '.' character
 to remove version information, for easier matching with the tx id in gene2tx
 (default FALSE)}
+
+\item{ignoreAfterBar}{logical, whether to split the tx id on the '|' character (default FALSE)}
 
 \item{countsFromAbundance}{character, either "no" (default), "scaledTPM",
 or "lengthScaledTPM",
@@ -135,11 +138,11 @@ see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
 library(tximportData)
 dir <- system.file("extdata", package="tximportData")
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
-files <- file.path(dir,"salmon", samples$run, "quant.sf")
+files <- file.path(dir,"salmon", samples$run, "quant.sf.gz")
 names(files) <- paste0("sample",1:6)
 
 # tx2gene links transcript IDs to gene IDs for summarization
-tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
+tx2gene <- read.csv(file.path(dir, "tx2gene.gencode.v27.csv"))
 
 txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 
