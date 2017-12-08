@@ -71,6 +71,7 @@
 #' @param ignoreTxVersion logical, whether to split the tx id on the '.' character
 #' to remove version information, for easier matching with the tx id in gene2tx
 #' (default FALSE)
+#' @param ignoreAfterBar logical, whether to split the tx id on the '|' character (default FALSE)
 #' @param geneIdCol name of column with gene id. if missing,
 #' the gene2tx argument can be used
 #' @param txIdCol name of column with tx id
@@ -78,6 +79,8 @@
 #' @param countsCol name of column with estimated counts
 #' @param lengthCol name of column with feature length information
 #' @param importer a function used to read in the files
+#' @param existenceOptional logical, should tximport not check if files exist before attempting
+#' import (default FALSE, meaning files must exist according to \code{file.exists})
 #' @param txi list of matrices of trancript-level abundances, counts, and
 #' lengths produced by \code{tximport}, only used by \code{summarizeToGene}
 #' 
@@ -108,17 +111,16 @@
 #' library(tximportData)
 #' dir <- system.file("extdata", package="tximportData")
 #' samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
-#' files <- file.path(dir,"salmon", samples$run, "quant.sf")
+#' files <- file.path(dir,"salmon", samples$run, "quant.sf.gz")
 #' names(files) <- paste0("sample",1:6)
 #'
 #' # tx2gene links transcript IDs to gene IDs for summarization
-#' tx2gene <- read.csv(file.path(dir, "tx2gene.csv"))
+#' tx2gene <- read.csv(file.path(dir, "tx2gene.gencode.v27.csv"))
 #'
 #' txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 #'
 #' @importFrom utils read.delim capture.output
 #'
-#' @describeIn tximport Import estimates of abundances and counts
 #' @export
 tximport <- function(files,
                      type=c("none","salmon","sailfish","kallisto","rsem"),
@@ -129,12 +131,14 @@ tximport <- function(files,
                      varReduce=FALSE,
                      dropInfReps=FALSE,
                      ignoreTxVersion=FALSE,
+                     ignoreAfterBar=FALSE,
                      geneIdCol,
                      txIdCol,
                      abundanceCol,
                      countsCol,
                      lengthCol,
-                     importer=NULL) {
+                     importer=NULL,
+                     existenceOptional=FALSE) {
 
   # inferential replicate importer
   infRepImporter <- NULL
@@ -142,12 +146,17 @@ tximport <- function(files,
   type <- match.arg(type, c("none","salmon","sailfish","kallisto","rsem"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
 
-  stopifnot(all(file.exists(files)))
+  if (!existenceOptional) stopifnot(all(file.exists(files)))
   if (!txIn & txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
 
   kallisto.h5 <- basename(files[1]) == "abundance.h5"
   if (type == "kallisto" & !kallisto.h5) {
     message("Note: importing `abundance.h5` is typically faster than `abundance.tsv`")
+  }
+
+  if (type=="rsem" & txIn & grepl("genes", files[1])) {
+    message("It looks like you are importing RSEM genes.results files, setting txIn=FALSE")
+    txIn <- FALSE
   }
   
   readrStatus <- FALSE
@@ -158,40 +167,68 @@ tximport <- function(files,
     } else {
       message("reading in files with read_tsv")
       readrStatus <- TRUE
-      importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=readr::cols())
     }
   }
   
   # salmon/sailfish presets
   if (type %in% c("salmon","sailfish")) {
-    geneIdCol="gene_id"
     txIdCol <- "Name"
     abundanceCol <- "TPM"
     countsCol <- "NumReads"
     lengthCol <- "EffectiveLength"
+    if (readrStatus) {
+      col.types <- readr::cols(
+        readr::col_character(),readr::col_integer(),readr::col_double(),readr::col_double(),readr::col_double()
+      )
+      importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
+    }
     infRepImporter <- if (dropInfReps) { NULL } else { function(x) readInfRepFish(x, type) }
   }
 
   # kallisto presets
   if (type == "kallisto") {
-    geneIdCol="gene_id"
     txIdCol <- "target_id"
     abundanceCol <- "tpm"
     countsCol <- "est_counts"
     lengthCol <- "eff_length"
     if (kallisto.h5) {
       importer <- read_kallisto_h5
+    } else if (readrStatus) {
+      col.types <- readr::cols(
+        readr::col_character(),readr::col_integer(),readr::col_double(),readr::col_double(),readr::col_double()
+      )
+      importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
     }
     infRepImporter <- if (dropInfReps) { NULL } else { readInfRepKallisto }
   }
   
   # rsem presets
   if (type == "rsem") {
-    txIn <- FALSE
-    geneIdCol <- "gene_id"
-    abundanceCol <- "FPKM"
-    countsCol <- "expected_count"
-    lengthCol <- "effective_length"
+    if (txIn) {
+      txIdCol <- "transcript_id"
+      abundanceCol <- "TPM"
+      countsCol <- "expected_count"
+      lengthCol <- "effective_length"
+      if (readrStatus) {
+        col.types <- readr::cols(
+          readr::col_character(),readr::col_character(),readr::col_integer(),readr::col_double(),
+          readr::col_double(),readr::col_double(),readr::col_double(),readr::col_double()
+        )
+        importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
+      }
+    } else {
+      geneIdCol <- "gene_id"
+      abundanceCol <- "TPM"
+      countsCol <- "expected_count"
+      lengthCol <- "effective_length"
+      if (readrStatus) {
+        col.types <- readr::cols(
+          readr::col_character(),readr::col_character(),readr::col_double(),readr::col_double(),
+          readr::col_double(),readr::col_double(),readr::col_double()
+        )
+        importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
+      }
+    }
   }
 
   infRepType <- "none"
@@ -199,7 +236,7 @@ tximport <- function(files,
     infRepType <- if (varReduce) { "var" } else { "full" }
   }
   
-  # if input is tx-level, need to summarize abundances, counts and lengths to gene-level
+  # if input is tx-level...
   if (txIn) {
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
@@ -228,6 +265,7 @@ tximport <- function(files,
           stopifnot(all(txId == raw[[txIdCol]]))
         }
       }
+
       # create empty matrices
       if (i == 1) {
         mat <- matrix(nrow=nrow(raw),ncol=length(files))
@@ -293,7 +331,7 @@ tximport <- function(files,
     }
 
     txi[["countsFromAbundance"]] <- NULL
-    txiGene <- summarizeToGene(txi, tx2gene, ignoreTxVersion, countsFromAbundance)
+    txiGene <- summarizeToGene(txi, tx2gene, ignoreTxVersion, ignoreAfterBar, countsFromAbundance)
     return(txiGene)  
     
   # e.g. RSEM already has gene-level summaries

@@ -1,5 +1,5 @@
 Package: tximport
-Version: 1.7.0
+Version: 1.7.3
 Title: Import and summarize transcript-level estimates for transcript- and
        gene-level analysis
 Description: Imports transcript-level abundance, estimated counts and
@@ -18,7 +18,7 @@ Imports: utils
 Suggests: knitr, rmarkdown, testthat, tximportData,
         TxDb.Hsapiens.UCSC.hg19.knownGene, readr (>= 0.2.2),
 	limma, edgeR, DESeq2 (>= 1.11.6),
-	rhdf5, rjson
+	rhdf5, jsonlite
 biocViews: RNASeq, Transcription, GeneExpression, DataImport
 RoxygenNote: 6.0.1
 NeedsCompilation: no
