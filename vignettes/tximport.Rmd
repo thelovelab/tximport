@@ -399,6 +399,9 @@ suggestions from:
 [Richard Smith-Unna](https://twitter.com/blahah404),
 [Rory Kirchner](https://twitter.com/RoryKirchner),
 [Martin Morgan](https://twitter.com/mt_morgan),
+Jenny Drnevich,
+[Patrick Kimes](https://twitter.com/pkkimes),
+[Leon Fodoulian](https://twitter.com/LFodoulian)
 
 ## Session info
 
