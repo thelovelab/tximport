@@ -15,7 +15,8 @@ tximport(files, type = c("none", "salmon", "sailfish", "kallisto", "rsem"),
   txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no", "scaledTPM",
   "lengthScaledTPM"), tx2gene = NULL, varReduce = FALSE,
   dropInfReps = FALSE, ignoreTxVersion = FALSE, ignoreAfterBar = FALSE,
-  geneIdCol, txIdCol, abundanceCol, countsCol, lengthCol, importer = NULL)
+  geneIdCol, txIdCol, abundanceCol, countsCol, lengthCol, importer = NULL,
+  existenceOptional = FALSE)
 }
 \arguments{
 \item{txi}{list of matrices of trancript-level abundances, counts, and
@@ -73,6 +74,9 @@ the gene2tx argument can be used}
 \item{lengthCol}{name of column with feature length information}
 
 \item{importer}{a function used to read in the files}
+
+\item{existenceOptional}{logical, should tximport not check if files exist before attempting
+import (default FALSE, meaning files must exist according to \code{file.exists})}
 }
 \value{
 a simple list containing matrices: abundance, counts, length.

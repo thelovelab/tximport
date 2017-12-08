@@ -283,14 +283,25 @@ head(txi.kallisto.tsv$counts)
 ## RSEM
 
 RSEM `sample.genes.results` files can be imported by setting
-type to `"rsem"`.
+type to `"rsem"`, and `txIn` and `txOut` to `FALSE`.
 
 ```{r}
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results.gz"))
 names(files) <- paste0("sample",1:6)
-txi.rsem <- tximport(files, type="rsem", txOut=FALSE)
+txi.rsem <- tximport(files, type="rsem", txIn=FALSE, txOut=FALSE)
 head(txi.rsem$counts)
 ```
+
+RSEM `sample.isoforms.results` files can be imported by setting
+type to `"rsem"`, and `txIn` and `txOut` to `TRUE`.
+
+```{r}
+files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".isoforms.results.gz"))
+names(files) <- paste0("sample",1:6)
+txi.rsem <- tximport(files, type="rsem", txIn=TRUE, txOut=TRUE)
+head(txi.rsem$counts)
+```
+
 
 ## Use with downstream Bioconductor differential expression packages
 
