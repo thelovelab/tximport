@@ -320,6 +320,14 @@ The second method is to use the `tximport` argument
 use the count matrix `txi$counts` directly as you would a regular
 count matrix with these software.
 
+**Do not do this:** Do not manually pass `txi$counts` alone to
+downstream methods, if you have left `countsFromAbundance="none"`.
+This is simply passing the summed estimated counts, and does not
+correct for potential differential isoform usage, which is the point
+of the *tximport* methods and package [@Soneson2015]. Passing
+uncorrected counts alone is not recommended by the *tximport* package
+authors. 
+
 ## edgeR
 
 An example of creating a `DGEList` for use with *edgeR* [@Robinson2010]:
