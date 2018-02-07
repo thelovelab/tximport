@@ -44,7 +44,7 @@
 #'
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
-#' Options are "salmon", "sailfish", "kallisto", "rsem".
+#' Options are "salmon", "sailfish", "kallisto", "rsem", "stringtie", or "none".
 #' This argument is used to autofill the arguments below (geneIdCol, etc.)
 #' "none" means that the user will specify these columns.
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
@@ -81,6 +81,10 @@
 #' @param importer a function used to read in the files
 #' @param existenceOptional logical, should tximport not check if files exist before attempting
 #' import (default FALSE, meaning files must exist according to \code{file.exists})
+#' @param readLength numeric, the read length used to calculate counts from
+#' StringTie's output of coverage. Default value (from StringTie) is 75.
+#' The formula used to calculate counts is:
+#' \code{cov * transcript length / read length}
 #' @param txi list of matrices of trancript-level abundances, counts, and
 #' lengths produced by \code{tximport}, only used by \code{summarizeToGene}
 #' 
@@ -123,7 +127,7 @@
 #'
 #' @export
 tximport <- function(files,
-                     type=c("none","salmon","sailfish","kallisto","rsem"),
+                     type=c("none","salmon","sailfish","kallisto","rsem","stringtie"),
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
@@ -138,12 +142,13 @@ tximport <- function(files,
                      countsCol,
                      lengthCol,
                      importer=NULL,
-                     existenceOptional=FALSE) {
+                     existenceOptional=FALSE,
+                     readLength=75) {
 
   # inferential replicate importer
   infRepImporter <- NULL
 
-  type <- match.arg(type, c("none","salmon","sailfish","kallisto","rsem"))
+  type <- match.arg(type, c("none","salmon","sailfish","kallisto","rsem","stringtie"))
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
 
   if (!existenceOptional) stopifnot(all(file.exists(files)))
@@ -176,7 +181,7 @@ tximport <- function(files,
     abundanceCol <- "TPM"
     countsCol <- "NumReads"
     lengthCol <- "EffectiveLength"
-    if (readrStatus) {
+    if (readrStatus & is.null(importer)) {
       col.types <- readr::cols(
         readr::col_character(),readr::col_integer(),readr::col_double(),readr::col_double(),readr::col_double()
       )
@@ -193,7 +198,7 @@ tximport <- function(files,
     lengthCol <- "eff_length"
     if (kallisto.h5) {
       importer <- read_kallisto_h5
-    } else if (readrStatus) {
+    } else if (readrStatus & is.null(importer)) {
       col.types <- readr::cols(
         readr::col_character(),readr::col_integer(),readr::col_double(),readr::col_double(),readr::col_double()
       )
@@ -209,7 +214,7 @@ tximport <- function(files,
       abundanceCol <- "TPM"
       countsCol <- "expected_count"
       lengthCol <- "effective_length"
-      if (readrStatus) {
+      if (readrStatus & is.null(importer)) {
         col.types <- readr::cols(
           readr::col_character(),readr::col_character(),readr::col_integer(),readr::col_double(),
           readr::col_double(),readr::col_double(),readr::col_double(),readr::col_double()
@@ -221,7 +226,7 @@ tximport <- function(files,
       abundanceCol <- "TPM"
       countsCol <- "expected_count"
       lengthCol <- "effective_length"
-      if (readrStatus) {
+      if (readrStatus & is.null(importer)) {
         col.types <- readr::cols(
           readr::col_character(),readr::col_character(),readr::col_double(),readr::col_double(),
           readr::col_double(),readr::col_double(),readr::col_double()
@@ -231,6 +236,20 @@ tximport <- function(files,
     }
   }
 
+  if (type == c("stringtie")) {
+    txIdCol <- "t_name"
+    geneIdCol <- "gene_name"
+    abundanceCol <- "FPKM"
+    countsCol <- "cov"
+    lengthCol <- "length"
+    if (readrStatus & is.null(importer)) {
+      col.types <- readr::cols(
+        readr::col_character(),readr::col_character(),readr::col_character(),readr::col_integer(),readr::col_integer(),readr::col_character(),readr::col_integer(),readr::col_integer(),readr::col_character(),readr::col_character(),readr::col_double(),readr::col_double()
+      )
+      importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
+    }
+  }
+  
   infRepType <- "none"
   if (type %in% c("salmon", "sailfish", "kallisto") & !dropInfReps) {
     infRepType <- if (varReduce) { "var" } else { "full" }
@@ -319,6 +338,12 @@ tximport <- function(files,
                   countsFromAbundance=countsFromAbundance)
     }
 
+    # stringtie outputs coverage, here we turn into counts
+    if (type == "stringtie") {
+      # here "counts" is still just coverage, this formula gives back original counts
+      txi$counts <- txi$counts * txi$length / readLength
+    }
+    
     # if the user requested just the transcript-level data:
     if (txOut) {
       if (countsFromAbundance != "no") {

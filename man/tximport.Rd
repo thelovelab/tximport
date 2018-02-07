@@ -11,12 +11,12 @@ summarizeToGene(txi, tx2gene, ignoreTxVersion = FALSE,
   ignoreAfterBar = FALSE, countsFromAbundance = c("no", "scaledTPM",
   "lengthScaledTPM"))
 
-tximport(files, type = c("none", "salmon", "sailfish", "kallisto", "rsem"),
-  txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no", "scaledTPM",
-  "lengthScaledTPM"), tx2gene = NULL, varReduce = FALSE,
+tximport(files, type = c("none", "salmon", "sailfish", "kallisto", "rsem",
+  "stringtie"), txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no",
+  "scaledTPM", "lengthScaledTPM"), tx2gene = NULL, varReduce = FALSE,
   dropInfReps = FALSE, ignoreTxVersion = FALSE, ignoreAfterBar = FALSE,
   geneIdCol, txIdCol, abundanceCol, countsCol, lengthCol, importer = NULL,
-  existenceOptional = FALSE)
+  existenceOptional = FALSE, readLength = 75)
 }
 \arguments{
 \item{txi}{list of matrices of trancript-level abundances, counts, and
@@ -47,7 +47,7 @@ and so the length offset matrix should not be used.}
 \item{files}{a character vector of filenames for the transcript-level abundances}
 
 \item{type}{character, the type of software used to generate the abundances.
-Options are "salmon", "sailfish", "kallisto", "rsem".
+Options are "salmon", "sailfish", "kallisto", "rsem", "stringtie", or "none".
 This argument is used to autofill the arguments below (geneIdCol, etc.)
 "none" means that the user will specify these columns.}
 
@@ -77,6 +77,11 @@ the gene2tx argument can be used}
 
 \item{existenceOptional}{logical, should tximport not check if files exist before attempting
 import (default FALSE, meaning files must exist according to \code{file.exists})}
+
+\item{readLength}{numeric, the read length used to calculate counts from
+StringTie's output of coverage. Default value (from StringTie) is 75.
+The formula used to calculate counts is:
+\code{cov * transcript length / read length}}
 }
 \value{
 a simple list containing matrices: abundance, counts, length.
