@@ -57,6 +57,7 @@ with any of:
 * *Sailfish* [@Patro2014Sailfish]
 * *kallisto* [@Bray2016Near]
 * *RSEM* [@Li2011RSEM]
+* *StringTie* [@Pertea2015]
 
 First, we locate the directory containing the files. (Here we use
 `system.file` to locate the package directory, but for a typical use,
@@ -300,6 +301,31 @@ files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".isoforms.resul
 names(files) <- paste0("sample",1:6)
 txi.rsem <- tximport(files, type="rsem", txIn=TRUE, txOut=TRUE)
 head(txi.rsem$counts)
+```
+
+## StringTie
+
+StringTie `t_data.ctab` files giving the coverage and abundances for
+transcripts can be imported by setting type to `stringtie`. These
+files can be generated with the following command line call:
+
+```
+stringtie -eB -G transcripts.gff <source_file.bam> 
+```
+
+*tximport* will compute counts from the coverage information, by
+reversing the formula that StringTie uses to calculate coverage (see
+`?tximport`). The read length is used in this formula, and so if
+you've set a different read length when using StringTie, you can
+provide this information with the `readLength` argument. The `tx2gene`
+table should connect transcripts to genes, and can be pulled out of
+one of the `t_data.ctab` files. The tximport call would look like the
+following (here not evaluated): 
+
+```{r, eval=FALSE}
+tmp <- read_tsv(files[1])
+tx2gene <- tmp[,c("t_name","gene_name")]
+txi <- tximport(files, type="stringtie", tx2gene=tx2gene)
 ```
 
 
