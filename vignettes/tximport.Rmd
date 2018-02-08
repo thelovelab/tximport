@@ -329,13 +329,13 @@ txi <- tximport(files, type="stringtie", tx2gene=tx2gene)
 ```
 
 
-## Use with downstream Bioconductor differential expression packages
+## Use with downstream Bioconductor DGE packages
 
 **Note**: there are two suggested ways of importing estimates for use
-with gene-level differential expression methods. The first method,
+with differential gene expression (DGE) methods. The first method,
 which we show below for *edgeR* and for *DESeq2*, is to use the
-estimated counts from the quantification tools, and additionally to
-use the transcript-level abundance estimates to calculate an offset
+gene-level estimated counts from the quantification tools, and additionally to
+use the transcript-level abundance estimates to calculate a gene-level offset
 that corrects for changes to the average transcript length across
 samples. The code examples below accomplish these steps for you,
 keeping track of appropriate matrices and calculating these
@@ -345,23 +345,23 @@ offset for you. Let's call this method "*original counts and offset*".
 
 The second method is to use the `tximport` argument
 `countsFromAbundance="lengthScaledTPM"` or `"scaledTPM"`, and then to
-use the count matrix `txi$counts` directly as you would a regular
+use the gene-level count matrix `txi$counts` directly as you would a regular
 count matrix with these software. Let's call this method 
 "*bias corrected counts without an offset*"
 
-**Do not do this:** Do not manually pass the original counts
-to downstream methods *without an offset*. The original counts are
+**Do not do this:** Do not manually pass the original gene-level counts
+to downstream methods *without an offset*. The original gene-level counts are
 in `txi$counts` when `tximport` was run with
 `countsFromAbundance="no"`. This is simply passing the summed
-estimated counts, and does not correct for potential differential
+estimated transcript counts, and does not correct for potential differential
 isoform usage (the offset), which is the point
-of the *tximport* methods and package [@Soneson2015]. Passing
-uncorrected counts without an offset is not recommended by the
+of the *tximport* methods [@Soneson2015] for gene-level analysis. Passing
+uncorrected gene-level counts without an offset is not recommended by the
 *tximport* package authors. The two methods we provide here are: 
 "*original counts and offset*" or "*bias corrected counts without an
 offset*". Passing `txi` to `DESeqDataSetFromTximport` as
 outlined below is correct: the function creates the appropriate offset
-for you.
+for you to perform gene-level differential expression.
 
 ## edgeR
 
