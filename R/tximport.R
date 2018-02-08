@@ -255,7 +255,7 @@ tximport <- function(files,
     infRepType <- if (varReduce) { "var" } else { "full" }
   }
   
-  # if input is tx-level...
+  # if input is tx-level (this is every case but RSEM gene.results files)
   if (txIn) {
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
@@ -343,33 +343,36 @@ tximport <- function(files,
       # here "counts" is still just coverage, this formula gives back original counts
       txi$counts <- txi$counts * txi$length / readLength
     }
+
+    if (type == "rsem") {
+      # protect against 0 bp length transcripts
+      txi$length[txi$length < 1] <- 1
+    }
     
-    # if the user requested just the transcript-level data:
+    # if the user requested just the transcript-level data, return it now
     if (txOut) {
       if (countsFromAbundance != "no") {
-        txi$counts <- makeCountsFromAbundance(txi$counts,
-                                              txi$abundance,
-                                              txi$length,
-                                              countsFromAbundance)
+        txi$counts <- makeCountsFromAbundance(txi$counts, txi$abundance, txi$length, countsFromAbundance)
       }
       return(txi)
     }
 
+
+    # otherwise, summarize to the gene-level
     txi[["countsFromAbundance"]] <- NULL
     txiGene <- summarizeToGene(txi, tx2gene, ignoreTxVersion, ignoreAfterBar, countsFromAbundance)
     return(txiGene)  
+
     
-  # e.g. RSEM already has gene-level summaries
-  # just combine the gene-level summaries across files
+    # else, not txIn...
   } else {
-  
+    # RSEM already has gene-level summaries
+    # so we just combine the gene-level summaries across files
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
-
       out <- capture.output({
         raw <- as.data.frame(importer(files[i]))
       }, type="message")
-      
       stopifnot(all(c(geneIdCol, abundanceCol, lengthCol) %in% names(raw)))
       if (i == 1) {
         mat <- matrix(nrow=nrow(raw),ncol=length(files))
@@ -388,4 +391,3 @@ tximport <- function(files,
   return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
               countsFromAbundance="no"))
 }
-
