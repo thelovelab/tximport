@@ -83,14 +83,12 @@ readInfRepFish <- function(fish_dir, meth) {
 }
 
 readInfRepKallisto <- function(bear_dir) {
+  h5File <- file.path(bear_dir, "abundance.h5")
+  if (!file.exists(h5File)) return(NULL)
   if (!requireNamespace("rhdf5", quietly=TRUE)) {
     stop("reading kallisto results from hdf5 files requires Bioconductor package `rhdf5`")
   }
-
-  h5File <- file.path(bear_dir, "abundance.h5")
-  if (!file.exists(h5File)) return(NULL)
   groups <- rhdf5::h5ls(h5File)
-
   numBoot <- length(groups$group[groups$group == "/bootstrap"])
   if (numBoot > 0) {
     boots <- rhdf5::h5read(file.path(bear_dir, "abundance.h5"), "/bootstrap")
