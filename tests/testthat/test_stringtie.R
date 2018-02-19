@@ -27,6 +27,9 @@ test_that("import stringtie works", {
   tx2gene <- A[,c("t_name","gene_name")]
   txi <- tximport(files, type="stringtie", tx2gene=tx2gene,
                   importer=importer, existenceOptional=TRUE)
+
+  skip_on_os("windows")
+  
   expect_true(txi$counts[1,1] == sum(A$cov[1:3] * A$length[1:3] / 75))
 
 })
