@@ -48,10 +48,13 @@ summarizeToGene <- function(txi,
     # if none of the rownames of the matrices (txId) are
     # in the tx2gene table something is wrong
     if (!any(txId %in% tx2gene$tx)) {
-      stop("
+      txFromFile <- paste0("Example IDs (file): [", paste(head(txId,3),collapse=", "),", ...]")
+      txFromTable <- paste0("Example IDs (tx2gene): [", paste(head(tx2gene$tx,3),collapse=", "),", ...]")
+      stop(paste0("
   None of the transcripts in the quantification files are present
   in the first column of tx2gene. Check to see that you are using
-  the same annotation for both.\n\n")
+  the same annotation for both.\n\n",txFromFile,"\n\n",txFromTable,
+  "\n\n  This can sometimes (not always) be fixed using 'ignoreTxVersion' or 'ignoreAfterBar'.\n\n"))
     }
 
     # remove transcripts (and genes) not in the rownames of matrices
