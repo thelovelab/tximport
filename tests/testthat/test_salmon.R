@@ -1,7 +1,6 @@
 context("salmon")
 test_that("import salmon works", {
 
-  library(readr)
   dir <- system.file("extdata", package="tximportData")
   samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
   files <- file.path(dir,"salmon", samples$run, "quant.sf.gz")
