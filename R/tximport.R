@@ -154,6 +154,7 @@ tximport <- function(files,
   if (!existenceOptional) stopifnot(all(file.exists(files)))
   if (!txIn & txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
 
+  stopifnot(length(files) > 0)
   kallisto.h5 <- basename(files[1]) == "abundance.h5"
   if (type == "kallisto" & !kallisto.h5) {
     message("Note: importing `abundance.h5` is typically faster than `abundance.tsv`")
