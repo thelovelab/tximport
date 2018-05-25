@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.9.1
+------------------------
+
+    o Fixed edgeR example code in vignette to use scaleOffset
+      after recommendation from Aaron Lun (2018-05-25).
+
 CHANGES IN VERSION 1.8.0
 ------------------------
 
