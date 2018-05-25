@@ -378,7 +378,7 @@ normMat <- normMat / exp(rowMeans(log(normMat)))
 library(edgeR)
 o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
 y <- DGEList(cts)
-y$offset <- t(t(log(normMat)) + o)
+y <- scaleOffset(y, t(t(log(normMat)) + o))
 # y is now ready for estimate dispersion functions
 # see edgeR User's Guide
 ```
