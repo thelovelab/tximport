@@ -14,6 +14,18 @@ summarizeToGene <- function(txi,
                             ) {
 
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
+
+  if (!is.null(txi$countsFromAbundance)) {
+    if (countsFromAbundance == "no" & txi$countsFromAbundance != "no") {
+      warning(paste0("the incoming counts have countsFromAbundance = '",
+                     txi$countsFromAbundance,"',
+  and so the original counts are no longer accessible.
+  to use countsFromAbundance='no', re-run tximport() with this setting.
+  over-riding 'countsFromAbundance' to set it to: ",
+  txi$countsFromAbundance))
+      countsFromAbundance <- txi$countsFromAbundance
+    }
+  }
   
   # unpack matrices from list for cleaner code
   abundanceMatTx <- txi$abundance
