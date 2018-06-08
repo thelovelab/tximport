@@ -1,3 +1,18 @@
+CHANGES IN VERSION 1.9.4
+------------------------
+
+    o Made a change to summarizeToGene() that will now provide
+      different output with a warning to alert the user.
+      The case is: if tximport() is run with countsFromAbundance="scaledTPM"
+      or "lengthScaledTPM" and txOut=TRUE, followed by
+      summarizeToGene() with countsFromAbundance="no".
+      This is a problematic series of calls, and previously
+      it was ignoring the fact that the incoming counts are
+      not original counts. Now, summarizeToGene() will throw
+      a warning and override countsFromAbundance="no" to
+      instead set it to the value that was used when tximport
+      was originally run, either "scaledTPM" or "lengthScaledTPM".
+
 CHANGES IN VERSION 1.9.1
 ------------------------
 
