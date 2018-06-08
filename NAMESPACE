@@ -3,4 +3,5 @@
 export(summarizeToGene)
 export(tximport)
 importFrom(utils,capture.output)
+importFrom(utils,head)
 importFrom(utils,read.delim)

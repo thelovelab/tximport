@@ -379,6 +379,9 @@ library(edgeR)
 o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
 y <- DGEList(cts)
 y <- scaleOffset(y, t(t(log(normMat)) + o))
+# filtering
+keep <- filterByExpr(y)
+y <- y[keep,]
 # y is now ready for estimate dispersion functions
 # see edgeR User's Guide
 ```
@@ -422,6 +425,9 @@ txi <- tximport(files, type="salmon",
                 countsFromAbundance="lengthScaledTPM")
 library(limma)
 y <- DGEList(txi$counts)
+# filtering
+keep <- filterByExpr(y)
+y <- y[keep,]
 y <- calcNormFactors(y)
 design <- model.matrix(~ condition, data=sampleTable)
 v <- voom(y, design)

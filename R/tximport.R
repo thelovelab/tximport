@@ -123,7 +123,7 @@
 #'
 #' txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 #'
-#' @importFrom utils read.delim capture.output
+#' @importFrom utils read.delim capture.output head
 #'
 #' @export
 tximport <- function(files,
