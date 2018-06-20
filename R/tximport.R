@@ -369,6 +369,9 @@ tximport <- function(files,
   } else {
     # RSEM already has gene-level summaries
     # so we just combine the gene-level summaries across files
+    if (countsFromAbundance != "no") {
+      warning("countsFromAbundance 'lengthScaledTPM' or 'scaledTPM' requires transcript-level estimates")
+    }
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
       out <- capture.output({
