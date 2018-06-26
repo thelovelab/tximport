@@ -1,3 +1,16 @@
+CHANGES IN VERSION 1.9.6
+------------------------
+
+    o Added new countsFromAbundance method: "dtuScaledTPM".
+      This is designed for DTU analysis and to be used with txOut=TRUE.
+      It provides counts that are scaled, with a gene, by the median
+      transcript length among isoforms, then later by the sample's
+      sequencing depth, as in the other two methods.
+      The transcript lengths are calculated by first taking the
+      average across samples. With this new method, all the abundances
+      within a gene across all samples are scaled up by the same
+      length, preserving isoform proportions calculated from the counts.
+
 CHANGES IN VERSION 1.9.4
 ------------------------
 

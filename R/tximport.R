@@ -51,12 +51,21 @@
 #' @param txOut logical, whether the function should just output
 #' transcript-level (default FALSE)
 #' @param countsFromAbundance character, either "no" (default), "scaledTPM",
-#' or "lengthScaledTPM",
-#' for whether to generate estimated counts using abundance estimates
-#' scaled up to library size (scaledTPM) or additionally scaled using
-#' the average transcript length over samples and
-#' the library size (lengthScaledTPM). if using scaledTPM or lengthScaledTPM, 
-#' then the counts are no longer correlated with average transcript length,
+#' "lengthScaledTPM", or "dtuScaledTPM".
+#' Whether to generate estimated counts using abundance estimates:
+#' \itemize{
+#'   \item scaled up to library size (scaledTPM),
+#'   \item scaled using the average transcript length over samples
+#'         and then the library size (lengthScaledTPM), or
+#'   \item scaled using the median transcript length among isoforms of a gene,
+#'         and then the library size (dtuScaledTPM). 
+#' }
+#' dtuScaledTPM is designed for DTU analysis in combination with \code{txOut=TRUE},
+#' and it requires specifing a \code{tx2gene} data.frame.
+#' dtuScaledTPM works such that within a gene, values from all samples and
+#' all transcripts get scaled by the same fixed median transcript length.
+#' If using scaledTPM, lengthScaledTPM, or geneLengthScaledTPM, 
+#' the counts are no longer correlated across samples with transcript length,
 #' and so the length offset matrix should not be used.
 #' @param tx2gene a two-column data.frame linking transcript id (column 1)
 #' to gene id (column 2).
@@ -124,13 +133,14 @@
 #' txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 #'
 #' @importFrom utils read.delim capture.output head
+#' @importFrom stats median
 #'
 #' @export
 tximport <- function(files,
                      type=c("none","salmon","sailfish","kallisto","rsem","stringtie"),
                      txIn=TRUE,
                      txOut=FALSE,
-                     countsFromAbundance=c("no","scaledTPM","lengthScaledTPM"),
+                     countsFromAbundance=c("no","scaledTPM","lengthScaledTPM","dtuScaledTPM"),
                      tx2gene=NULL,
                      varReduce=FALSE,
                      dropInfReps=FALSE,
@@ -149,7 +159,11 @@ tximport <- function(files,
   infRepImporter <- NULL
 
   type <- match.arg(type, c("none","salmon","sailfish","kallisto","rsem","stringtie"))
-  countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
+  countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM","dtuScaledTPM"))
+  if (countsFromAbundance == "dtuScaledTPM") {
+    stopifnot(txOut)
+    if (is.null(tx2gene)) stop("'dtuScaledTPM' requires 'tx2gene' input")
+  }
 
   if (!existenceOptional) stopifnot(all(file.exists(files)))
   if (!txIn & txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
@@ -349,15 +363,27 @@ tximport <- function(files,
       # protect against 0 bp length transcripts
       txi$length[txi$length < 1] <- 1
     }
-    
+
     # if the user requested just the transcript-level data, return it now
     if (txOut) {
       if (countsFromAbundance != "no") {
-        txi$counts <- makeCountsFromAbundance(txi$counts, txi$abundance, txi$length, countsFromAbundance)
+        # save an intermediate version of the length matrix
+        length4CFA <- txi$length
+        # for dtuScaledTPM, we pretend we are just doing lengthScaledTPM,
+        # but with an altered length matrix.
+        # (note that we will still output countsFromAbundance="dtuScaledTPM")
+        if (countsFromAbundance == "dtuScaledTPM") {
+          length4CFA <- medianLengthOverIsoform(length4CFA, tx2gene,
+                                                ignoreTxVersion, ignoreAfterBar)
+          countsFromAbundance <- "lengthScaledTPM" 
+        }
+        txi$counts <- makeCountsFromAbundance(countsMat=txi$counts,
+                                              abundanceMat=txi$abundance,
+                                              lengthMat=length4CFA,
+                                              countsFromAbundance=countsFromAbundance)
       }
       return(txi)
     }
-
 
     # otherwise, summarize to the gene-level
     txi[["countsFromAbundance"]] <- NULL
@@ -370,7 +396,7 @@ tximport <- function(files,
     # RSEM already has gene-level summaries
     # so we just combine the gene-level summaries across files
     if (countsFromAbundance != "no") {
-      warning("countsFromAbundance 'lengthScaledTPM' or 'scaledTPM' requires transcript-level estimates")
+      warning("countsFromAbundance other than 'no' requires transcript-level estimates")
     }
     for (i in seq_along(files)) {
       message(i," ",appendLF=FALSE)
