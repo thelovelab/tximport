@@ -22,9 +22,9 @@ test_that("getting counts from abundance works", {
   txi.tx <- tximport(files, type="salmon", txOut=TRUE,
                      countsFromAbundance="no")
   txi.tx.S <- tximport(files, type="salmon", txOut=TRUE,
-                         countsFromAbundance="scaledTPM")
+                       countsFromAbundance="scaledTPM")
   txi.tx.LS <- tximport(files, type="salmon", txOut=TRUE,
-                             countsFromAbundance="lengthScaledTPM")
+                        countsFromAbundance="lengthScaledTPM")
 
   # these should not be exactly the same
   # lengthScaledTPM is very close, but adjusted for bias
@@ -43,5 +43,21 @@ test_that("getting counts from abundance works", {
                                   countsFromAbundance="no")
   }, "incoming counts")
   expect_true(txi.sum.LS$countsFromAbundance == "lengthScaledTPM")
+
+
+  # dtuScaledTPM
+  txi.tx.dtu <- tximport(files, type="salmon", tx2gene=tx2gene,
+                         txOut=TRUE, countsFromAbundance="dtuScaledTPM")
+
+  ## cors <- sapply(seq_len(nrow(txi.tx.S$counts)), function(i) {
+  ##   x <- txi.tx.LS$counts[i,]
+  ##   y <- txi.tx.dtu$counts[i,]
+  ##   if (all(x==0) | all(y==0)) NA else cor(x,y)
+  ## })
+  ## hist(cors[cors > .98], col="grey")
+  
+  # errors for these:
+  expect_error(tximport(files, type="salmon", txOut=TRUE, countsFromAbundance="dtuScaledTPM"))
+  expect_error(tximport(files, type="salmon", tx2gene=tx2gene, txOut=FALSE, countsFromAbundance="dtuScaledTPM"))
   
 })

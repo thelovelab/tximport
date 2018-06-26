@@ -13,10 +13,10 @@ summarizeToGene(txi, tx2gene, ignoreTxVersion = FALSE,
 
 tximport(files, type = c("none", "salmon", "sailfish", "kallisto", "rsem",
   "stringtie"), txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no",
-  "scaledTPM", "lengthScaledTPM"), tx2gene = NULL, varReduce = FALSE,
-  dropInfReps = FALSE, ignoreTxVersion = FALSE, ignoreAfterBar = FALSE,
-  geneIdCol, txIdCol, abundanceCol, countsCol, lengthCol, importer = NULL,
-  existenceOptional = FALSE, readLength = 75)
+  "scaledTPM", "lengthScaledTPM", "dtuScaledTPM"), tx2gene = NULL,
+  varReduce = FALSE, dropInfReps = FALSE, ignoreTxVersion = FALSE,
+  ignoreAfterBar = FALSE, geneIdCol, txIdCol, abundanceCol, countsCol,
+  lengthCol, importer = NULL, existenceOptional = FALSE, readLength = 75)
 }
 \arguments{
 \item{txi}{list of matrices of trancript-level abundances, counts, and
@@ -36,12 +36,21 @@ to remove version information, for easier matching with the tx id in gene2tx
 \item{ignoreAfterBar}{logical, whether to split the tx id on the '|' character (default FALSE)}
 
 \item{countsFromAbundance}{character, either "no" (default), "scaledTPM",
-or "lengthScaledTPM",
-for whether to generate estimated counts using abundance estimates
-scaled up to library size (scaledTPM) or additionally scaled using
-the average transcript length over samples and
-the library size (lengthScaledTPM). if using scaledTPM or lengthScaledTPM, 
-then the counts are no longer correlated with average transcript length,
+"lengthScaledTPM", or "dtuScaledTPM".
+Whether to generate estimated counts using abundance estimates:
+\itemize{
+  \item scaled up to library size (scaledTPM),
+  \item scaled using the average transcript length over samples
+        and then the library size (lengthScaledTPM), or
+  \item scaled using the median transcript length among isoforms of a gene,
+        and then the library size (dtuScaledTPM). 
+}
+dtuScaledTPM is designed for DTU analysis in combination with \code{txOut=TRUE},
+and it requires specifing a \code{tx2gene} data.frame.
+dtuScaledTPM works such that within a gene, values from all samples and
+all transcripts get scaled by the same fixed median transcript length.
+If using scaledTPM, lengthScaledTPM, or geneLengthScaledTPM, 
+the counts are no longer correlated across samples with transcript length,
 and so the length offset matrix should not be used.}
 
 \item{files}{a character vector of filenames for the transcript-level abundances}

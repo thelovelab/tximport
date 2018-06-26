@@ -39,7 +39,7 @@ summarizeToGene <- function(txi,
   # need to associate tx to genes
   # potentially remove unassociated transcript rows and warn user
   if (!is.null(tx2gene)) {
-    
+
     # code to strip dots or bars and all remaining chars from the rownames of matrices
     if (ignoreTxVersion) {
       txId <- sub("\\..*", "", txId)
@@ -47,15 +47,7 @@ summarizeToGene <- function(txi,
       txId <- sub("\\|.*", "", txId)
     }
     
-    colnames(tx2gene) <- c("tx","gene")
-
-    if (any(duplicated(tx2gene$tx))) {
-      message("removing duplicated transcript rows from tx2gene")
-      tx2gene <- tx2gene[!duplicated(tx2gene$tx),]
-    }
-    
-    tx2gene$gene <- factor(tx2gene$gene)
-    tx2gene$tx <- factor(tx2gene$tx)
+    tx2gene <- cleanTx2Gene(tx2gene)    
     
     # if none of the rownames of the matrices (txId) are
     # in the tx2gene table something is wrong
@@ -127,3 +119,13 @@ summarizeToGene <- function(txi,
               countsFromAbundance=countsFromAbundance))
 }
 
+cleanTx2Gene <- function(tx2gene) {
+  colnames(tx2gene) <- c("tx","gene")
+  if (any(duplicated(tx2gene$tx))) {
+    message("removing duplicated transcript rows from tx2gene")
+    tx2gene <- tx2gene[!duplicated(tx2gene$tx),]
+  }
+  tx2gene$gene <- factor(tx2gene$gene)
+  tx2gene$tx <- factor(tx2gene$tx)
+  tx2gene
+}

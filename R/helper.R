@@ -13,7 +13,6 @@ makeCountsFromAbundance <- function(countsMat, abundanceMat, lengthMat, countsFr
   countsMat
 }
 
-
 # function for replacing missing average transcript length values
 replaceMissingLength <- function(lengthMat, aveLengthSampGene) {
   nanRows <- which(apply(lengthMat, 1, function(row) any(is.nan(row))))
@@ -30,6 +29,25 @@ replaceMissingLength <- function(lengthMat, aveLengthSampGene) {
     }
   }
   lengthMat
+}
+
+medianLengthOverIsoform <- function(length, tx2gene, ignoreTxVersion, ignoreAfterBar) {
+  txId <- rownames(length)
+  if (ignoreTxVersion) {
+    txId <- sub("\\..*", "", txId)
+  } else if (ignoreAfterBar) {
+    txId <- sub("\\|.*", "", txId)
+  }
+  tx2gene <- cleanTx2Gene(tx2gene)
+  stopifnot(all(txId %in% tx2gene$tx))
+  tx2gene <- tx2gene[match(txId, tx2gene$tx),]
+  # average the lengths
+  ave.len <- rowMeans(length)
+  # median over isoforms
+  med.len <- tapply(ave.len, tx2gene$gene, median)
+  one.sample <- med.len[match(tx2gene$gene, names(med.len))]
+  matrix(rep(one.sample, ncol(length)),
+         ncol=ncol(length), dimnames=dimnames(length))
 }
 
 # code contributed from Andrew Morgan

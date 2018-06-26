@@ -2,6 +2,7 @@
 
 export(summarizeToGene)
 export(tximport)
+importFrom(stats,median)
 importFrom(utils,capture.output)
 importFrom(utils,head)
 importFrom(utils,read.delim)
