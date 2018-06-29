@@ -155,8 +155,11 @@ or additionally scaled using the average transcript length, averaged
 over samples and to library size, `"lengthScaledTPM"`.  Using either
 of these approaches, the counts are not correlated with length, and so
 the length matrix should not be provided as an offset for
-downstream analysis packages. For more details on these approaches,
-see the article listed under `citation("tximport")`.
+downstream analysis packages. As of *tximport* version 1.10, we have
+added a new `countsFromAbundance` option `"dtuScaledTPM"`. This
+scaling option is designed for use with `txOut=TRUE` for differential
+transcript usage analyses. See `?tximport` for details on the various
+`countsFromAbundance` options.
 
 We can avoid gene-level summarization by setting `txOut=TRUE`, giving
 the original transcript level estimates as a list of matrices.
