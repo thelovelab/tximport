@@ -352,9 +352,11 @@ use the gene-level count matrix `txi$counts` directly as you would a regular
 count matrix with these software. Let's call this method 
 "*bias corrected counts without an offset*"
 
-**Do not do this:** Do not manually pass the original gene-level counts
-to downstream methods *without an offset*. The original gene-level counts are
-in `txi$counts` when `tximport` was run with
+**Note:** Do not manually pass the original gene-level counts
+to downstream methods *without an offset*. The only case where this
+would make sense is if there is no length bias to the counts, as 
+happens in 3' tagged RNA-seq data (see section below).
+The original gene-level counts are in `txi$counts` when `tximport` was run with
 `countsFromAbundance="no"`. This is simply passing the summed
 estimated transcript counts, and does not correct for potential differential
 isoform usage (the offset), which is the point
@@ -365,6 +367,16 @@ uncorrected gene-level counts without an offset is not recommended by the
 offset*". Passing `txi` to `DESeqDataSetFromTximport` as
 outlined below is correct: the function creates the appropriate offset
 for you to perform gene-level differential expression.
+
+## 3' tagged RNA-seq
+
+If you have 3' tagged RNA-seq data, then correcting the
+counts for gene length will induce a bias in your analysis, because
+the counts do not have length bias. Instead of using the default
+full-transcript-length pipeline, we recommend to use the
+original counts, e.g. `txi$counts` as a counts matrix, e.g. providing
+to *DESeqDataSetFromMatrix* or to the *edgeR* or *limma* functions
+without calculating an offset and without using *countsFromAbundance*.
 
 ## edgeR
 
