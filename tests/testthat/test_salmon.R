@@ -25,16 +25,35 @@ test_that("import salmon works", {
   # test wrong tx2gene
   tx2gene.bad <- data.frame(letters,letters)
   expect_error(tximport(files, type="salmon", tx2gene=tx2gene.bad))
+})
 
-  # test inferential replicate code
-  files <- file.path(dir,"salmon_gibbs", samples$run, "quant.sf")
+test_that("inferential code works", {
+
+  dir <- system.file("extdata", package="tximportData")
+  samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
+  files <- file.path(dir,"salmon_gibbs", samples$run, "quant.sf.gz")
   names(files) <- paste0("sample",1:6)
-
+  
   txi <- tximport(files, type="salmon", txOut=TRUE)
   expect_true("infReps" %in% names(txi))
+
   txi <- tximport(files, type="salmon", txOut=TRUE, varReduce=TRUE)
   expect_true("variance" %in% names(txi))
+
   txi <- tximport(files, type="salmon", txOut=TRUE, dropInfReps=TRUE)
+  expect_true(!any(c("infReps","variance") %in% names(txi)))
+  
+  # try inf replicates and summarization
+  # (15098 txps are missing from GTF, this is Ensembl's fault, not tximport's)
+  tx2gene <- read.csv(file.path(dir, "tx2gene.ensembl.v87.csv"))
+  
+  txi <- tximport(files, type="salmon", tx2gene=tx2gene, ignoreTxVersion=TRUE)
+  expect_true(grepl("ENSG", rownames(txi$infReps[[1]])[1]))
+
+  txi <- tximport(files, type="salmon", tx2gene=tx2gene, varReduce=TRUE, ignoreTxVersion=TRUE)
+  expect_true("variance" %in% names(txi))
+
+  txi <- tximport(files, type="salmon", tx2gene=tx2gene, dropInfReps=TRUE, ignoreTxVersion=TRUE)
   expect_true(!any(c("infReps","variance") %in% names(txi)))
   
 })

@@ -1,3 +1,11 @@
+CHANGES IN VERSION 1.9.9
+------------------------
+
+    o Adding support for gene-level summarization of inferential
+      replicates. This takes place by perform row summarization
+      on the inferential replicate (counts) in the same manner
+      as the original counts (and optionally computing the variance).
+
 CHANGES IN VERSION 1.9.6
 ------------------------
 

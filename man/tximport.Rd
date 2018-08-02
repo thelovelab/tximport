@@ -7,7 +7,7 @@
 \title{Import transcript-level abundances and counts
 for transcript- and gene-level analysis packages}
 \usage{
-summarizeToGene(txi, tx2gene, ignoreTxVersion = FALSE,
+summarizeToGene(txi, tx2gene, varReduce = FALSE, ignoreTxVersion = FALSE,
   ignoreAfterBar = FALSE, countsFromAbundance = c("no", "scaledTPM",
   "lengthScaledTPM"))
 
@@ -28,6 +28,9 @@ the column names are not relevant, but this column order must be used.
 this argument is required for gene-level summarization for methods
 that provides transcript-level estimates only
 (kallisto, Salmon, Sailfish)}
+
+\item{varReduce}{whether to reduce per-sample inferential replicates
+information into a matrix of sample variances \code{variance} (default FALSE)}
 
 \item{ignoreTxVersion}{logical, whether to split the tx id on the '.' character
 to remove version information, for easier matching with the tx id in gene2tx
@@ -64,9 +67,6 @@ This argument is used to autofill the arguments below (geneIdCol, etc.)
 
 \item{txOut}{logical, whether the function should just output
 transcript-level (default FALSE)}
-
-\item{varReduce}{whether to reduce per-sample inferential replicates
-information into a matrix of sample variances \code{variance} (default FALSE)}
 
 \item{dropInfReps}{whether to skip reading in inferential replicates
 (default FALSE)}
@@ -114,21 +114,16 @@ to the gene-level (default) or outputs transcript-level matrices
 \details{
 \code{tximport} will also load in information about inferential replicates --
 a list of matrices of the Gibbs samples from the posterior, or bootstrap replicates,
-per sample -- if these data are available in the expected locations
-relative to the \code{files}, and if \code{txOut=TRUE}.
+per sample -- if these data are available in the expected locations relative to the \code{files}.
 The inferential replicates, stored in \code{infReps} in the output list,
 are on estimated counts, and therefore follow \code{counts} in the output list.
 By setting \code{varReduce=TRUE}, the inferential replicate matrices
-will be replaced by a single matrix with the sample variance
-per transcript and per sample.
-Inferential replicate information is not summarized to the gene level.
+will be replaced by a single matrix with the sample variance per transcript/gene and per sample.
 
 While \code{tximport} summarizes to the gene-level by default, 
 the user can also perform the import and summarization steps manually,
-by specifing \code{txOut=TRUE} and then using the function
-\code{summarizeToGene}.
-Note however that this is equivalent to \code{tximport} with
-\code{txOut=FALSE} (the default).
+by specifing \code{txOut=TRUE} and then using the function \code{summarizeToGene}.
+Note however that this is equivalent to \code{tximport} with \code{txOut=FALSE} (the default).
 
 Solutions to the error "tximport failed at summarizing to the gene-level":
 
