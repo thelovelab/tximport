@@ -9,21 +9,16 @@
 #'
 #' \code{tximport} will also load in information about inferential replicates --
 #' a list of matrices of the Gibbs samples from the posterior, or bootstrap replicates,
-#' per sample -- if these data are available in the expected locations
-#' relative to the \code{files}, and if \code{txOut=TRUE}.
+#' per sample -- if these data are available in the expected locations relative to the \code{files}.
 #' The inferential replicates, stored in \code{infReps} in the output list,
 #' are on estimated counts, and therefore follow \code{counts} in the output list.
 #' By setting \code{varReduce=TRUE}, the inferential replicate matrices
-#' will be replaced by a single matrix with the sample variance
-#' per transcript and per sample.
-#' Inferential replicate information is not summarized to the gene level.
+#' will be replaced by a single matrix with the sample variance per transcript/gene and per sample.
 #'
 #' While \code{tximport} summarizes to the gene-level by default, 
 #' the user can also perform the import and summarization steps manually,
-#' by specifing \code{txOut=TRUE} and then using the function
-#' \code{summarizeToGene}.
-#' Note however that this is equivalent to \code{tximport} with
-#' \code{txOut=FALSE} (the default).
+#' by specifing \code{txOut=TRUE} and then using the function \code{summarizeToGene}.
+#' Note however that this is equivalent to \code{tximport} with \code{txOut=FALSE} (the default).
 #'
 #' Solutions to the error "tximport failed at summarizing to the gene-level":
 #'
@@ -267,7 +262,8 @@ tximport <- function(files,
   
   infRepType <- "none"
   if (type %in% c("salmon", "sailfish", "kallisto") & !dropInfReps) {
-    infRepType <- if (varReduce) { "var" } else { "full" }
+    # if summarizing to gene-level, need the full matrices passed to summarizeToGene
+    infRepType <- if (varReduce & txOut) { "var" } else { "full" }
   }
   
   # if input is tx-level (this is every case but RSEM gene.results files)
@@ -364,19 +360,20 @@ tximport <- function(files,
       txi$length[txi$length < 1] <- 1
     }
 
-    # if the user requested just the transcript-level data, return it now
+    # two main outputs, based on choice of txOut:
+    
+    # 1) if the user requested just the transcript-level data, return it now
     if (txOut) {
+      # if countsFromAbundance in {scaledTPM, lengthScaledTPM, or dtuScaledTPM}
       if (countsFromAbundance != "no") {
-        # save an intermediate version of the length matrix
-        length4CFA <- txi$length
-        # for dtuScaledTPM, we pretend we are just doing lengthScaledTPM,
-        # but with an altered length matrix.
-        # (note that we will still output countsFromAbundance="dtuScaledTPM")
+        # for dtuScaledTPM, pretend we're doing lengthScaledTPM w/ an altered length matrix.
+        # note that we will still output txi$countsFromAbundance set to "dtuScaledTPM"
+        length4CFA <- txi$length # intermediate version of the length matrix
         if (countsFromAbundance == "dtuScaledTPM") {
-          length4CFA <- medianLengthOverIsoform(length4CFA, tx2gene,
-                                                ignoreTxVersion, ignoreAfterBar)
+          length4CFA <- medianLengthOverIsoform(length4CFA, tx2gene, ignoreTxVersion, ignoreAfterBar)
           countsFromAbundance <- "lengthScaledTPM" 
         }
+        # function for computing all 3 countsFromAbundance methods:
         txi$counts <- makeCountsFromAbundance(countsMat=txi$counts,
                                               abundanceMat=txi$abundance,
                                               lengthMat=length4CFA,
@@ -385,13 +382,13 @@ tximport <- function(files,
       return(txi)
     }
 
-    # otherwise, summarize to the gene-level
+    # 2) otherwise, summarize to the gene-level
     txi[["countsFromAbundance"]] <- NULL
-    txiGene <- summarizeToGene(txi, tx2gene, ignoreTxVersion, ignoreAfterBar, countsFromAbundance)
-    return(txiGene)  
-
+    txiGene <- summarizeToGene(txi, tx2gene, varReduce, ignoreTxVersion, ignoreAfterBar, countsFromAbundance)
+    return(txiGene)
     
-    # else, not txIn...
+    
+    # else, not txIn, which can only be RSEM genes.results files
   } else {
     # RSEM already has gene-level summaries
     # so we just combine the gene-level summaries across files

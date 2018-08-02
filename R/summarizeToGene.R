@@ -8,6 +8,7 @@
 #' @export
 summarizeToGene <- function(txi,
                             tx2gene,
+                            varReduce=FALSE,
                             ignoreTxVersion=FALSE,
                             ignoreAfterBar=FALSE,
                             countsFromAbundance=c("no","scaledTPM","lengthScaledTPM")
@@ -84,6 +85,11 @@ summarizeToGene <- function(txi,
   message("summarizing counts")
   countsMat <- rowsum(countsMatTx, geneId)
   message("summarizing length")
+
+  if ("infReps" %in% names(txi)) {
+    infReps <- lapply(txi$infReps, function(x) rowsum(x[sub.idx,,drop=FALSE], geneId))
+    message("summarizing inferential replicates")
+  }
   
   # the next lines calculate a weighted average of transcript length, 
   # weighting by transcript abundance.
@@ -114,9 +120,29 @@ summarizeToGene <- function(txi,
                                          lengthMat,
                                          countsFromAbundance)
   }
-    
-  return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
-              countsFromAbundance=countsFromAbundance))
+
+
+  if ("infReps" %in% names(txi)) {
+    if (varReduce) {
+      vars <- sapply(infReps, rowVars)
+      out <- list(abundance=abundanceMat,
+                  counts=countsMat, variance=vars,
+                  length=lengthMat,
+                  countsFromAbundance=countsFromAbundance)
+    } else {
+      out <- list(abundance=abundanceMat,
+                  counts=countsMat, infReps=infReps,
+                  length=lengthMat,
+                  countsFromAbundance=countsFromAbundance)
+    }
+  } else {
+    out <- list(abundance=abundanceMat,
+                counts=countsMat,
+                length=lengthMat,
+                countsFromAbundance=countsFromAbundance)
+  }
+  
+  return(out)
 }
 
 cleanTx2Gene <- function(tx2gene) {

@@ -223,7 +223,7 @@ demonstrate using Salmon, run with only 5 Gibbs replicates (usually
 more Gibbs samples would be useful for estimating variability).
 
 ```{r}
-files <- file.path(dir,"salmon_gibbs", samples$run, "quant.sf")
+files <- file.path(dir,"salmon_gibbs", samples$run, "quant.sf.gz")
 names(files) <- paste0("sample",1:6)
 txi.inf.rep <- tximport(files, type="salmon", txOut=TRUE)
 names(txi.inf.rep)

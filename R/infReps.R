@@ -1,5 +1,5 @@
 # from http://stackoverflow.com/questions/25099825/row-wise-variance-of-a-matrix-in-r
-RowVar <- function(x) {
+rowVars <- function(x) {
   rowSums((x - rowMeans(x))^2)/(dim(x)[2] - 1)
 }
 
@@ -75,7 +75,7 @@ readInfRepFish <- function(fish_dir, meth) {
 
     # rows are transcripts, columns are bootstraps
     dim(boots) <- c(minfo$num_targets, minfo$num_bootstraps)
-    vars <- RowVar(boots)
+    vars <- rowVars(boots)
     return(list(vars=vars, reps=boots))
   } else {
     return(NULL)
@@ -97,7 +97,7 @@ readInfRepKallisto <- function(bear_dir) {
     for (bsn in seq_len(numBoot)) {
       bootMat[,bsn] <- boots[bsn][[1]]
     }
-    vars <- RowVar(bootMat)
+    vars <- rowVars(bootMat)
     return(list(vars=vars, reps=bootMat))
   } else {
     return(NULL)
