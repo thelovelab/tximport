@@ -1,3 +1,14 @@
+CHANGES IN VERSION 1.9.10
+-------------------------
+
+    o Added 'infRepStat' argument which offers re-compution
+      of counts and abundances using a function applied to the
+      inferential replicates, e.g. matrixStats::rowMedian for
+      using the median of posterior samples as the point estimate
+      provided in "counts" and "abundance". If 'countsFromAbundance'
+      is specified, this will compute counts a second time from
+      the re-computed abundances.
+
 CHANGES IN VERSION 1.9.9
 ------------------------
 
