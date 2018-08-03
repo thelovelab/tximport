@@ -14,9 +14,10 @@ summarizeToGene(txi, tx2gene, varReduce = FALSE, ignoreTxVersion = FALSE,
 tximport(files, type = c("none", "salmon", "sailfish", "kallisto", "rsem",
   "stringtie"), txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no",
   "scaledTPM", "lengthScaledTPM", "dtuScaledTPM"), tx2gene = NULL,
-  varReduce = FALSE, dropInfReps = FALSE, ignoreTxVersion = FALSE,
-  ignoreAfterBar = FALSE, geneIdCol, txIdCol, abundanceCol, countsCol,
-  lengthCol, importer = NULL, existenceOptional = FALSE, readLength = 75)
+  varReduce = FALSE, dropInfReps = FALSE, infRepStat = NULL,
+  ignoreTxVersion = FALSE, ignoreAfterBar = FALSE, geneIdCol, txIdCol,
+  abundanceCol, countsCol, lengthCol, importer = NULL,
+  existenceOptional = FALSE, readLength = 75)
 }
 \arguments{
 \item{txi}{list of matrices of trancript-level abundances, counts, and
@@ -70,6 +71,14 @@ transcript-level (default FALSE)}
 
 \item{dropInfReps}{whether to skip reading in inferential replicates
 (default FALSE)}
+
+\item{infRepStat}{a function to re-compute counts and abundances from the
+inferential replicates, e.g. \code{matrixStats::rowMedians} to re-compute counts 
+as the median of the inferential replicates. The order of operations is:
+first counts are re-computed, then abundances are re-computed.
+Following this, if \code{countsFromAbundance} is not "no",
+\code{tximport} will again re-compute counts from the re-computed abundances.
+\code{infRepStat} should operate on rows of a matrix. (default is NULL)}
 
 \item{geneIdCol}{name of column with gene id. if missing,
 the gene2tx argument can be used}

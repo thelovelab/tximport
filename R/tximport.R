@@ -72,6 +72,13 @@
 #' information into a matrix of sample variances \code{variance} (default FALSE)
 #' @param dropInfReps whether to skip reading in inferential replicates
 #' (default FALSE)
+#' @param infRepStat a function to re-compute counts and abundances from the
+#' inferential replicates, e.g. \code{matrixStats::rowMedians} to re-compute counts 
+#' as the median of the inferential replicates. The order of operations is:
+#' first counts are re-computed, then abundances are re-computed.
+#' Following this, if \code{countsFromAbundance} is not "no",
+#' \code{tximport} will again re-compute counts from the re-computed abundances.
+#' \code{infRepStat} should operate on rows of a matrix. (default is NULL)
 #' @param ignoreTxVersion logical, whether to split the tx id on the '.' character
 #' to remove version information, for easier matching with the tx id in gene2tx
 #' (default FALSE)
@@ -139,6 +146,7 @@ tximport <- function(files,
                      tx2gene=NULL,
                      varReduce=FALSE,
                      dropInfReps=FALSE,
+                     infRepStat=NULL,
                      ignoreTxVersion=FALSE,
                      ignoreAfterBar=FALSE,
                      geneIdCol,
@@ -265,156 +273,180 @@ tximport <- function(files,
     # if summarizing to gene-level, need the full matrices passed to summarizeToGene
     infRepType <- if (varReduce & txOut) { "var" } else { "full" }
   }
+
+  if (dropInfReps) stopifnot(is.null(infRepStat))
   
-  # if input is tx-level (this is every case but RSEM gene.results files)
-  if (txIn) {
-    for (i in seq_along(files)) {
-      message(i," ",appendLF=FALSE)
+  # special code for RSEM gene.results files.
+  # RSEM gene-level is the only case of !txIn
+  if (!txIn) {
+    txi <- computeRsemGeneLevel(files, importer, geneIdCol, abundanceCol, countsCol, lengthCol, countsFromAbundance)
+    return(txi)
+  }
 
-      raw <- as.data.frame(importer(files[i]))
+  ######################################################
+  # the rest of the code assumes transcript-level input:
 
-      # if we expect inferential replicate info
-      repInfo <- NULL
-      if (infRepType != "none") {
-        repInfo <- infRepImporter(dirname(files[i]))
-        # if we didn't find inferential replicate info
-        if (is.null(repInfo)) {
-          infRepType <- "none"
-        }
+  ### --- BEGIN --- loop over files reading in columns / inf reps ###
+  for (i in seq_along(files)) {
+    message(i," ",appendLF=FALSE)
+    
+    raw <- as.data.frame(importer(files[i]))
+    
+    # if we expect inferential replicate info
+    repInfo <- NULL
+    if (infRepType != "none") {
+      repInfo <- infRepImporter(dirname(files[i]))
+      # if we didn't find inferential replicate info
+      if (is.null(repInfo)) {
+        infRepType <- "none"
       }
+    }
 
-      # if external tx2gene table not provided, send user to vignette
-      if (is.null(tx2gene) & !txOut) {
-        summarizeFail() # ...long message in helper.R
+    # if external tx2gene table not provided, send user to vignette
+    if (is.null(tx2gene) & !txOut) {
+      summarizeFail() # ...long message in helper.R
+    } else {
+      # e.g. Salmon and kallisto do not include the gene ID, need an external table
+      stopifnot(all(c(lengthCol, abundanceCol) %in% names(raw)))
+      if (i == 1) {
+        txId <- raw[[txIdCol]]
       } else {
-        # e.g. Salmon and kallisto do not include the gene ID, need an external table
-        stopifnot(all(c(lengthCol, abundanceCol) %in% names(raw)))
-        if (i == 1) {
-          txId <- raw[[txIdCol]]
-        } else {
-          stopifnot(all(txId == raw[[txIdCol]]))
-        }
+        stopifnot(all(txId == raw[[txIdCol]]))
       }
-
-      # create empty matrices
-      if (i == 1) {
-        mat <- matrix(nrow=nrow(raw),ncol=length(files))
-        rownames(mat) <- raw[[txIdCol]]
-        colnames(mat) <- names(files)
-        abundanceMatTx <- mat
-        countsMatTx <- mat
-        lengthMatTx <- mat
-        if (infRepType == "var") {
-          varMatTx <- mat
-        } else if (infRepType == "full") {
-          infRepMatTx <- list()
-        }
-      }
-      abundanceMatTx[,i] <- raw[[abundanceCol]]
-      countsMatTx[,i] <- raw[[countsCol]]
-      lengthMatTx[,i] <- raw[[lengthCol]]
+    }
+    
+    # create empty matrices
+    if (i == 1) {
+      mat <- matrix(nrow=nrow(raw),ncol=length(files))
+      rownames(mat) <- raw[[txIdCol]]
+      colnames(mat) <- names(files)
+      abundanceMatTx <- mat
+      countsMatTx <- mat
+      lengthMatTx <- mat
       if (infRepType == "var") {
-        varMatTx[,i] <- repInfo$vars
+        varMatTx <- mat
       } else if (infRepType == "full") {
-        infRepMatTx[[i]] <- repInfo$reps
+        infRepMatTx <- list()
       }
     }
-
-    # propagate names to inferential replicate list
-    if (infRepType == "full") {
-      names(infRepMatTx) <- names(files)
-    }
-    
-    message("")
-
-    # if there is no information about inferential replicates
-    if (infRepType == "none") {
-      txi <- list(abundance=abundanceMatTx,
-                  counts=countsMatTx,
-                  length=lengthMatTx,
-                  countsFromAbundance=countsFromAbundance)
-    } else if (infRepType == "var") {
-    # if we're keeping only the variance from inferential replicates
-      txi <- list(abundance=abundanceMatTx,
-                  counts=countsMatTx,
-                  variance=varMatTx,
-                  length=lengthMatTx,
-                  countsFromAbundance=countsFromAbundance)
+    abundanceMatTx[,i] <- raw[[abundanceCol]]
+    countsMatTx[,i] <- raw[[countsCol]]
+    lengthMatTx[,i] <- raw[[lengthCol]]
+    if (infRepType == "var") {
+      varMatTx[,i] <- repInfo$vars
     } else if (infRepType == "full") {
-    # if we're keeping the full samples from inferential replicates
-      txi <- list(abundance=abundanceMatTx,
-                  counts=countsMatTx,
-                  infReps=infRepMatTx,
-                  length=lengthMatTx,
-                  countsFromAbundance=countsFromAbundance)
+      infRepMatTx[[i]] <- repInfo$reps
     }
-
-    # stringtie outputs coverage, here we turn into counts
-    if (type == "stringtie") {
-      # here "counts" is still just coverage, this formula gives back original counts
-      txi$counts <- txi$counts * txi$length / readLength
-    }
-
-    if (type == "rsem") {
-      # protect against 0 bp length transcripts
-      txi$length[txi$length < 1] <- 1
-    }
-
-    # two main outputs, based on choice of txOut:
     
-    # 1) if the user requested just the transcript-level data, return it now
-    if (txOut) {
-      # if countsFromAbundance in {scaledTPM, lengthScaledTPM, or dtuScaledTPM}
-      if (countsFromAbundance != "no") {
-        # for dtuScaledTPM, pretend we're doing lengthScaledTPM w/ an altered length matrix.
-        # note that we will still output txi$countsFromAbundance set to "dtuScaledTPM"
-        length4CFA <- txi$length # intermediate version of the length matrix
-        if (countsFromAbundance == "dtuScaledTPM") {
-          length4CFA <- medianLengthOverIsoform(length4CFA, tx2gene, ignoreTxVersion, ignoreAfterBar)
-          countsFromAbundance <- "lengthScaledTPM" 
-        }
-        # function for computing all 3 countsFromAbundance methods:
-        txi$counts <- makeCountsFromAbundance(countsMat=txi$counts,
-                                              abundanceMat=txi$abundance,
-                                              lengthMat=length4CFA,
-                                              countsFromAbundance=countsFromAbundance)
-      }
-      return(txi)
+    # if infRepStat was specified, re-compute counts and abundances
+    if (!is.null(infRepStat)) {
+      countsMatTx[,i] <- infRepStat(repInfo$reps)
+      tpm <- countsMatTx[,i] / lengthMatTx[,i]
+      abundanceMatTx[,i] <- tpm * 1e6 / sum(tpm)
     }
-
-    # 2) otherwise, summarize to the gene-level
-    txi[["countsFromAbundance"]] <- NULL
-    txiGene <- summarizeToGene(txi, tx2gene, varReduce, ignoreTxVersion, ignoreAfterBar, countsFromAbundance)
-    return(txiGene)
     
-    
-    # else, not txIn, which can only be RSEM genes.results files
-  } else {
-    # RSEM already has gene-level summaries
-    # so we just combine the gene-level summaries across files
-    if (countsFromAbundance != "no") {
-      warning("countsFromAbundance other than 'no' requires transcript-level estimates")
-    }
-    for (i in seq_along(files)) {
-      message(i," ",appendLF=FALSE)
-      out <- capture.output({
-        raw <- as.data.frame(importer(files[i]))
-      }, type="message")
-      stopifnot(all(c(geneIdCol, abundanceCol, lengthCol) %in% names(raw)))
-      if (i == 1) {
-        mat <- matrix(nrow=nrow(raw),ncol=length(files))
-        rownames(mat) <- raw[[geneIdCol]]
-        colnames(mat) <- names(files)
-        abundanceMat <- mat
-        countsMat <- mat
-        lengthMat <- mat
-      }
-      abundanceMat[,i] <- raw[[abundanceCol]]
-      countsMat[,i] <- raw[[countsCol]]
-      lengthMat[,i] <- raw[[lengthCol]]
-    }
-  } 
+  }
+  ### --- END --- loop over files ###
+  
+  # propagate names to inferential replicate list
+  if (infRepType == "full") {
+    names(infRepMatTx) <- names(files)
+  }
+  
   message("")
-  return(list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
-              countsFromAbundance="no"))
+  
+  # if there is no information about inferential replicates
+  if (infRepType == "none") {
+    txi <- list(abundance=abundanceMatTx,
+                counts=countsMatTx,
+                length=lengthMatTx,
+                countsFromAbundance=countsFromAbundance)
+  } else if (infRepType == "var") {
+    # if we're keeping only the variance from inferential replicates
+    txi <- list(abundance=abundanceMatTx,
+                counts=countsMatTx,
+                variance=varMatTx,
+                length=lengthMatTx,
+                countsFromAbundance=countsFromAbundance)
+  } else if (infRepType == "full") {
+    # if we're keeping the full samples from inferential replicates
+    txi <- list(abundance=abundanceMatTx,
+                counts=countsMatTx,
+                infReps=infRepMatTx,
+                length=lengthMatTx,
+                countsFromAbundance=countsFromAbundance)
+  }
+  
+  # stringtie outputs coverage, here we turn into counts
+  if (type == "stringtie") {
+    # here "counts" is still just coverage, this formula gives back original counts
+    txi$counts <- txi$counts * txi$length / readLength
+  }
+  
+  if (type == "rsem") {
+    # protect against 0 bp length transcripts
+    txi$length[txi$length < 1] <- 1
+  }
+  
+  # two main outputs, based on choice of txOut:
+  
+  # 1) if the user requested just the transcript-level data, return it now
+  if (txOut) {
+    # if countsFromAbundance in {scaledTPM, lengthScaledTPM, or dtuScaledTPM}
+    if (countsFromAbundance != "no") {
+      # for dtuScaledTPM, pretend we're doing lengthScaledTPM w/ an altered length matrix.
+      # note that we will still output txi$countsFromAbundance set to "dtuScaledTPM"
+      length4CFA <- txi$length # intermediate version of the length matrix
+      if (countsFromAbundance == "dtuScaledTPM") {
+        length4CFA <- medianLengthOverIsoform(length4CFA, tx2gene, ignoreTxVersion, ignoreAfterBar)
+        countsFromAbundance <- "lengthScaledTPM" 
+      }
+      # function for computing all 3 countsFromAbundance methods:
+      txi$counts <- makeCountsFromAbundance(countsMat=txi$counts,
+                                            abundanceMat=txi$abundance,
+                                            lengthMat=length4CFA,
+                                            countsFromAbundance=countsFromAbundance)
+    }
+    return(txi)
+  }
+  
+  # 2) otherwise, summarize to the gene-level
+  txi[["countsFromAbundance"]] <- NULL
+  txiGene <- summarizeToGene(txi, tx2gene, varReduce, ignoreTxVersion, ignoreAfterBar, countsFromAbundance)
+  return(txiGene)
+  
+}
+
+
+# split out this special code for RSEM with gene-level input
+# (all other input is transcript-level)
+computeRsemGeneLevel <- function(files, importer,
+                                 geneIdCol, abundanceCol, countsCol, lengthCol,
+                                 countsFromAbundance) {
+  # RSEM already has gene-level summaries
+  # so we just combine the gene-level summaries across files
+  if (countsFromAbundance != "no") {
+    warning("countsFromAbundance other than 'no' requires transcript-level estimates")
+  }
+  for (i in seq_along(files)) {
+    message(i," ",appendLF=FALSE)
+    out <- capture.output({
+      raw <- as.data.frame(importer(files[i]))
+    }, type="message")
+    stopifnot(all(c(geneIdCol, abundanceCol, lengthCol) %in% names(raw)))
+    if (i == 1) {
+      mat <- matrix(nrow=nrow(raw),ncol=length(files))
+      rownames(mat) <- raw[[geneIdCol]]
+      colnames(mat) <- names(files)
+      abundanceMat <- mat
+      countsMat <- mat
+      lengthMat <- mat
+    }
+    abundanceMat[,i] <- raw[[abundanceCol]]
+    countsMat[,i] <- raw[[countsCol]]
+    lengthMat[,i] <- raw[[lengthCol]]
+  }
+  txi <- list(abundance=abundanceMat, counts=countsMat, length=lengthMat,
+              countsFromAbundance="no")
+  return(txi)
 }
