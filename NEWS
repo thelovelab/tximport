@@ -1,3 +1,8 @@
+CHANGES IN VERSION 1.9.11
+-------------------------
+
+    o Exporting simple internal function makeCountsFromAbundance().
+
 CHANGES IN VERSION 1.9.10
 -------------------------
 
