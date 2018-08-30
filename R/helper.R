@@ -1,8 +1,11 @@
-#' Make counts from abundance
+#' Low-level function to make counts from abundance using matrices
 #'
-#' Simple function used in tximport to generate
-#' \code{scaledTPM} or \code{lengthScaledTPM}
-#' from counts, abundance and length matrices.
+#' Simple low-level function used within \link{tximport} to generate
+#' \code{scaledTPM} or \code{lengthScaledTPM} counts, taking as input
+#' the original counts, abundance and length matrices.
+#' NOTE: This is a low-level function exported in case it is needed for some reason,
+#' but the recommended way to generate counts-from-abundance is using
+#' \link{tximport} with the \code{countsFromAbundance} argument.
 #'
 #' @param countsMat a matrix of original counts
 #' @param abundanceMat a matrix of abundances (typically TPM)
