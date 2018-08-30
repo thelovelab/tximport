@@ -161,8 +161,8 @@ tximport <- function(files,
   # inferential replicate importer
   infRepImporter <- NULL
 
-  type <- match.arg(type, c("none","salmon","sailfish","kallisto","rsem","stringtie"))
-  countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM","dtuScaledTPM"))
+  type <- match.arg(type)
+  countsFromAbundance <- match.arg(countsFromAbundance)
   if (countsFromAbundance == "dtuScaledTPM") {
     stopifnot(txOut)
     if (is.null(tx2gene)) stop("'dtuScaledTPM' requires 'tx2gene' input")

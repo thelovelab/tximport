@@ -1,5 +1,24 @@
-# function for generating counts from abundances
-makeCountsFromAbundance <- function(countsMat, abundanceMat, lengthMat, countsFromAbundance) {
+#' Low-level function to make counts from abundance using matrices
+#'
+#' Simple low-level function used within \link{tximport} to generate
+#' \code{scaledTPM} or \code{lengthScaledTPM} counts, taking as input
+#' the original counts, abundance and length matrices.
+#' NOTE: This is a low-level function exported in case it is needed for some reason,
+#' but the recommended way to generate counts-from-abundance is using
+#' \link{tximport} with the \code{countsFromAbundance} argument.
+#'
+#' @param countsMat a matrix of original counts
+#' @param abundanceMat a matrix of abundances (typically TPM)
+#' @param lengthMat a matrix of effective lengths
+#' @param countsFromAbundance the desired type of count-from-abundance output
+#'
+#' @return a matrix of count-scale data generated from abundances.
+#' for details on the calculation see \link{tximport}.
+#'
+#' @export
+makeCountsFromAbundance <- function(countsMat, abundanceMat, lengthMat,
+                                    countsFromAbundance=c("scaledTPM","lengthScaledTPM")) {
+  countsFromAbundance <- match.arg(countsFromAbundance)
   countsSum <- colSums(countsMat)
   if (countsFromAbundance == "lengthScaledTPM") {
     newCounts <- abundanceMat * rowMeans(lengthMat)
