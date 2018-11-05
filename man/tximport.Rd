@@ -3,21 +3,21 @@
 \name{tximport}
 \alias{tximport}
 \alias{summarizeToGene}
-\alias{tximport}
 \title{Import transcript-level abundances and counts
 for transcript- and gene-level analysis packages}
 \usage{
-summarizeToGene(txi, tx2gene, varReduce = FALSE, ignoreTxVersion = FALSE,
-  ignoreAfterBar = FALSE, countsFromAbundance = c("no", "scaledTPM",
-  "lengthScaledTPM"))
+summarizeToGene(txi, tx2gene, varReduce = FALSE,
+  ignoreTxVersion = FALSE, ignoreAfterBar = FALSE,
+  countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM"))
 
-tximport(files, type = c("none", "salmon", "sailfish", "kallisto", "rsem",
-  "stringtie"), txIn = TRUE, txOut = FALSE, countsFromAbundance = c("no",
-  "scaledTPM", "lengthScaledTPM", "dtuScaledTPM"), tx2gene = NULL,
-  varReduce = FALSE, dropInfReps = FALSE, infRepStat = NULL,
-  ignoreTxVersion = FALSE, ignoreAfterBar = FALSE, geneIdCol, txIdCol,
-  abundanceCol, countsCol, lengthCol, importer = NULL,
-  existenceOptional = FALSE, readLength = 75)
+tximport(files, type = c("none", "salmon", "sailfish", "kallisto",
+  "rsem", "stringtie"), txIn = TRUE, txOut = FALSE,
+  countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM",
+  "dtuScaledTPM"), tx2gene = NULL, varReduce = FALSE,
+  dropInfReps = FALSE, infRepStat = NULL, ignoreTxVersion = FALSE,
+  ignoreAfterBar = FALSE, geneIdCol, txIdCol, abundanceCol, countsCol,
+  lengthCol, importer = NULL, existenceOptional = FALSE,
+  sparse = FALSE, sparseThreshold = 1, readLength = 75)
 }
 \arguments{
 \item{txi}{list of matrices of trancript-level abundances, counts, and
@@ -95,6 +95,14 @@ the gene2tx argument can be used}
 
 \item{existenceOptional}{logical, should tximport not check if files exist before attempting
 import (default FALSE, meaning files must exist according to \code{file.exists})}
+
+\item{sparse}{logical, whether to try to import data sparsely (default is FALSE).
+Initial implementation for \code{txOut=TRUE}, \code{countsFromAbundance="no"}
+or \code{"scaledTPM"}, no inferential replicates. Only counts matrix
+is returned (and abundance matrix if using \code{"scaledTPM"})}
+
+\item{sparseThreshold}{the minimum threshold for including a count as a
+non-zero count during sparse import (default is 1)}
 
 \item{readLength}{numeric, the read length used to calculate counts from
 StringTie's output of coverage. Default value (from StringTie) is 75.

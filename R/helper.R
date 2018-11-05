@@ -19,7 +19,9 @@
 makeCountsFromAbundance <- function(countsMat, abundanceMat, lengthMat,
                                     countsFromAbundance=c("scaledTPM","lengthScaledTPM")) {
   countsFromAbundance <- match.arg(countsFromAbundance)
-  countsSum <- colSums(countsMat)
+  sparse <- is(countsMat, "dgCMatrix")
+  colsumfun <- if (sparse) Matrix::colSums else colSums
+  countsSum <- colsumfun(countsMat)
   if (countsFromAbundance == "lengthScaledTPM") {
     newCounts <- abundanceMat * rowMeans(lengthMat)
   } else if (countsFromAbundance == "scaledTPM") {
@@ -27,8 +29,12 @@ makeCountsFromAbundance <- function(countsMat, abundanceMat, lengthMat,
   } else {
     stop("expecting 'lengthScaledTPM' or 'scaledTPM'")
   }
-  newSum <- colSums(newCounts)
-  countsMat <- t(t(newCounts) * (countsSum/newSum))
+  newSum <- colsumfun(newCounts)
+  if (sparse) {
+    countsMat <- Matrix::t(Matrix::t(newCounts) * (countsSum/newSum))
+  } else {
+    countsMat <- t(t(newCounts) * (countsSum/newSum))
+  }
   countsMat
 }
 
