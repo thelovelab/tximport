@@ -3,6 +3,7 @@
 export(makeCountsFromAbundance)
 export(summarizeToGene)
 export(tximport)
+importFrom(methods,is)
 importFrom(stats,median)
 importFrom(utils,capture.output)
 importFrom(utils,head)

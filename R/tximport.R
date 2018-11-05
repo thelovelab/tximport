@@ -92,6 +92,12 @@
 #' @param importer a function used to read in the files
 #' @param existenceOptional logical, should tximport not check if files exist before attempting
 #' import (default FALSE, meaning files must exist according to \code{file.exists})
+#' @param sparse logical, whether to try to import data sparsely (default is FALSE).
+#' Initial implementation for \code{txOut=TRUE}, \code{countsFromAbundance="no"}
+#' or \code{"scaledTPM"}, no inferential replicates. Only counts matrix
+#' is returned (and abundance matrix if using \code{"scaledTPM"})
+#' @param sparseThreshold the minimum threshold for including a count as a
+#' non-zero count during sparse import (default is 1)
 #' @param readLength numeric, the read length used to calculate counts from
 #' StringTie's output of coverage. Default value (from StringTie) is 75.
 #' The formula used to calculate counts is:
@@ -136,6 +142,7 @@
 #'
 #' @importFrom utils read.delim capture.output head
 #' @importFrom stats median
+#' @importFrom methods is
 #'
 #' @export
 tximport <- function(files,
@@ -156,6 +163,8 @@ tximport <- function(files,
                      lengthCol,
                      importer=NULL,
                      existenceOptional=FALSE,
+                     sparse=FALSE,
+                     sparseThreshold=1,
                      readLength=75) {
 
   # inferential replicate importer
@@ -283,70 +292,121 @@ tximport <- function(files,
     return(txi)
   }
 
+  # if external tx2gene table not provided, send user to vignette
+  if (is.null(tx2gene) & !txOut) {
+    summarizeFail() # ...long message in helper.R
+  }
+
+  # trial run of inferential replicate info
+  repInfo <- NULL
+  if (infRepType != "none") {
+    repInfo <- infRepImporter(dirname(files[1]))
+    # if we didn't find inferential replicate info
+    if (is.null(repInfo)) {
+      infRepType <- "none"
+    }
+  }
+  
+  if (sparse) {
+    if (!requireNamespace("Matrix", quietly=TRUE)) {
+      stop("sparse import requires core R package `Matrix`")
+    }
+    message("importing sparsely, only counts and abundances returned, support limited to
+txOut=TRUE, CFA either 'no' or 'scaledTPM', and no inferential replicates")
+    stopifnot(txOut)
+    stopifnot(infRepType == "none")
+    stopifnot(countsFromAbundance %in% c("no","scaledTPM"))
+  }
+  
   ######################################################
   # the rest of the code assumes transcript-level input:
 
   ### --- BEGIN --- loop over files reading in columns / inf reps ###
   for (i in seq_along(files)) {
     message(i," ",appendLF=FALSE)
-    
+    # import and convert quantification info to data.frame
     raw <- as.data.frame(importer(files[i]))
-    
-    # if we expect inferential replicate info
-    repInfo <- NULL
+    # import inferential replicate info
     if (infRepType != "none") {
       repInfo <- infRepImporter(dirname(files[i]))
-      # if we didn't find inferential replicate info
-      if (is.null(repInfo)) {
-        infRepType <- "none"
-      }
-    }
-
-    # if external tx2gene table not provided, send user to vignette
-    if (is.null(tx2gene) & !txOut) {
-      summarizeFail() # ...long message in helper.R
     } else {
-      # e.g. Salmon and kallisto do not include the gene ID, need an external table
-      stopifnot(all(c(lengthCol, abundanceCol) %in% names(raw)))
-      if (i == 1) {
-        txId <- raw[[txIdCol]]
-      } else {
-        stopifnot(all(txId == raw[[txIdCol]]))
-      }
+      repInfo <- NULL
     }
-    
-    # create empty matrices
+    # check for columns
+    stopifnot(all(c(abundanceCol, countsCol, lengthCol) %in% names(raw)))
+    # check for same-across-samples
     if (i == 1) {
-      mat <- matrix(nrow=nrow(raw),ncol=length(files))
-      rownames(mat) <- raw[[txIdCol]]
-      colnames(mat) <- names(files)
-      abundanceMatTx <- mat
-      countsMatTx <- mat
-      lengthMatTx <- mat
+      txId <- raw[[txIdCol]]
+    } else {
+      stopifnot(all(txId == raw[[txIdCol]]))
+    }
+    # if importing dense matrices
+    if (!sparse) {
+      # create empty matrices
+      if (i == 1) {
+        mat <- matrix(nrow=nrow(raw),ncol=length(files))
+        rownames(mat) <- raw[[txIdCol]]
+        colnames(mat) <- names(files)
+        abundanceMatTx <- mat
+        countsMatTx <- mat
+        lengthMatTx <- mat
+        if (infRepType == "var") {
+          varMatTx <- mat
+        } else if (infRepType == "full") {
+          infRepMatTx <- list()
+        }
+      }
+      abundanceMatTx[,i] <- raw[[abundanceCol]]
+      countsMatTx[,i] <- raw[[countsCol]]
+      lengthMatTx[,i] <- raw[[lengthCol]]
       if (infRepType == "var") {
-        varMatTx <- mat
+        varMatTx[,i] <- repInfo$vars
       } else if (infRepType == "full") {
-        infRepMatTx <- list()
+        infRepMatTx[[i]] <- repInfo$reps
+      }
+      # if infRepStat was specified, re-compute counts and abundances
+      if (!is.null(infRepStat)) {
+        countsMatTx[,i] <- infRepStat(repInfo$reps)
+        tpm <- countsMatTx[,i] / lengthMatTx[,i]
+        abundanceMatTx[,i] <- tpm * 1e6 / sum(tpm)
+      }
+    } else {
+      # try importing sparsely
+      if (i == 1) {     
+        txId <- raw[[txIdCol]]
+        countsListI <- list()
+        countsListX <- list()
+        abundanceListX <- list()
+        numNonzero <- c()
+      }
+      stopifnot(all(txId == raw[[txIdCol]]))
+      sparse.idx <- which(raw[[countsCol]] >= sparseThreshold)
+      countsListI <- c(countsListI, sparse.idx)
+      countsListX <- c(countsListX, raw[[countsCol]][sparse.idx])
+      numNonzero <- c(numNonzero, length(sparse.idx))
+      if (countsFromAbundance == "scaledTPM") {
+        abundanceListX <- c(abundanceListX, raw[[abundanceCol]][sparse.idx])
       }
     }
-    abundanceMatTx[,i] <- raw[[abundanceCol]]
-    countsMatTx[,i] <- raw[[countsCol]]
-    lengthMatTx[,i] <- raw[[lengthCol]]
-    if (infRepType == "var") {
-      varMatTx[,i] <- repInfo$vars
-    } else if (infRepType == "full") {
-      infRepMatTx[[i]] <- repInfo$reps
-    }
-    
-    # if infRepStat was specified, re-compute counts and abundances
-    if (!is.null(infRepStat)) {
-      countsMatTx[,i] <- infRepStat(repInfo$reps)
-      tpm <- countsMatTx[,i] / lengthMatTx[,i]
-      abundanceMatTx[,i] <- tpm * 1e6 / sum(tpm)
-    }
-    
   }
   ### --- END --- loop over files ###
+
+  # compile sparse matrices
+  if (sparse) {
+    countsMatTx <- Matrix::sparseMatrix(i=unlist(countsListI),
+                                        j=rep(seq_along(numNonzero), numNonzero),
+                                        x=unlist(countsListX),
+                                        dimnames=list(txId, names(files)))
+    if (countsFromAbundance == "scaledTPM") {
+      abundanceMatTx <- Matrix::sparseMatrix(i=unlist(countsListI),
+                                             j=rep(seq_along(numNonzero), numNonzero),
+                                             x=unlist(abundanceListX),
+                                             dimnames=list(txId, names(files)))
+    } else {
+      abundanceMatTx <- NULL
+    }
+    lengthMatTx <- NULL
+  }
   
   # propagate names to inferential replicate list
   if (infRepType == "full") {

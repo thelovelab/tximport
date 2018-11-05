@@ -1,3 +1,13 @@
+CHANGES IN VERSION 1.11.1
+-------------------------
+
+    o Added argument 'sparse' and 'sparseThreshold' to allow for
+      sparse count import. For the initial implemenation:
+      only works for txOut=TRUE; countsFromAbundance either "no"
+      or "scaledTPM"; doesn't work with inferential replicates,
+      and only imports counts (and abundances if
+      countsFromAbundance="scaledTPM").
+
 CHANGES IN VERSION 1.9.11
 -------------------------
 
