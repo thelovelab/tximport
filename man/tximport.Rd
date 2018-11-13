@@ -10,8 +10,8 @@ summarizeToGene(txi, tx2gene, varReduce = FALSE,
   ignoreTxVersion = FALSE, ignoreAfterBar = FALSE,
   countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM"))
 
-tximport(files, type = c("none", "salmon", "sailfish", "kallisto",
-  "rsem", "stringtie"), txIn = TRUE, txOut = FALSE,
+tximport(files, type = c("none", "salmon", "sailfish", "alevin",
+  "kallisto", "rsem", "stringtie"), txIn = TRUE, txOut = FALSE,
   countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM",
   "dtuScaledTPM"), tx2gene = NULL, varReduce = FALSE,
   dropInfReps = FALSE, infRepStat = NULL, ignoreTxVersion = FALSE,
@@ -60,7 +60,7 @@ and so the length offset matrix should not be used.}
 \item{files}{a character vector of filenames for the transcript-level abundances}
 
 \item{type}{character, the type of software used to generate the abundances.
-Options are "salmon", "sailfish", "kallisto", "rsem", "stringtie", or "none".
+Options are "salmon", "sailfish", "alevin", "kallisto", "rsem", "stringtie", or "none".
 This argument is used to autofill the arguments below (geneIdCol, etc.)
 "none" means that the user will specify these columns.}
 
@@ -158,6 +158,15 @@ in the man page for \link[AnnotationDbi]{AnnotationDb-class} objects
 in the AnnotationDbi package (TxDb inherits from AnnotationDb).
 For further details on generating TxDb objects from various inputs
 see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
+
+For \code{type="alevin"} all arguments other than \code{files} are ignored,
+and \code{files} should point to a single \code{quants_mat.gz} file,
+in the directory structure created by the alevin software
+(e.g. do not move the file or delete the other important files).
+\code{tximport} is solely importing the gene-by-cell matrix of counts,
+as \code{txi$counts}, and effective lengths are not estimated.
+Length correction should not be applied to datasets where there
+is not an expected correlation of counts and feature length.
 }
 \examples{
 
