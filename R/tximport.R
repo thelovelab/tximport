@@ -37,9 +37,18 @@
 #' For further details on generating TxDb objects from various inputs
 #' see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
 #'
+#' For \code{type="alevin"} all arguments other than \code{files} are ignored,
+#' and \code{files} should point to a single \code{quants_mat.gz} file,
+#' in the directory structure created by the alevin software
+#' (e.g. do not move the file or delete the other important files).
+#' \code{tximport} is solely importing the gene-by-cell matrix of counts,
+#' as \code{txi$counts}, and effective lengths are not estimated.
+#' Length correction should not be applied to datasets where there
+#' is not an expected correlation of counts and feature length.
+#' 
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
-#' Options are "salmon", "sailfish", "kallisto", "rsem", "stringtie", or "none".
+#' Options are "salmon", "sailfish", "alevin", "kallisto", "rsem", "stringtie", or "none".
 #' This argument is used to autofill the arguments below (geneIdCol, etc.)
 #' "none" means that the user will specify these columns.
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
@@ -146,7 +155,7 @@
 #'
 #' @export
 tximport <- function(files,
-                     type=c("none","salmon","sailfish","kallisto","rsem","stringtie"),
+                     type=c("none","salmon","sailfish","alevin","kallisto","rsem","stringtie"),
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM","dtuScaledTPM"),
@@ -189,6 +198,14 @@ tximport <- function(files,
   if (type=="rsem" & txIn & grepl("genes", files[1])) {
     message("It looks like you are importing RSEM genes.results files, setting txIn=FALSE")
     txIn <- FALSE
+  }
+
+  if (type=="alevin") {
+    if (length(files) > 1) stop("alevin import currently only supports a single experiment")
+    mat <- readAlevin(files)
+    txi <- list(abundance=NULL, counts=mat, length=NULL, countsFromAbundance="no")
+    message("reading in alevin gene-level counts across cells")
+    return(txi)
   }
   
   readrStatus <- FALSE
