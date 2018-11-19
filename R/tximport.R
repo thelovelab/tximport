@@ -203,8 +203,15 @@ tximport <- function(files,
   if (type=="alevin") {
     if (length(files) > 1) stop("alevin import currently only supports a single experiment")
     mat <- readAlevin(files)
-    txi <- list(abundance=NULL, counts=mat, length=NULL, countsFromAbundance="no")
-    message("reading in alevin gene-level counts across cells")
+    if (!is.list(mat)) {
+      message("reading in alevin gene-level counts across cells")
+      txi <- list(abundance=NULL, counts=mat,
+                  length=NULL, countsFromAbundance="no")
+    } else {
+      message("reading in alevin gene-level counts and inferential variance across cells")
+      txi <- list(abundance=NULL, counts=mat[[1]], variance=mat[[2]],
+                  length=NULL, countsFromAbundance="no")
+    }
     return(txi)
   }
   
