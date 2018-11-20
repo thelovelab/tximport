@@ -3,6 +3,7 @@ readAlevin <- function(files) {
   barcode.file <- file.path(dir, "alevin/quants_mat_rows.txt")
   gene.file <- file.path(dir, "alevin/quants_mat_cols.txt")
   matrix.file <- file.path(dir, "alevin/quants_mat.gz")
+  var.file <- file.path(dir, "alevin/quants_var_mat.gz")
   for (f in c(barcode.file, gene.file, matrix.file)) {
     if (!file.exists(f)) {
       stop("expecting 'files' to point to 'quants_mat.gz' file in a directory 'alevin'
@@ -18,6 +19,16 @@ readAlevin <- function(files) {
   con <- gzcon(file(matrix.file, "rb"))
   for (j in seq_len(num.cells)) {
     mat[,j] <- readBin(con, double(), endian = "little", n=num.genes)
+  }
+  # if inferential replicate variance exists:
+  if (file.exists(var.file)) {
+    counts.mat <- mat
+    var.mat <- mat
+    con <- gzcon(file(var.file, "rb"))
+    for (j in seq_len(num.cells)) {
+      var.mat[,j] <- readBin(con, double(), endian = "little", n=num.genes)
+    }
+    mat <- list(counts.mat, var.mat)
   }
   mat
 }
