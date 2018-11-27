@@ -111,8 +111,6 @@
 #' StringTie's output of coverage. Default value (from StringTie) is 75.
 #' The formula used to calculate counts is:
 #' \code{cov * transcript length / read length}
-#' @param txi list of matrices of trancript-level abundances, counts, and
-#' lengths produced by \code{tximport}, only used by \code{summarizeToGene}
 #' 
 #' @return a simple list containing matrices: abundance, counts, length.
 #' Another list element 'countsFromAbundance' carries through
