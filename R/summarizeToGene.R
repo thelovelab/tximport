@@ -155,6 +155,7 @@ summarizeToGene.list <- function(object,
 #' @param ignoreTxVersion see \code{\link{tximport}}
 #' @param ignoreAfterBar see \code{\link{tximport}}
 #' @param countsFromAbundance see \code{\link{tximport}}
+#' @param ... additional arguments, ignored
 #'
 #' @return a list of matrices of gene-level abundances, counts, lengths,
 #' (and inferential replicates or variance if inferential replicates

@@ -18,6 +18,8 @@ counts, lengths produced by \code{\link{tximport}},
 with a \code{countsFromAbundance} element that tells
 how the counts were generated.}
 
+\item{...}{additional arguments, ignored}
+
 \item{tx2gene}{see \code{\link{tximport}}}
 
 \item{varReduce}{see \code{\link{tximport}}}
