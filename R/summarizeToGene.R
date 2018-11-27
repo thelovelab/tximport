@@ -1,37 +1,33 @@
-# summarizeToGene() splits out the summarization functions
-# in tximport(), so it can be called by users to summarize
-# transcript-level lists of matrices
-
-#' @rdname tximport
-#' @name tximport
-#' 
+#' @rdname summarizeToGene
 #' @export
-summarizeToGene <- function(txi,
-                            tx2gene,
-                            varReduce=FALSE,
-                            ignoreTxVersion=FALSE,
-                            ignoreAfterBar=FALSE,
-                            countsFromAbundance=c("no","scaledTPM","lengthScaledTPM")
-                            ) {
+setGeneric("summarizeToGene", function(object, ...) standardGeneric("summarizeToGene"))
+
+summarizeToGene.list <- function(object,
+                                 tx2gene,
+                                 varReduce=FALSE,
+                                 ignoreTxVersion=FALSE,
+                                 ignoreAfterBar=FALSE,
+                                 countsFromAbundance=c("no","scaledTPM","lengthScaledTPM")
+                                 ) {
 
   countsFromAbundance <- match.arg(countsFromAbundance, c("no","scaledTPM","lengthScaledTPM"))
 
-  if (!is.null(txi$countsFromAbundance)) {
-    if (countsFromAbundance == "no" & txi$countsFromAbundance != "no") {
+  if (!is.null(object$countsFromAbundance)) {
+    if (countsFromAbundance == "no" & object$countsFromAbundance != "no") {
       warning(paste0("the incoming counts have countsFromAbundance = '",
-                     txi$countsFromAbundance,"',
+                     object$countsFromAbundance,"',
   and so the original counts are no longer accessible.
-  to use countsFromAbundance='no', re-run tximport() with this setting.
+  to use countsFromAbundance='no', re-run objectmport() with this setting.
   over-riding 'countsFromAbundance' to set it to: ",
-  txi$countsFromAbundance))
-      countsFromAbundance <- txi$countsFromAbundance
+  object$countsFromAbundance))
+      countsFromAbundance <- object$countsFromAbundance
     }
   }
   
   # unpack matrices from list for cleaner code
-  abundanceMatTx <- txi$abundance
-  countsMatTx <- txi$counts
-  lengthMatTx <- txi$length
+  abundanceMatTx <- object$abundance
+  countsMatTx <- object$counts
+  lengthMatTx <- object$length
   
   txId <- rownames(abundanceMatTx)
   stopifnot(all(txId == rownames(countsMatTx)))
@@ -86,8 +82,8 @@ summarizeToGene <- function(txi,
   countsMat <- rowsum(countsMatTx, geneId)
   message("summarizing length")
 
-  if ("infReps" %in% names(txi)) {
-    infReps <- lapply(txi$infReps, function(x) rowsum(x[sub.idx,,drop=FALSE], geneId))
+  if ("infReps" %in% names(object)) {
+    infReps <- lapply(object$infReps, function(x) rowsum(x[sub.idx,,drop=FALSE], geneId))
     message("summarizing inferential replicates")
   }
   
@@ -122,7 +118,7 @@ summarizeToGene <- function(txi,
   }
 
 
-  if ("infReps" %in% names(txi)) {
+  if ("infReps" %in% names(object)) {
     if (varReduce) {
       vars <- sapply(infReps, rowVars)
       out <- list(abundance=abundanceMat,
@@ -144,6 +140,36 @@ summarizeToGene <- function(txi,
   
   return(out)
 }
+
+#' Summarize estimated quantitites to gene-level
+#'
+#' Summarizes abundances, counts, lengths, (and inferential
+#' replicates or variance) from transcript- to gene-level.
+#'
+#' @param object the list of matrices of trancript-level abundances,
+#' counts, lengths produced by \code{\link{tximport}},
+#' with a \code{countsFromAbundance} element that tells
+#' how the counts were generated.
+#' @param tx2gene see \code{\link{tximport}}
+#' @param varReduce see \code{\link{tximport}}
+#' @param ignoreTxVersion see \code{\link{tximport}}
+#' @param ignoreAfterBar see \code{\link{tximport}}
+#' @param countsFromAbundance see \code{\link{tximport}}
+#' @param ... additional arguments, ignored
+#'
+#' @return a list of matrices of gene-level abundances, counts, lengths,
+#' (and inferential replicates or variance if inferential replicates
+#' are present).
+#'
+#' @rdname summarizeToGene
+#' @docType methods
+#' @aliases summarizeToGene,list-method
+#'
+#' @seealso \code{\link{tximport}}
+#' 
+#' @export
+setMethod("summarizeToGene", signature(object="list"),
+          summarizeToGene.list)
 
 cleanTx2Gene <- function(tx2gene) {
   colnames(tx2gene) <- c("tx","gene")
