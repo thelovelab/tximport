@@ -1,11 +1,25 @@
-# summarizeToGene() splits out the summarization functions
-# in tximport(), so it can be called by users to summarize
-# transcript-level lists of matrices
+# @rdname summarizeToGene
+# @export
+# setGeneric("summarizeToGene", function(object, ...) standardGeneric("summarizeToGene"))
 
-#' @rdname tximport
-#' @name tximport
-#' 
-#' @export
+# Summarize estimated quantitites to gene-level
+#
+# Summarizes abundances, counts, lengths, (and inferential
+# variance) from transcript- to gene-level.
+#
+# @param object
+# @param tx2gene
+# @param varReduce
+# @param ignoreTxVersion
+# @param ignoreAfterBar
+# @param countsFromAbundance
+#
+# @return
+#
+# @export
+# setMethod("summarizeToGene", signature(object="list"),
+#           summarizeToGene.list)
+
 summarizeToGene <- function(txi,
                             tx2gene,
                             varReduce=FALSE,
