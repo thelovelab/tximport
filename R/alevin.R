@@ -20,6 +20,7 @@ readAlevin <- function(files) {
   for (j in seq_len(num.cells)) {
     mat[,j] <- readBin(con, double(), endian = "little", n=num.genes)
   }
+  close(con)
   # if inferential replicate variance exists:
   if (file.exists(var.file)) {
     counts.mat <- mat
@@ -28,6 +29,7 @@ readAlevin <- function(files) {
     for (j in seq_len(num.cells)) {
       var.mat[,j] <- readBin(con, double(), endian = "little", n=num.genes)
     }
+    close(con)
     mat <- list(counts.mat, var.mat)
   }
   mat
