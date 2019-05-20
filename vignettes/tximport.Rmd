@@ -384,6 +384,7 @@ An example of creating a `DGEList` for use with *edgeR* [@Robinson2010]:
 
 ```{r, results="hide", messages=FALSE}
 library(edgeR)
+library(csaw)
 ```
 
 ```{r}
@@ -399,6 +400,15 @@ keep <- filterByExpr(y)
 y <- y[keep,]
 # y is now ready for estimate dispersion functions
 # see edgeR User's Guide
+```
+
+For creating CPM within *edgeR*, the following code chunk can be used:
+
+```{r}
+se <- SummarizedExperiment(assays=list(counts=y$counts, offset=y$offset))
+se$totals <- y$samples$lib.size
+library(csaw)
+cpms <- calculateCPM(se, use.offsets=TRUE, log=FALSE)
 ```
 
 ## DESeq2
