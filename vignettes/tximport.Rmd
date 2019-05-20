@@ -390,11 +390,25 @@ library(csaw)
 ```{r}
 cts <- txi$counts
 normMat <- txi$length
+
+# Obtaining per-observation scaling factors for length,
+# adjusted to avoid changing the magnitude of the counts.
 normMat <- normMat / exp(rowMeans(log(normMat)))
+normCts <- cts / normMat
+
+# Computing effective library sizes from scaled counts,
+# to account for composition biases between samples.
 library(edgeR)
-o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
+eff.lib <- calcNormFactors(normCts) * colSums(normCts)
+
+# Combining effective library sizes with the length factors,
+# and calculating offsets for a log-link GLM.
+normMat <- sweep(normMat, 2, eff.lib, "*")
+normMat <- log(normMat)
+
+# Creating a DGEList object for use in edgeR.
 y <- DGEList(cts)
-y <- scaleOffset(y, t(t(log(normMat)) + o))
+y <- scaleOffset(y, normMat)
 # filtering
 keep <- filterByExpr(y)
 y <- y[keep,]
@@ -402,7 +416,7 @@ y <- y[keep,]
 # see edgeR User's Guide
 ```
 
-For creating CPM within *edgeR*, the following code chunk can be used:
+For creating a matrix of CPMs within *edgeR*, the following code chunk can be used:
 
 ```{r}
 se <- SummarizedExperiment(assays=list(counts=y$counts, offset=y$offset))
