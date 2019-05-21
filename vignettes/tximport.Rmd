@@ -491,7 +491,8 @@ suggestions from:
 Jenny Drnevich,
 [Patrick Kimes](https://twitter.com/pkkimes),
 [Leon Fodoulian](https://twitter.com/LFodoulian),
-[Koen Van den Berge](https://twitter.com/koenvdberge_Be)
+[Koen Van den Berge](https://twitter.com/koenvdberge_Be),
+[Aaron Lun](https://github.com/LTLA)
 
 ## Session info
 
