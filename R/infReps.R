@@ -60,6 +60,9 @@ readInfRepFish <- function(fish_dir, meth) {
     # Now, however, both types of samples are doubles.  The code below 
     # tries to load doubles first, but falls back to integers if it fails.
     ##
+    if("num_valid_targets" %in% names(minfo)) {
+      minfo$num_targets = minfo$num_valid_targets
+    }
     expected.n <- minfo$num_targets * minfo$num_bootstraps
     boots <- tryCatch({
       bootsIn <- readBin(bootCon, "double", n = expected.n)
