@@ -147,7 +147,7 @@
 #'
 #' txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 #'
-#' @importFrom utils read.delim capture.output head
+#' @importFrom utils read.delim capture.output head compareVersion
 #' @importFrom stats median
 #' @importFrom methods is
 #'
@@ -198,9 +198,16 @@ tximport <- function(files,
     txIn <- FALSE
   }
 
+  # special alevin code
   if (type=="alevin") {
     if (length(files) > 1) stop("alevin import currently only supports a single experiment")
-    mat <- readAlevin(files)
+    vrsn <- getAlevinVersion(files)
+    compareToV014 <- compareVersion(vrsn, "0.14.0")
+    if (compareToV014 == -1) {
+      mat <- readAlevinPreV014(files)
+    } else {
+      mat <- readAlevin(files)
+    }
     if (!is.list(mat)) {
       message("reading in alevin gene-level counts across cells")
       txi <- list(abundance=NULL, counts=mat,
