@@ -56,9 +56,6 @@ readAlevin <- function(files) {
   mat <- matrix(0, nrow=num.genes, ncol=num.cells, dimnames=list(gene.names, cell.names))
   con <- gzcon(file(matrix.file, "rb"))
   
-  get_binary <- function(id) as.integer(head(intToBits(id), 8))
-  count_ones <- function(id) sum(get_binary(id) == 1)
-  
   # Salmon v0.14 specific support
   num.bitvecs <- ceiling(num.genes/8)
   for (j in seq_len(num.cells)) {
