@@ -1,7 +1,13 @@
+CHANGES IN VERSION 1.13.7
+-------------------------
+
+    o Now Alevin counts and inferential variance imported as sparse
+      matrices for Salmon v0.14.
+
 CHANGES IN VERSION 1.13.1
 -------------------------
 
-    o Added support for Alevin's storage mode in Salmon v0.14.0.
+    o Added support for Alevin's storage mode in Salmon v0.14.
 
 CHANGES IN VERSION 1.11.1
 -------------------------

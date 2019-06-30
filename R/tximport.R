@@ -209,11 +209,9 @@ tximport <- function(files,
       mat <- readAlevin(files)
     }
     if (!is.list(mat)) {
-      message("reading in alevin gene-level counts across cells")
       txi <- list(abundance=NULL, counts=mat,
                   length=NULL, countsFromAbundance="no")
     } else {
-      message("reading in alevin gene-level counts and inferential variance across cells")
       txi <- list(abundance=NULL, counts=mat[[1]], variance=mat[[2]],
                   length=NULL, countsFromAbundance="no")
     }
