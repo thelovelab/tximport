@@ -78,9 +78,12 @@
 #' that provides transcript-level estimates only
 #' (kallisto, Salmon, Sailfish)
 #' @param varReduce whether to reduce per-sample inferential replicates
-#' information into a matrix of sample variances \code{variance} (default FALSE)
+#' information into a matrix of sample variances \code{variance} (default FALSE).
+#' Alevin computes inferential variance by default for bootstrap
+#' inferential replicates, so this argument is ignored/not necessary
 #' @param dropInfReps whether to skip reading in inferential replicates
-#' (default FALSE)
+#' (default FALSE). For Alevin, \code{tximport} will still read in the
+#' inferential variance matrix if it exists
 #' @param infRepStat a function to re-compute counts and abundances from the
 #' inferential replicates, e.g. \code{matrixStats::rowMedians} to re-compute counts 
 #' as the median of the inferential replicates. The order of operations is:
@@ -120,6 +123,9 @@
 #' itself an element \code{infReps} in the returned list.
 #' If \code{varReduce=TRUE} the inferential replicates will be summarized
 #' according to the sample variance, and stored as a matrix \code{variance}.
+#' Alevin already computes the variance of the bootstrap inferential replicates
+#' and so this is imported without needing to specify \code{varReduce=TRUE}
+#' (note that Alevin uses the 1/N variance estimator, so not the same as \code{var}).
 #' The length matrix contains the average transcript length for each
 #' gene which can be used as an offset for gene-level analysis.
 #' 
@@ -206,14 +212,25 @@ tximport <- function(files,
     if (compareToV014 == -1) {
       mat <- readAlevinPreV014(files)
     } else {
-      mat <- readAlevin(files)
+      mat <- readAlevin(files, dropInfReps)
     }
     if (!is.list(mat)) {
+      # only counts
       txi <- list(abundance=NULL, counts=mat,
                   length=NULL, countsFromAbundance="no")
     } else {
-      txi <- list(abundance=NULL, counts=mat[[1]], variance=mat[[2]],
-                  length=NULL, countsFromAbundance="no")
+      if ("infReps" %in% names(mat)) {
+        # counts + variance + infReps
+        txi <- list(abundance=NULL, counts=mat$counts,
+                    variance=mat$variance,
+                    infReps=mat$infReps,
+                    length=NULL, countsFromAbundance="no")
+      } else {
+        # counts + variance
+        txi <- list(abundance=NULL, counts=mat$counts,
+                    variance=mat$variance,
+                    length=NULL, countsFromAbundance="no")
+      }
     }
     return(txi)
   }
@@ -423,6 +440,7 @@ txOut=TRUE, CFA either 'no' or 'scaledTPM', and no inferential replicates")
     countsMatTx <- Matrix::sparseMatrix(i=unlist(countsListI),
                                         j=rep(seq_along(numNonzero), numNonzero),
                                         x=unlist(countsListX),
+                                        dims=c(length(txId),length(files)),
                                         dimnames=list(txId, names(files)))
     if (countsFromAbundance == "scaledTPM") {
       abundanceMatTx <- Matrix::sparseMatrix(i=unlist(countsListI),

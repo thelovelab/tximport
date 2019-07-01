@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.13.8
+-------------------------
+
+    o Alevin inferential replicates can be imported (also sparse).
+      To not import the inferential replicates, set dropInfReps=TRUE.
+
 CHANGES IN VERSION 1.13.7
 -------------------------
 

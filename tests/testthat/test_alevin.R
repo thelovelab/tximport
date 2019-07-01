@@ -10,7 +10,16 @@ test_that("import alevin works", {
   files <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.gz")
   file.exists(files)
 
-  txi <- tximport(files, type="alevin")
+  #txi <- tximport(files, type="alevin")
+  #n <- 100
+  #infrep.var <- apply(abind::abind(lapply(txi$infReps, function(x) as.matrix(x[1:n,1:n])), along=3), 1:2, var)
+  #alevin.var <- as.matrix(txi$variance[1:n,1:n])
+  #all.equal(alevin.var * (20/19), infrep.var, tolerance=1e-6)
+  #n <- 200
+  #infrep.mu <- apply(abind::abind(lapply(txi$infReps, function(x) as.matrix(x[1:n,1:n])), along=3), 1:2, mean)
+  #plot(txi$counts[1:n,1:n], infrep.mu)
+  
+  txi <- tximport(files, type="alevin", dropInfReps=TRUE)
   cts <- unname(as.matrix(txi$counts))
   
   matrix.file <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.mtx.gz")
