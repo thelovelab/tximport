@@ -108,16 +108,19 @@ The formula used to calculate counts is:
 a simple list containing matrices: abundance, counts, length.
 Another list element 'countsFromAbundance' carries through
 the character argument used in the tximport call.
+The length matrix contains the average transcript length for each
+gene which can be used as an offset for gene-level analysis.
 If detected, and \code{txOut=TRUE}, inferential replicates for
 each sample will be imported and stored as a list of matrices,
 itself an element \code{infReps} in the returned list.
+An exception is Alevin, in which the \code{infReps} are a list
+of bootstrap replicate matrices, where each matrix has
+genes as rows and cells as columns.
 If \code{varReduce=TRUE} the inferential replicates will be summarized
 according to the sample variance, and stored as a matrix \code{variance}.
 Alevin already computes the variance of the bootstrap inferential replicates
 and so this is imported without needing to specify \code{varReduce=TRUE}
 (note that Alevin uses the 1/N variance estimator, so not the same as \code{var}).
-The length matrix contains the average transcript length for each
-gene which can be used as an offset for gene-level analysis.
 }
 \description{
 \code{tximport} imports transcript-level estimates from various
