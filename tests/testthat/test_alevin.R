@@ -20,11 +20,12 @@ test_that("import alevin works", {
   #plot(txi$counts[1:n,1:n], infrep.mu)
   
   txi <- tximport(files, type="alevin", dropInfReps=TRUE)
-  cts <- unname(as.matrix(txi$counts))
+  idx <- 1:1000 # Bioc Windows machine can't handle the entire matrix
+  cts <- unname(as.matrix(txi$counts[idx,]))
   
   matrix.file <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.mtx.gz")
   mat <- Matrix::readMM(matrix.file)
-  mat <- t(as.matrix(mat))
+  mat <- t(as.matrix(mat[,idx]))
   expect_true(max(abs(mat - unname(cts))) < 1e-6)
   
 })
