@@ -12,7 +12,8 @@ tximport(files, type = c("none", "salmon", "sailfish", "alevin",
   dropInfReps = FALSE, infRepStat = NULL, ignoreTxVersion = FALSE,
   ignoreAfterBar = FALSE, geneIdCol, txIdCol, abundanceCol, countsCol,
   lengthCol, importer = NULL, existenceOptional = FALSE,
-  sparse = FALSE, sparseThreshold = 1, readLength = 75)
+  sparse = FALSE, sparseThreshold = 1, readLength = 75,
+  forceSlow = FALSE)
 }
 \arguments{
 \item{files}{a character vector of filenames for the transcript-level abundances}
@@ -54,11 +55,11 @@ that provides transcript-level estimates only
 
 \item{varReduce}{whether to reduce per-sample inferential replicates
 information into a matrix of sample variances \code{variance} (default FALSE).
-Alevin computes inferential variance by default for bootstrap
+alevin computes inferential variance by default for bootstrap
 inferential replicates, so this argument is ignored/not necessary}
 
 \item{dropInfReps}{whether to skip reading in inferential replicates
-(default FALSE). For Alevin, \code{tximport} will still read in the
+(default FALSE). For alevin, \code{tximport} will still read in the
 inferential variance matrix if it exists}
 
 \item{infRepStat}{a function to re-compute counts and abundances from the
@@ -103,6 +104,10 @@ non-zero count during sparse import (default is 1)}
 StringTie's output of coverage. Default value (from StringTie) is 75.
 The formula used to calculate counts is:
 \code{cov * transcript length / read length}}
+
+\item{forceSlow}{logical, argument used for testing. Will force the use of
+the slower R code for importing alevin, even if \code{fishpond}
+library is installed. Default is FALSE}
 }
 \value{
 a simple list containing matrices: abundance, counts, length.
@@ -113,14 +118,14 @@ gene which can be used as an offset for gene-level analysis.
 If detected, and \code{txOut=TRUE}, inferential replicates for
 each sample will be imported and stored as a list of matrices,
 itself an element \code{infReps} in the returned list.
-An exception is Alevin, in which the \code{infReps} are a list
+An exception is alevin, in which the \code{infReps} are a list
 of bootstrap replicate matrices, where each matrix has
 genes as rows and cells as columns.
 If \code{varReduce=TRUE} the inferential replicates will be summarized
 according to the sample variance, and stored as a matrix \code{variance}.
-Alevin already computes the variance of the bootstrap inferential replicates
+alevin already computes the variance of the bootstrap inferential replicates
 and so this is imported without needing to specify \code{varReduce=TRUE}
-(note that Alevin uses the 1/N variance estimator, so not the same as \code{var}).
+(note that alevin uses the 1/N variance estimator, so not the same as \code{var}).
 }
 \description{
 \code{tximport} imports transcript-level estimates from various
@@ -160,12 +165,18 @@ in the AnnotationDbi package (TxDb inherits from AnnotationDb).
 For further details on generating TxDb objects from various inputs
 see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
 
-For \code{type="alevin"} all arguments other than \code{files} are ignored,
+For \code{type="alevin"} all arguments other than \code{files},
+\code{dropInfReps}, and \code{forceSlow} are ignored,
 and \code{files} should point to a single \code{quants_mat.gz} file,
 in the directory structure created by the alevin software
 (e.g. do not move the file or delete the other important files).
-\code{tximport} is solely importing the gene-by-cell matrix of counts,
+Note that importing alevin quantifications will be much faster by first
+installing the \code{fishpond} package, which contains a
+C++ importer for alevin's EDS format.
+For alevin, \code{tximport} is importing the gene-by-cell matrix of counts,
 as \code{txi$counts}, and effective lengths are not estimated.
+\code{txi$variance} may also be imported if inferential replicates were
+used, as well as inferential replicates if these were output by alevin.
 Length correction should not be applied to datasets where there
 is not an expected correlation of counts and feature length.
 }

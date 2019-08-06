@@ -37,12 +37,18 @@
 #' For further details on generating TxDb objects from various inputs
 #' see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
 #'
-#' For \code{type="alevin"} all arguments other than \code{files} are ignored,
+#' For \code{type="alevin"} all arguments other than \code{files},
+#' \code{dropInfReps}, and \code{forceSlow} are ignored,
 #' and \code{files} should point to a single \code{quants_mat.gz} file,
 #' in the directory structure created by the alevin software
 #' (e.g. do not move the file or delete the other important files).
-#' \code{tximport} is solely importing the gene-by-cell matrix of counts,
+#' Note that importing alevin quantifications will be much faster by first
+#' installing the \code{fishpond} package, which contains a
+#' C++ importer for alevin's EDS format.
+#' For alevin, \code{tximport} is importing the gene-by-cell matrix of counts,
 #' as \code{txi$counts}, and effective lengths are not estimated.
+#' \code{txi$variance} may also be imported if inferential replicates were
+#' used, as well as inferential replicates if these were output by alevin.
 #' Length correction should not be applied to datasets where there
 #' is not an expected correlation of counts and feature length.
 #' 
@@ -79,10 +85,10 @@
 #' (kallisto, Salmon, Sailfish)
 #' @param varReduce whether to reduce per-sample inferential replicates
 #' information into a matrix of sample variances \code{variance} (default FALSE).
-#' Alevin computes inferential variance by default for bootstrap
+#' alevin computes inferential variance by default for bootstrap
 #' inferential replicates, so this argument is ignored/not necessary
 #' @param dropInfReps whether to skip reading in inferential replicates
-#' (default FALSE). For Alevin, \code{tximport} will still read in the
+#' (default FALSE). For alevin, \code{tximport} will still read in the
 #' inferential variance matrix if it exists
 #' @param infRepStat a function to re-compute counts and abundances from the
 #' inferential replicates, e.g. \code{matrixStats::rowMedians} to re-compute counts 
@@ -114,6 +120,9 @@
 #' StringTie's output of coverage. Default value (from StringTie) is 75.
 #' The formula used to calculate counts is:
 #' \code{cov * transcript length / read length}
+#' @param forceSlow logical, argument used for testing. Will force the use of
+#' the slower R code for importing alevin, even if \code{fishpond}
+#' library is installed. Default is FALSE
 #' 
 #' @return a simple list containing matrices: abundance, counts, length.
 #' Another list element 'countsFromAbundance' carries through
@@ -123,14 +132,14 @@
 #' If detected, and \code{txOut=TRUE}, inferential replicates for
 #' each sample will be imported and stored as a list of matrices,
 #' itself an element \code{infReps} in the returned list.
-#' An exception is Alevin, in which the \code{infReps} are a list
+#' An exception is alevin, in which the \code{infReps} are a list
 #' of bootstrap replicate matrices, where each matrix has
 #' genes as rows and cells as columns.
 #' If \code{varReduce=TRUE} the inferential replicates will be summarized
 #' according to the sample variance, and stored as a matrix \code{variance}.
-#' Alevin already computes the variance of the bootstrap inferential replicates
+#' alevin already computes the variance of the bootstrap inferential replicates
 #' and so this is imported without needing to specify \code{varReduce=TRUE}
-#' (note that Alevin uses the 1/N variance estimator, so not the same as \code{var}).
+#' (note that alevin uses the 1/N variance estimator, so not the same as \code{var}).
 #' 
 #' @references
 #'
@@ -156,7 +165,7 @@
 #'
 #' txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 #'
-#' @importFrom utils read.delim capture.output head compareVersion
+#' @importFrom utils read.delim capture.output head compareVersion packageVersion
 #' @importFrom stats median
 #' @importFrom methods is
 #'
@@ -181,7 +190,8 @@ tximport <- function(files,
                      existenceOptional=FALSE,
                      sparse=FALSE,
                      sparseThreshold=1,
-                     readLength=75) {
+                     readLength=75,
+                     forceSlow=FALSE) {
 
   # inferential replicate importer
   infRepImporter <- NULL
@@ -215,7 +225,7 @@ tximport <- function(files,
     if (compareToV014 == -1) {
       mat <- readAlevinPreV014(files)
     } else {
-      mat <- readAlevin(files, dropInfReps)
+      mat <- readAlevin(files, dropInfReps, forceSlow)
     }
     if (!is.list(mat)) {
       # only counts

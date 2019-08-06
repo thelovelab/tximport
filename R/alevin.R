@@ -38,7 +38,7 @@ readAlevinPreV014 <- function(files) {
   mat
 }
 
-readAlevin <- function(files, dropInfReps) {
+readAlevin <- function(files, dropInfReps, forceSlow) {
   dir <- sub("/alevin$","",dirname(files))  
   barcode.file <- file.path(dir, "alevin/quants_mat_rows.txt")
   gene.file <- file.path(dir, "alevin/quants_mat_cols.txt")
@@ -70,16 +70,49 @@ readAlevin <- function(files, dropInfReps) {
     stop("importing alevin requires package `Matrix`")
   }
 
-  message("reading in alevin gene-level counts across cells")
-  mat <- readAlevinBits(matrix.file, gene.names, cell.names)
+  # test for fishpond >= 1.1.17
+  hasFishpond <- TRUE
+  if (!requireNamespace("fishpond", quietly=TRUE)) {
+    hasFishpond <- FALSE
+  } else {
+    if (packageVersion("fishpond") < "1.1.17") {
+      hasFishpond <- FALSE
+    }
+  }
+  if (!hasFishpond)
+    message("importing alevin data is much faster after installing `fishpond` (>= 1.1.17)")
+
+  # for testing purposes, force the use of the slower R code for importing alevin
+  if (forceSlow) {
+    hasFishpond <- FALSE
+  }
+  
+  extraMsg <- if (hasFishpond) "with fishpond" else ""
+  message(paste("reading in alevin gene-level counts across cells", extraMsg))
+
+  if (hasFishpond) {
+    # reads alevin's Efficient Data Storage (EDS) format
+    # using C++ code in the fishpond package
+    mat <- readAlevinFast(matrix.file, gene.names, cell.names)
+  } else {
+    # reads alevin EDS format in R, using e.g. `readBin` and `intToBits`
+    # slow in R, because requires looping over cells to read positions and expression
+    mat <- readAlevinBits(matrix.file, gene.names, cell.names)
+  }
   
   if (num.boot > 0) {
 
-    message("reading in alevin inferential variance")
+    message(paste("reading in alevin inferential variance", extraMsg))
     var.exists <- file.exists(var.file)
     boot.exists <- file.exists(boot.file)
     stopifnot(var.exists)
-    var.mat <- readAlevinBits(var.file, gene.names, cell.names)
+
+    if (hasFishpond) {
+      var.mat <- readAlevinFast(var.file, gene.names, cell.names)
+    } else {
+      var.mat <- readAlevinBits(var.file, gene.names, cell.names)
+    }
+    
     if (boot.exists & !dropInfReps) {
       # read in bootstrap inferential replicates
       message("reading in alevin inferential replicates (set dropInfReps=TRUE to skip)")
@@ -107,6 +140,8 @@ getAlevinVersion <- function(files) {
   cmd_info$salmon_version
 }
 
+# this is the R version of the reader for alevin's EDS format,
+# see below for another function that leverages C++ code from fishpond::readEDS()
 readAlevinBits <- function(matrix.file, gene.names, cell.names) {
   num.cells <- length(cell.names)
   num.genes <- length(gene.names)
@@ -158,7 +193,33 @@ readAlevinBits <- function(matrix.file, gene.names, cell.names) {
                               j=cell.idx,
                               x=counts.vec,
                               dims=c(num.genes, num.cells),
-                              dimnames=list(gene.names, cell.names))
+                              dimnames=list(gene.names, cell.names),
+                              giveCsparse=FALSE)
+  mat
+}
+
+# this function performs the same operation as the above R code,
+# reading in alevin's EDS format and creating a sparse matrix,
+# but it leverages the C++ code in fishpond::readEDS()
+readAlevinFast <- function(matrix.file, gene.names, cell.names) {
+  num.cells <- length(cell.names)
+  num.genes <- length(gene.names)
+
+  dat <- fishpond::readEDS(matrix.file, num.genes, num.cells)
+
+  # `dat$pos + 1` is `gene.idx` in the readAlevinBits() function
+  len.gene.idx <- lengths(dat$pos)
+  cell.idx <- rep(seq_along(len.gene.idx), len.gene.idx)
+  
+  # build sparse matrix
+  # Note! we add 1 to the 0-based positions returned from fishpond::readEDS()
+  gene.idx <- unlist(dat$pos) + 1
+  mat <- Matrix::sparseMatrix(i=gene.idx,
+                              j=cell.idx,
+                              x=unlist(dat$exp),
+                              dims=c(num.genes, num.cells),
+                              dimnames=list(gene.names, cell.names),
+                              giveCsparse=FALSE)
   mat
 }
 
@@ -221,7 +282,8 @@ readAlevinInfReps <- function(boot.file, gene.names, cell.names, num.boot) {
                          j=cell.idx,
                          x=counts.vec.list[[i]],
                          dims=c(num.genes, num.cells),
-                         dimnames=list(gene.names, cell.names))
+                         dimnames=list(gene.names, cell.names),
+                         giveCsparse=FALSE)
   })
 
   infReps

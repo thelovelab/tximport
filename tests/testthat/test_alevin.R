@@ -22,10 +22,17 @@ test_that("import alevin works", {
   txi <- tximport(files, type="alevin", dropInfReps=TRUE)
   idx <- 1:1000 # Bioc Windows machine can't handle the entire matrix
   cts <- unname(as.matrix(txi$counts[idx,]))
-  
+
+  # compare to MM import
   matrix.file <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.mtx.gz")
   mat <- Matrix::readMM(matrix.file)
   mat <- t(as.matrix(mat[,idx]))
+  expect_true(max(abs(mat - unname(cts))) < 1e-6)
+
+  # again import alevin without fishpond
+  txi <- tximport(files, type="alevin", dropInfReps=TRUE, forceSlow=TRUE)
+  idx <- 1:1000 
+  cts <- unname(as.matrix(txi$counts[idx,]))
   expect_true(max(abs(mat - unname(cts))) < 1e-6)
   
 })
