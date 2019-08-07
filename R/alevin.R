@@ -75,12 +75,12 @@ readAlevin <- function(files, dropInfReps, forceSlow) {
   if (!requireNamespace("fishpond", quietly=TRUE)) {
     hasFishpond <- FALSE
   } else {
-    if (packageVersion("fishpond") < "1.1.17") {
+    if (packageVersion("fishpond") < "1.1.18") {
       hasFishpond <- FALSE
     }
   }
   if (!hasFishpond)
-    message("importing alevin data is much faster after installing `fishpond` (>= 1.1.17)")
+    message("importing alevin data is much faster after installing `fishpond` (>= 1.1.18)")
 
   # for testing purposes, force the use of the slower R code for importing alevin
   if (forceSlow) {
@@ -204,22 +204,8 @@ readAlevinBits <- function(matrix.file, gene.names, cell.names) {
 readAlevinFast <- function(matrix.file, gene.names, cell.names) {
   num.cells <- length(cell.names)
   num.genes <- length(gene.names)
-
-  dat <- fishpond::readEDS(matrix.file, num.genes, num.cells)
-
-  # `dat$pos + 1` is `gene.idx` in the readAlevinBits() function
-  len.gene.idx <- lengths(dat$pos)
-  cell.idx <- rep(seq_along(len.gene.idx), len.gene.idx)
-  
-  # build sparse matrix
-  # Note! we add 1 to the 0-based positions returned from fishpond::readEDS()
-  gene.idx <- unlist(dat$pos) + 1
-  mat <- Matrix::sparseMatrix(i=gene.idx,
-                              j=cell.idx,
-                              x=unlist(dat$exp),
-                              dims=c(num.genes, num.cells),
-                              dimnames=list(gene.names, cell.names),
-                              giveCsparse=FALSE)
+  mat <- fishpond::readEDS(num.genes, num.cells, matrix.file)
+  dimnames(mat) <- list(gene.names, cell.names)
   mat
 }
 

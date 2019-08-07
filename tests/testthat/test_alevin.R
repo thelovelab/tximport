@@ -7,6 +7,7 @@ test_that("import alevin works", {
 
   txi <- tximport(files, type="alevin")
 
+  dir <- system.file("extdata", package="tximportData")
   files <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.gz")
   file.exists(files)
 

@@ -1,9 +1,9 @@
-CHANGES IN VERSION 1.13.11
+CHANGES IN VERSION 1.13.12
 --------------------------
 
     o Alevin count and inferential variance can be imported now 
       ~40x faster for large number of cells, leveraging C++ code
-      from the fishpond package (>= 1.1.17).
+      from the fishpond package (>= 1.1.18).
 
 CHANGES IN VERSION 1.13.8
 -------------------------
