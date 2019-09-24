@@ -98,11 +98,11 @@
 #' \code{tximport} will again re-compute counts from the re-computed abundances.
 #' \code{infRepStat} should operate on rows of a matrix. (default is NULL)
 #' @param ignoreTxVersion logical, whether to split the tx id on the '.' character
-#' to remove version information, for easier matching with the tx id in gene2tx
+#' to remove version information to facilitate matching with the tx id in \code{tx2gene}
 #' (default FALSE)
-#' @param ignoreAfterBar logical, whether to split the tx id on the '|' character (default FALSE)
-#' @param geneIdCol name of column with gene id. if missing,
-#' the gene2tx argument can be used
+#' @param ignoreAfterBar logical, whether to split the tx id on the '|' character
+#' to facilitate matching with the tx id in \code{tx2gene} (default FALSE)
+#' @param geneIdCol name of column with gene id. if missing, the \code{tx2gene} argument can be used
 #' @param txIdCol name of column with tx id
 #' @param abundanceCol name of column with abundances (e.g. TPM or FPKM)
 #' @param countsCol name of column with estimated counts

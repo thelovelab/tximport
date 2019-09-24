@@ -272,9 +272,11 @@ because the Gencode transcripts have names like
 "ENST00000456328.2|ENSG00000223972.5|...", though our `tx2gene` table
 only includes the first "ENST" identifier. We therefore want to split
 the incoming quantification matrix rownames at the first bar "|", and
-only use this as an identifier. (We didn't use this option earlier with
+only use this as an identifier. We didn't use this option earlier with
 Salmon, because we used the argument `--gencode` when running Salmon,
-which itself does the splitting upstream of `tximport`.)
+which itself does the splitting upstream of `tximport`. Note that 
+`ignoreTxVersion` and `ignoreAfterBar` are only to facilitating the
+summarization to gene level.
 
 ```{r}
 files <- file.path(dir, "kallisto", samples$run, "abundance.tsv.gz")

@@ -71,13 +71,13 @@ Following this, if \code{countsFromAbundance} is not "no",
 \code{infRepStat} should operate on rows of a matrix. (default is NULL)}
 
 \item{ignoreTxVersion}{logical, whether to split the tx id on the '.' character
-to remove version information, for easier matching with the tx id in gene2tx
+to remove version information to facilitate matching with the tx id in \code{tx2gene}
 (default FALSE)}
 
-\item{ignoreAfterBar}{logical, whether to split the tx id on the '|' character (default FALSE)}
+\item{ignoreAfterBar}{logical, whether to split the tx id on the '|' character
+to facilitate matching with the tx id in \code{tx2gene} (default FALSE)}
 
-\item{geneIdCol}{name of column with gene id. if missing,
-the gene2tx argument can be used}
+\item{geneIdCol}{name of column with gene id. if missing, the \code{tx2gene} argument can be used}
 
 \item{txIdCol}{name of column with tx id}
 
