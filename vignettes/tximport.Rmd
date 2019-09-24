@@ -14,6 +14,8 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
+## Introduction
+
 Import and summarize transcript-level abundance estimates for
 transcript- and gene-level analysis with Bioconductor packages, such as *edgeR*,
 *DESeq2*, and *limma-voom*.
@@ -36,6 +38,16 @@ creation and storage of BAM files, and
 (iii) it is possible to avoid discarding those fragments that can
 align to multiple genes with homologous sequence, thus increasing
 sensitivity [@Robert2015Errors].
+
+**Note:** another Bioconductor package, 
+[tximeta](https://bioconductor.org/packages/tximeta),
+extends *tximport*, offering the same functionality, plus the
+additional benefit of automatic addition of annotation metadata for
+commonly used transcriptomes (GENCODE, Ensembl, RefSeq for human and
+mouse). See the *tximeta* package vignette for more details. Whereas
+`tximport` outputs a simple list of matrices, `tximeta` will output a
+*SummarizedExperiment* object with appropriate *GRanges* added if the
+transcriptome is from one of the sources above for human and mouse.
 
 ```{r, echo=FALSE}
 library(knitr)
