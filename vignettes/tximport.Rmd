@@ -1,5 +1,5 @@
 ---
-title: "Importing transcript abundance datasets with tximport"
+title: "Importing transcript abundance with tximport"
 author: "Michael I. Love, Charlotte Soneson, Mark D. Robinson"
 date: "`r Sys.Date()`"
 package: "`r packageVersion('tximport')`"
@@ -7,7 +7,7 @@ output:
   rmarkdown::html_document:
     highlight: pygments
     toc: true
-	toc_float: true
+    toc_float: true
     fig_width: 5
 bibliography: library.bib
 vignette: >
@@ -41,14 +41,15 @@ align to multiple genes with homologous sequence, thus increasing
 sensitivity [@Robert2015Errors].
 
 **Note:** another Bioconductor package, 
-[tximeta](https://bioconductor.org/packages/tximeta),
+[tximeta](https://bioconductor.org/packages/tximeta) [@Love2019],
 extends *tximport*, offering the same functionality, plus the
 additional benefit of automatic addition of annotation metadata for
 commonly used transcriptomes (GENCODE, Ensembl, RefSeq for human and
-mouse). See the *tximeta* package vignette for more details. Whereas
-`tximport` outputs a simple list of matrices, `tximeta` will output a
-*SummarizedExperiment* object with appropriate *GRanges* added if the
-transcriptome is from one of the sources above for human and mouse.
+mouse). See the [tximeta](https://bioconductor.org/packages/tximeta)
+package vignette for more details. Whereas `tximport` outputs a simple
+list of matrices, `tximeta` will output a *SummarizedExperiment*
+object with appropriate *GRanges* added if the transcriptome is from
+one of the sources above for human and mouse.
 
 ```{r, echo=FALSE}
 library(knitr)
@@ -67,6 +68,7 @@ software, and later show the use of *tximport*
 with any of: 
 
 * *Salmon* [@Patro2017Salmon]
+* *Alevin* [@Srivastava2019]
 * *Sailfish* [@Patro2014Sailfish]
 * *kallisto* [@Bray2016Near]
 * *RSEM* [@Li2011RSEM]
@@ -190,7 +192,7 @@ txi.sum <- summarizeToGene(txi.tx, tx2gene)
 all.equal(txi$counts, txi.sum$counts)
 ```
 
-## Salmon / Sailfish
+## Salmon
 
 Salmon or Sailfish `quant.sf` files can be imported by setting type to
 `"salmon"` or `"sailfish"`.
@@ -226,7 +228,7 @@ txi <- tximport("quant.sf", type="none", txOut=TRUE,
                 importer=function(x) read_tsv(x, skip=8))
 ```
 
-## Salmon / Sailfish with inferential replicates
+## Salmon with inferential replicates
 
 If inferential replicates (Gibbs or bootstrap samples) are present in
 expected locations relative to the `quant.sf` file, *tximport* will 
@@ -346,8 +348,20 @@ tx2gene <- tmp[,c("t_name","gene_name")]
 txi <- tximport(files, type="stringtie", tx2gene=tx2gene)
 ```
 
+## Alevin
 
-## Use with downstream Bioconductor DGE packages
+scRNA-seq data quantified with *Alevin* can be easily imported using
+*tximport*. The following unevaluated example shows import of the
+quants matrix (for a live example, see the unit test file
+`test_alevin.R`). A single file should be specified which will import
+a gene-by-cell matrix of data.
+
+```{r, eval=FALSE}
+files <- "path/to/alevin/quants_mat.gz"
+txi <- tximport(files, type="alevin")
+```
+
+## Downstream DGE in Bioconductor
 
 **Note**: there are two suggested ways of importing estimates for use
 with differential gene expression (DGE) methods. The first method,
