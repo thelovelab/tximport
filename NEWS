@@ -1,26 +1,11 @@
-CHANGES IN VERSION 1.13.12
+CHANGES IN VERSION 1.14.0
 --------------------------
 
     o Alevin count and inferential variance can be imported now 
       ~40x faster for large number of cells, leveraging C++ code
       from the fishpond package (>= 1.1.18).
-
-CHANGES IN VERSION 1.13.8
--------------------------
-
     o Alevin inferential replicates can be imported (also sparse).
       To not import the inferential replicates, set dropInfReps=TRUE.
-
-CHANGES IN VERSION 1.13.7
--------------------------
-
-    o Now Alevin counts and inferential variance imported as sparse
-      matrices for Salmon v0.14.
-
-CHANGES IN VERSION 1.13.1
--------------------------
-
-    o Added support for Alevin's storage mode in Salmon v0.14.
 
 CHANGES IN VERSION 1.11.1
 -------------------------
