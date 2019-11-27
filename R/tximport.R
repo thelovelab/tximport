@@ -9,16 +9,19 @@
 #'
 #' \code{tximport} will also load in information about inferential replicates --
 #' a list of matrices of the Gibbs samples from the posterior, or bootstrap replicates,
-#' per sample -- if these data are available in the expected locations relative to the \code{files}.
+#' per sample -- if these data are available in the expected locations relative
+#' to the \code{files}.
 #' The inferential replicates, stored in \code{infReps} in the output list,
 #' are on estimated counts, and therefore follow \code{counts} in the output list.
 #' By setting \code{varReduce=TRUE}, the inferential replicate matrices
-#' will be replaced by a single matrix with the sample variance per transcript/gene and per sample.
+#' will be replaced by a single matrix with the sample variance per transcript/gene
+#' and per sample.
 #'
 #' While \code{tximport} summarizes to the gene-level by default, 
 #' the user can also perform the import and summarization steps manually,
 #' by specifing \code{txOut=TRUE} and then using the function \code{summarizeToGene}.
-#' Note however that this is equivalent to \code{tximport} with \code{txOut=FALSE} (the default).
+#' Note however that this is equivalent to \code{tximport} with
+#' \code{txOut=FALSE} (the default).
 #'
 #' Solutions to the error "tximport failed at summarizing to the gene-level":
 #'
@@ -30,7 +33,16 @@
 #' 
 #' See \code{vignette('tximport')} for example code for generating a
 #' \code{tx2gene} data.frame from a \code{TxDb} object.
-#' Note that the \code{keys} and \code{select} functions used
+#' The \code{tx2gene} data.frame should exactly match and be derived from
+#' the same set of transcripts used for quantifying (the set of transcript
+#' used to create the transcriptome index). One automated solution
+#' for Salmon or alevin quantification data is to use the
+#' \code{tximeta} function in the tximeta Bioconductor package
+#' which builds upon and extends \code{tximport}; this solution should
+#' work out-of-the-box for human and mouse transcriptomes downloaded
+#' from Gencode, Ensembl, or RefSeq. For other cases, the user
+#' should create the \code{tx2gene} manually as shown in the tximport
+#' vignette. Note that the \code{keys} and \code{select} functions used
 #' to create the \code{tx2gene} object are documented
 #' in the man page for \link[AnnotationDbi]{AnnotationDb-class} objects
 #' in the AnnotationDbi package (TxDb inherits from AnnotationDb).
@@ -80,9 +92,11 @@
 #' @param tx2gene a two-column data.frame linking transcript id (column 1)
 #' to gene id (column 2).
 #' the column names are not relevant, but this column order must be used. 
-#' this argument is required for gene-level summarization for methods
-#' that provides transcript-level estimates only
-#' (kallisto, Salmon, Sailfish)
+#' this argument is required for gene-level summarization, and the tximport
+#' vignette describes how to construct this data.frame (see Details below).
+#' An automated solution to avoid having to create \code{tx2gene} if
+#' one has quantified with Salmon or alevin with human or mouse transcriptomes
+#' is to use the \code{tximeta} function from the tximeta Bioconductor package.
 #' @param varReduce whether to reduce per-sample inferential replicates
 #' information into a matrix of sample variances \code{variance} (default FALSE).
 #' alevin computes inferential variance by default for bootstrap
@@ -102,7 +116,8 @@
 #' (default FALSE)
 #' @param ignoreAfterBar logical, whether to split the tx id on the '|' character
 #' to facilitate matching with the tx id in \code{tx2gene} (default FALSE)
-#' @param geneIdCol name of column with gene id. if missing, the \code{tx2gene} argument can be used
+#' @param geneIdCol name of column with gene id. if missing, the \code{tx2gene}
+#' argument can be used
 #' @param txIdCol name of column with tx id
 #' @param abundanceCol name of column with abundances (e.g. TPM or FPKM)
 #' @param countsCol name of column with estimated counts
@@ -124,7 +139,7 @@
 #' the slower R code for importing alevin, even if \code{fishpond}
 #' library is installed. Default is FALSE
 #' 
-#' @return a simple list containing matrices: abundance, counts, length.
+#' @return A simple list containing matrices: abundance, counts, length.
 #' Another list element 'countsFromAbundance' carries through
 #' the character argument used in the tximport call.
 #' The length matrix contains the average transcript length for each
