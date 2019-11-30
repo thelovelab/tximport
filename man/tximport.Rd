@@ -214,8 +214,8 @@ txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 
 }
 \references{
-Charlotte Soneson, Michael I. Love, Mark D. Robinson (2015):
+Charlotte Soneson, Michael I. Love, Mark D. Robinson (2015)
 Differential analyses for RNA-seq: transcript-level estimates
 improve gene-level inferences. F1000Research.
-\url{http://dx.doi.org/10.12688/f1000research.7563.1}
+\url{http://doi.org/10.12688/f1000research.7563}
 }
