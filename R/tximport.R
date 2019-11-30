@@ -27,7 +27,6 @@
 #' Differential analyses for RNA-seq: transcript-level estimates
 #' improve gene-level inferences. F1000Research.
 #' \url{http://dx.doi.org/10.12688/f1000research.7563.1}
-
 #'
 #' @author Charlotte Soneson, Michael I. Love, Mark D. Robinson
 #' 
