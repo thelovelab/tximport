@@ -171,7 +171,7 @@ for Salmon or alevin quantification data is to use the
 \code{tximeta} function in the tximeta Bioconductor package
 which builds upon and extends \code{tximport}; this solution should
 work out-of-the-box for human and mouse transcriptomes downloaded
-from Gencode, Ensembl, or RefSeq. For other cases, the user
+from GENCODE, Ensembl, or RefSeq. For other cases, the user
 should create the \code{tx2gene} manually as shown in the tximport
 vignette. Note that the \code{keys} and \code{select} functions used
 to create the \code{tx2gene} object are documented
