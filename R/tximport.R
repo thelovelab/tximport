@@ -1,3 +1,42 @@
+#' Tximport package: import transcript-level quantification data
+#' 
+#' The tximport package is designed to simplify import of transcript-level
+#' abundances (TPM), estimated counts, and effective lengths from
+#' a variety of upstream tools, for downstream transcript-level or
+#' gene-level analysis. It has no dependencies beyond R, so as to
+#' minimize requirements for downstream packages making use of
+#' tximport.
+#'
+#' The main function has the same name as the package:
+#' \itemize{
+#' \item \code{\link{tximport}} - with key arguments: \code{files}, \code{type}, \code{txOut}, and \code{tx2gene}
+#' }
+#' 
+#' All software-related questions should be posted to the Bioconductor Support Site:
+#' 
+#' \url{http://support.bioconductor.org}
+#'
+#' The code can be viewed at the GitHub repository,
+#' which also lists the contributtor code of conduct:
+#'
+#' \url{https://github.com/mikelove/tximport}
+#' 
+#' @references
+#'
+#' Charlotte Soneson, Michael I. Love, Mark D. Robinson (2015):
+#' Differential analyses for RNA-seq: transcript-level estimates
+#' improve gene-level inferences. F1000Research.
+#' \url{http://dx.doi.org/10.12688/f1000research.7563.1}
+
+#'
+#' @author Charlotte Soneson, Michael I. Love, Mark D. Robinson
+#' 
+#' @docType package
+#' @name tximport-package
+#' @aliases tximport-package
+#' @keywords package
+NULL
+
 #' Import transcript-level abundances and counts
 #' for transcript- and gene-level analysis packages
 #'
