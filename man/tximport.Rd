@@ -138,6 +138,7 @@ to the gene-level (default) or outputs transcript-level matrices
 (see \code{txOut} argument).
 }
 \details{
+\strong{Inferential replicates:}
 \code{tximport} will also load in information about inferential replicates --
 a list of matrices of the Gibbs samples from the posterior, or bootstrap replicates,
 per sample -- if these data are available in the expected locations relative
@@ -148,38 +149,44 @@ By setting \code{varReduce=TRUE}, the inferential replicate matrices
 will be replaced by a single matrix with the sample variance per transcript/gene
 and per sample.
 
+\strong{summarizeToGene:}
 While \code{tximport} summarizes to the gene-level by default, 
 the user can also perform the import and summarization steps manually,
 by specifing \code{txOut=TRUE} and then using the function \code{summarizeToGene}.
 Note however that this is equivalent to \code{tximport} with
 \code{txOut=FALSE} (the default).
 
-Solutions to the error "tximport failed at summarizing to the gene-level":
+\strong{Solutions on summarization:} regarding \code{"tximport failed at summarizing to the gene-level"}:
 
 \enumerate{
   \item provide a \code{tx2gene} data.frame linking transcripts to genes (more below)
   \item avoid gene-level summarization by specifying \code{txOut=TRUE}
-  \item set \code{geneIdCol} to an appropriate column in the files
 }
 
 See \code{vignette('tximport')} for example code for generating a
 \code{tx2gene} data.frame from a \code{TxDb} object.
 The \code{tx2gene} data.frame should exactly match and be derived from
 the same set of transcripts used for quantifying (the set of transcript
-used to create the transcriptome index). One automated solution
-for Salmon or alevin quantification data is to use the
+used to create the transcriptome index).
+
+\strong{Tximeta:}
+One automated solution for Salmon or alevin quantification data is to use the
 \code{tximeta} function in the tximeta Bioconductor package
 which builds upon and extends \code{tximport}; this solution should
 work out-of-the-box for human and mouse transcriptomes downloaded
 from GENCODE, Ensembl, or RefSeq. For other cases, the user
 should create the \code{tx2gene} manually as shown in the tximport
-vignette. Note that the \code{keys} and \code{select} functions used
+vignette.
+
+\strong{On tx2gene construction:}
+Note that the \code{keys} and \code{select} functions used
 to create the \code{tx2gene} object are documented
 in the man page for \link[AnnotationDbi]{AnnotationDb-class} objects
 in the AnnotationDbi package (TxDb inherits from AnnotationDb).
 For further details on generating TxDb objects from various inputs
 see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
 
+\strong{alevin:}
 For \code{type="alevin"} all arguments other than \code{files},
 \code{dropInfReps}, and \code{forceSlow} are ignored,
 and \code{files} should point to a single \code{quants_mat.gz} file,
