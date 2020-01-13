@@ -528,6 +528,12 @@ txOut=TRUE, CFA either 'no' or 'scaledTPM', and no inferential replicates")
   
   # propagate names to inferential replicate list
   if (infRepType == "full") {
+    if (length(infRepMatTx) != length(files)) {
+      stop("Note: not all samples contain inferential replicates.
+  tximport can only import data when either all or no samples
+  contain inferential replicates. Instead first subset to the
+  set of samples that all contain inferential replicates.")
+    }
     names(infRepMatTx) <- names(files)
   }
   
