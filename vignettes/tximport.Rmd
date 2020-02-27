@@ -513,6 +513,7 @@ suggestions from:
 [Ryan C. Thompson](https://github.com/DarwinAwardWinner) (RHDF5 support),
 [Matt Shirley](https://twitter.com/mdshw5) (ignoreTxVersion),
 [Avi Srivastava](https://twitter.com/k3yavi) (`alevin` import),
+Scott Van Buren (infReps testing),
 [Stephen Turner](https://twitter.com/genetics_blog),
 [Richard Smith-Unna](https://twitter.com/blahah404),
 [Rory Kirchner](https://twitter.com/RoryKirchner),
@@ -521,7 +522,8 @@ Jenny Drnevich,
 [Patrick Kimes](https://twitter.com/pkkimes),
 [Leon Fodoulian](https://twitter.com/LFodoulian),
 [Koen Van den Berge](https://twitter.com/koenvdberge_Be),
-[Aaron Lun](https://github.com/LTLA)
+[Aaron Lun](https://github.com/LTLA),
+
 
 ## Session info
 

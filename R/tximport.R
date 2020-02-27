@@ -277,6 +277,13 @@ tximport <- function(files,
     txIn <- FALSE
   }
 
+  # in order to use infRepStat, we need inf reps, and doesn't work with alevin or sparse code
+  if (!is.null(infRepStat)) {
+    if (dropInfReps) stop("infRepStat requires infReps")
+    if (type == "alevin") stop("infRepStat does not currently work with alevin input")
+    if (sparse) stop("infRepStat does not currently work with sparse output")
+  }
+  
   # special alevin code
   if (type=="alevin") {
     if (length(files) > 1) stop("alevin import currently only supports a single experiment")
@@ -399,8 +406,6 @@ tximport <- function(files,
     # if summarizing to gene-level, need the full matrices passed to summarizeToGene
     infRepType <- if (varReduce & txOut) { "var" } else { "full" }
   }
-
-  if (dropInfReps) stopifnot(is.null(infRepStat))
   
   # special code for RSEM gene.results files.
   # RSEM gene-level is the only case of !txIn
