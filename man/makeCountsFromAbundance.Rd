@@ -4,8 +4,12 @@
 \alias{makeCountsFromAbundance}
 \title{Low-level function to make counts from abundance using matrices}
 \usage{
-makeCountsFromAbundance(countsMat, abundanceMat, lengthMat,
-  countsFromAbundance = c("scaledTPM", "lengthScaledTPM"))
+makeCountsFromAbundance(
+  countsMat,
+  abundanceMat,
+  lengthMat,
+  countsFromAbundance = c("scaledTPM", "lengthScaledTPM")
+)
 }
 \arguments{
 \item{countsMat}{a matrix of original counts}

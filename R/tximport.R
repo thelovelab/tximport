@@ -104,7 +104,8 @@ NULL
 #' C++ importer for alevin's EDS format.
 #' For alevin, \code{tximport} is importing the gene-by-cell matrix of counts,
 #' as \code{txi$counts}, and effective lengths are not estimated.
-#' \code{txi$variance} may also be imported if inferential replicates were
+#' \code{txi$mean} and \code{txi$variance}
+#' may also be imported if inferential replicates were
 #' used, as well as inferential replicates if these were output by alevin.
 #' Length correction should not be applied to datasets where there
 #' is not an expected correlation of counts and feature length.
@@ -183,6 +184,8 @@ NULL
 #' @param forceSlow logical, argument used for testing. Will force the use of
 #' the slower R code for importing alevin, even if \code{fishpond}
 #' library is installed. Default is FALSE
+#' @param filterBarcodes option for alevin, to import only cell barcodes
+#' listed in \code{whitelist.txt}. Default is FALSE
 #' 
 #' @return A simple list containing matrices: abundance, counts, length.
 #' Another list element 'countsFromAbundance' carries through
@@ -251,7 +254,8 @@ tximport <- function(files,
                      sparse=FALSE,
                      sparseThreshold=1,
                      readLength=75,
-                     forceSlow=FALSE) {
+                     forceSlow=FALSE,
+                     filterBarcodes=FALSE) {
 
   # inferential replicate importer
   infRepImporter <- NULL
@@ -290,9 +294,9 @@ tximport <- function(files,
     vrsn <- getAlevinVersion(files)
     compareToV014 <- compareVersion(vrsn, "0.14.0")
     if (compareToV014 == -1) {
-      mat <- readAlevinPreV014(files)
+      mat <- readAlevinPreV014(files, filterBarcodes)
     } else {
-      mat <- readAlevin(files, dropInfReps, forceSlow)
+      mat <- readAlevin(files, dropInfReps, forceSlow, filterBarcodes)
     }
     if (!is.list(mat)) {
       # only counts

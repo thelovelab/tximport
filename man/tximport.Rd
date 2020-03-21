@@ -5,15 +5,31 @@
 \title{Import transcript-level abundances and counts
 for transcript- and gene-level analysis packages}
 \usage{
-tximport(files, type = c("none", "salmon", "sailfish", "alevin",
-  "kallisto", "rsem", "stringtie"), txIn = TRUE, txOut = FALSE,
-  countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM",
-  "dtuScaledTPM"), tx2gene = NULL, varReduce = FALSE,
-  dropInfReps = FALSE, infRepStat = NULL, ignoreTxVersion = FALSE,
-  ignoreAfterBar = FALSE, geneIdCol, txIdCol, abundanceCol, countsCol,
-  lengthCol, importer = NULL, existenceOptional = FALSE,
-  sparse = FALSE, sparseThreshold = 1, readLength = 75,
-  forceSlow = FALSE)
+tximport(
+  files,
+  type = c("none", "salmon", "sailfish", "alevin", "kallisto", "rsem", "stringtie"),
+  txIn = TRUE,
+  txOut = FALSE,
+  countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM", "dtuScaledTPM"),
+  tx2gene = NULL,
+  varReduce = FALSE,
+  dropInfReps = FALSE,
+  infRepStat = NULL,
+  ignoreTxVersion = FALSE,
+  ignoreAfterBar = FALSE,
+  geneIdCol,
+  txIdCol,
+  abundanceCol,
+  countsCol,
+  lengthCol,
+  importer = NULL,
+  existenceOptional = FALSE,
+  sparse = FALSE,
+  sparseThreshold = 1,
+  readLength = 75,
+  forceSlow = FALSE,
+  filterBarcodes = FALSE
+)
 }
 \arguments{
 \item{files}{a character vector of filenames for the transcript-level abundances}
@@ -111,6 +127,9 @@ The formula used to calculate counts is:
 \item{forceSlow}{logical, argument used for testing. Will force the use of
 the slower R code for importing alevin, even if \code{fishpond}
 library is installed. Default is FALSE}
+
+\item{filterBarcodes}{option for alevin, to import only cell barcodes
+listed in \code{whitelist.txt}. Default is FALSE}
 }
 \value{
 A simple list containing matrices: abundance, counts, length.
@@ -197,7 +216,8 @@ installing the \code{fishpond} package, which contains a
 C++ importer for alevin's EDS format.
 For alevin, \code{tximport} is importing the gene-by-cell matrix of counts,
 as \code{txi$counts}, and effective lengths are not estimated.
-\code{txi$variance} may also be imported if inferential replicates were
+\code{txi$mean} and \code{txi$variance}
+may also be imported if inferential replicates were
 used, as well as inferential replicates if these were output by alevin.
 Length correction should not be applied to datasets where there
 is not an expected correlation of counts and feature length.

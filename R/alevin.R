@@ -1,12 +1,13 @@
-readAlevinPreV014 <- function(files) {
+readAlevinPreV014 <- function(files, filterBarcodes) {
   message("using importer for pre-v0.14.0 Alevin files")
-  message("pre-v0.14.0 Alevin import will be deprecated in October 2020")
+  warning("pre-v0.14.0 Alevin import will be deprecated in October 2020")
   dir <- sub("/alevin$","",dirname(files))
   barcode.file <- file.path(dir, "alevin/quants_mat_rows.txt")
   gene.file <- file.path(dir, "alevin/quants_mat_cols.txt")
   matrix.file <- file.path(dir, "alevin/quants_mat.gz")
   boot.barcode.file <- file.path(dir, "alevin/quants_boot_rows.txt")
   var.file <- file.path(dir, "alevin/quants_var_mat.gz")
+  whitelist.file <- file.path(dir, "alevin/whitelist.txt")
   for (f in c(barcode.file, gene.file, matrix.file)) {
     if (!file.exists(f)) {
       stop("expecting 'files' to point to 'quants_mat.gz' file in a directory 'alevin'
@@ -44,11 +45,24 @@ readAlevinPreV014 <- function(files) {
     close(con)
     mat <- list(counts=counts.mat, variance=var.mat)
   }
+  # cell barcode filtering
+  if (filterBarcodes & file.exists(whitelist.file)) {
+    filter <- readLines(whitelist.file)
+    if (is.list(mat)) {
+      keep <- colnames(mat$counts) %in% filter
+      mat$counts <- mat$counts[,keep]
+      mat$variance <- mat$variance[,keep]
+    } else {
+      keep <- colnames(mat) %in% filter
+      mat <- mat[,keep]
+    }
+    message(paste("filtering down to",sum(keep),"cell barcodes"))
+  }
   mat
 }
 
-readAlevin <- function(files, dropInfReps, forceSlow) {
-  dir <- sub("/alevin$","",dirname(files))  
+readAlevin <- function(files, dropInfReps, forceSlow, filterBarcodes) {
+  dir <- sub("/alevin$","",dirname(files))
   barcode.file <- file.path(dir, "alevin/quants_mat_rows.txt")
   gene.file <- file.path(dir, "alevin/quants_mat_cols.txt")
   matrix.file <- file.path(dir, "alevin/quants_mat.gz")
@@ -56,6 +70,7 @@ readAlevin <- function(files, dropInfReps, forceSlow) {
   var.file <- file.path(dir, "alevin/quants_var_mat.gz")
   boot.file <- file.path(dir, "alevin/quants_boot_mat.gz")
   boot.barcode.file <- file.path(dir, "alevin/quants_boot_rows.txt")
+  whitelist.file <- file.path(dir, "alevin/whitelist.txt")
   for (f in c(barcode.file, gene.file, matrix.file)) {
     if (!file.exists(f)) {
       stop("expecting 'files' to point to 'quants_mat.gz' file in a directory 'alevin'
@@ -110,6 +125,14 @@ readAlevin <- function(files, dropInfReps, forceSlow) {
     # slow in R, because requires looping over cells to read positions and expression
     mat <- readAlevinBits(matrix.file, gene.names, cell.names)
   }
+
+  # cell barcode filtering
+  if (filterBarcodes & file.exists(whitelist.file)) {
+    filter <- readLines(whitelist.file)
+    keep <- colnames(mat) %in% filter
+    message(paste("filtering down to",sum(keep),"cell barcodes"))
+    mat <- mat[,keep]
+  }
   
   if (num.boot > 0) {
 
@@ -133,6 +156,12 @@ readAlevin <- function(files, dropInfReps, forceSlow) {
     # need to re-arrange to match the counts matrix
     mean.mat <- mean.mat[,cell.names]
     var.mat <- var.mat[,cell.names]
+
+    # cell barcode filtering of bootstrap mean and variance matrices
+    if (filterBarcodes & file.exists(whitelist.file)) {
+      mean.mat <- mean.mat[,keep]
+      var.mat <- var.mat[,keep]
+    }
     
     if (boot.exists & !dropInfReps) {
       # read in bootstrap inferential replicates
@@ -140,6 +169,10 @@ readAlevin <- function(files, dropInfReps, forceSlow) {
       infReps <- readAlevinInfReps(boot.file, gene.names, boot.cell.names, num.boot)
       # need to re-arrange to match the counts matrix
       infReps <- lapply(infReps, function(z) z[,cell.names])
+      # cell barcode filtering of infReps
+      if (filterBarcodes & file.exists(whitelist.file)) {
+        infReps <- lapply(infReps, function(z) z[,keep])
+      }
       return(list(counts=mat, mean=mean.mat, variance=var.mat, infReps=infReps))
     } else {
       # return counts, mean and variance

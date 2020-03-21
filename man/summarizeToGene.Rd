@@ -8,9 +8,14 @@
 \usage{
 summarizeToGene(object, ...)
 
-\S4method{summarizeToGene}{list}(object, tx2gene, varReduce = FALSE,
-  ignoreTxVersion = FALSE, ignoreAfterBar = FALSE,
-  countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM"))
+\S4method{summarizeToGene}{list}(
+  object,
+  tx2gene,
+  varReduce = FALSE,
+  ignoreTxVersion = FALSE,
+  ignoreAfterBar = FALSE,
+  countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM")
+)
 }
 \arguments{
 \item{object}{the list of matrices of trancript-level abundances,

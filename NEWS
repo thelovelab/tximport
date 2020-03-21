@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.15.10
+--------------------------
+
+    o Add argument `filterBarcodes`, which will only import cells
+      with barcodes in the `whitelist.txt` file.
+
 CHANGES IN VERSION 1.15.9
 -------------------------
 

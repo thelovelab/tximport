@@ -5,7 +5,7 @@ test_that("import alevin works", {
   files <- file.path(dir,"alevin/neurons_900_v012/alevin/quants_mat.gz")
   file.exists(files)
 
-  txi <- tximport(files, type="alevin")
+  expect_warning({txi <- tximport(files, type="alevin")}, "deprecated")
 
   dir <- system.file("extdata", package="tximportData")
   files <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.gz")
@@ -35,5 +35,8 @@ test_that("import alevin works", {
   idx <- 1:1000 
   cts <- unname(as.matrix(txi$counts[idx,]))
   expect_true(max(abs(mat - unname(cts))) < 1e-6)
+
+  # again import with cell barcode filtering
+  txi <- tximport(files, type="alevin", dropInfReps=TRUE, filterBarcodes=TRUE)
   
 })
