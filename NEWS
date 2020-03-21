@@ -1,3 +1,11 @@
+CHANGES IN VERSION 1.15.9
+-------------------------
+
+    o Fixed bug where the bootstrap matrices from alevin were
+      not aligned by cell with the counts matrix. This affected the
+      variance and the infReps list. The fix will also be
+      propogated to tximport v1.14.1 (Oct 2019 release).
+
 CHANGES IN VERSION 1.14.0
 --------------------------
 

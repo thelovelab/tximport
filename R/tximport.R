@@ -300,15 +300,15 @@ tximport <- function(files,
                   length=NULL, countsFromAbundance="no")
     } else {
       if ("infReps" %in% names(mat)) {
-        # counts + variance + infReps
+        # counts + mean + variance + infReps
         txi <- list(abundance=NULL, counts=mat$counts,
-                    variance=mat$variance,
+                    mean=mat$mean, variance=mat$variance,
                     infReps=mat$infReps,
                     length=NULL, countsFromAbundance="no")
       } else {
-        # counts + variance
+        # counts + mean + variance
         txi <- list(abundance=NULL, counts=mat$counts,
-                    variance=mat$variance,
+                    mean=mat$mean, variance=mat$variance,
                     length=NULL, countsFromAbundance="no")
       }
     }
