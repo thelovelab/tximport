@@ -1,11 +1,11 @@
 context("alevin")
 test_that("import alevin works", {
 
-  dir <- system.file("extdata", package="tximportData")
-  files <- file.path(dir,"alevin/neurons_900_v012/alevin/quants_mat.gz")
-  file.exists(files)
+  #dir <- system.file("extdata", package="tximportData")
+  #files <- file.path(dir,"alevin/neurons_900_v012/alevin/quants_mat.gz")
+  #file.exists(files)
 
-  expect_warning({txi <- tximport(files, type="alevin")}, "deprecated")
+  #expect_warning({txi <- tximport(files, type="alevin")}, "deprecated")
 
   dir <- system.file("extdata", package="tximportData")
   files <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.gz")
