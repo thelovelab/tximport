@@ -95,8 +95,9 @@ NULL
 #'
 #' \strong{alevin:}
 #' The \code{alevinArgs} argument includes some alevin-specific arguments.
-#' This should be a list with named logical variables
-#' \code{filterBarcodes}, \code{tierImport}, and \code{forceSlow}:
+#' This optional argument is a list with any or all of the following named logical variables:
+#' \code{filterBarcodes}, \code{tierImport}, and \code{forceSlow}.
+#' The variables are described as follows (with default values in parens):
 #' \code{filterBarcodes} (FALSE) import only cell barcodes listed in
 #' \code{whitelist.txt};
 #' \code{tierImport} (FALSE) import the tier information in addition to counts;
