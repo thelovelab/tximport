@@ -27,8 +27,7 @@ tximport(
   sparse = FALSE,
   sparseThreshold = 1,
   readLength = 75,
-  forceSlow = FALSE,
-  filterBarcodes = FALSE
+  alevinArgs = NULL
 )
 }
 \arguments{
@@ -124,12 +123,8 @@ StringTie's output of coverage. Default value (from StringTie) is 75.
 The formula used to calculate counts is:
 \code{cov * transcript length / read length}}
 
-\item{forceSlow}{logical, argument used for testing. Will force the use of
-the slower R code for importing alevin, even if \code{fishpond}
-library is installed. Default is FALSE}
-
-\item{filterBarcodes}{option for alevin, to import only cell barcodes
-listed in \code{whitelist.txt}. Default is FALSE}
+\item{alevinArgs}{named list, with logical elements \code{filterBarcodes},
+\code{tierImport}, \code{forceSlow}. See Details for definitions.}
 }
 \value{
 A simple list containing matrices: abundance, counts, length.
@@ -206,19 +201,27 @@ For further details on generating TxDb objects from various inputs
 see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
 
 \strong{alevin:}
+The \code{alevinArgs} argument includes some alevin-specific arguments.
+This should be a list with named logical variables
+\code{filterBarcodes}, \code{tierImport}, and \code{forceSlow}:
+\code{filterBarcodes} (FALSE) import only cell barcodes listed in
+\code{whitelist.txt};
+\code{tierImport} (FALSE) import the tier information in addition to counts;
+\code{forceSlow} (FALSE) force the use of the slower import R code
+even if \code{fishpond} is installed.
 For \code{type="alevin"} all arguments other than \code{files},
-\code{dropInfReps}, and \code{forceSlow} are ignored,
-and \code{files} should point to a single \code{quants_mat.gz} file,
+\code{dropInfReps}, and \code{alevinArgs} are ignored.
+Note that \code{files} should point to a single \code{quants_mat.gz} file,
 in the directory structure created by the alevin software
 (e.g. do not move the file or delete the other important files).
 Note that importing alevin quantifications will be much faster by first
-installing the \code{fishpond} package, which contains a
-C++ importer for alevin's EDS format.
+installing the \code{fishpond} package, which contains a C++ importer
+for alevin's EDS format.
 For alevin, \code{tximport} is importing the gene-by-cell matrix of counts,
 as \code{txi$counts}, and effective lengths are not estimated.
-\code{txi$mean} and \code{txi$variance}
-may also be imported if inferential replicates were
-used, as well as inferential replicates if these were output by alevin.
+\code{txi$mean} and \code{txi$variance} may also be imported if
+inferential replicates were used, as well as inferential replicates
+if these were output by alevin.
 Length correction should not be applied to datasets where there
 is not an expected correlation of counts and feature length.
 }

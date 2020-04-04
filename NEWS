@@ -1,8 +1,18 @@
+CHANGES IN VERSION 1.15.12
+--------------------------
+
+    o Moved alevin arguments into a new 'list' argument, alevinArgs.
+      As of this version the possible values for alevinArgs are:
+      filterBarcodes, tierImport, forceSlow (all logical).
+    o Added alevinArgs argument `tierImport`, which will import
+      the "tier" information from alevin on the quantification
+      assessment.
+
 CHANGES IN VERSION 1.15.10
 --------------------------
 
-    o Add argument `filterBarcodes`, which will only import cells
-      with barcodes in the `whitelist.txt` file.
+    o Add an alevinArgs argument `filterBarcodes`, which will only
+      import cells with barcodes in the `whitelist.txt` file.
 
 CHANGES IN VERSION 1.15.9
 -------------------------
@@ -15,10 +25,10 @@ CHANGES IN VERSION 1.15.9
 CHANGES IN VERSION 1.14.0
 --------------------------
 
-    o Alevin count and inferential variance can be imported now 
+    o alevin count and inferential variance can be imported now 
       ~40x faster for large number of cells, leveraging C++ code
       from the fishpond package (>= 1.1.18).
-    o Alevin inferential replicates can be imported (also sparse).
+    o alevin inferential replicates can be imported (also sparse).
       To not import the inferential replicates, set dropInfReps=TRUE.
 
 CHANGES IN VERSION 1.11.1

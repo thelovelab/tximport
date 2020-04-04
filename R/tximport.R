@@ -94,19 +94,27 @@ NULL
 #' see \code{vignette('GenomicFeatures')} from the GenomicFeatures package.
 #'
 #' \strong{alevin:}
+#' The \code{alevinArgs} argument includes some alevin-specific arguments.
+#' This should be a list with named logical variables
+#' \code{filterBarcodes}, \code{tierImport}, and \code{forceSlow}:
+#' \code{filterBarcodes} (FALSE) import only cell barcodes listed in
+#' \code{whitelist.txt};
+#' \code{tierImport} (FALSE) import the tier information in addition to counts;
+#' \code{forceSlow} (FALSE) force the use of the slower import R code
+#' even if \code{fishpond} is installed.
 #' For \code{type="alevin"} all arguments other than \code{files},
-#' \code{dropInfReps}, and \code{forceSlow} are ignored,
-#' and \code{files} should point to a single \code{quants_mat.gz} file,
+#' \code{dropInfReps}, and \code{alevinArgs} are ignored.
+#' Note that \code{files} should point to a single \code{quants_mat.gz} file,
 #' in the directory structure created by the alevin software
 #' (e.g. do not move the file or delete the other important files).
 #' Note that importing alevin quantifications will be much faster by first
-#' installing the \code{fishpond} package, which contains a
-#' C++ importer for alevin's EDS format.
+#' installing the \code{fishpond} package, which contains a C++ importer
+#' for alevin's EDS format.
 #' For alevin, \code{tximport} is importing the gene-by-cell matrix of counts,
 #' as \code{txi$counts}, and effective lengths are not estimated.
-#' \code{txi$mean} and \code{txi$variance}
-#' may also be imported if inferential replicates were
-#' used, as well as inferential replicates if these were output by alevin.
+#' \code{txi$mean} and \code{txi$variance} may also be imported if
+#' inferential replicates were used, as well as inferential replicates
+#' if these were output by alevin.
 #' Length correction should not be applied to datasets where there
 #' is not an expected correlation of counts and feature length.
 #' 
@@ -181,11 +189,8 @@ NULL
 #' StringTie's output of coverage. Default value (from StringTie) is 75.
 #' The formula used to calculate counts is:
 #' \code{cov * transcript length / read length}
-#' @param forceSlow logical, argument used for testing. Will force the use of
-#' the slower R code for importing alevin, even if \code{fishpond}
-#' library is installed. Default is FALSE
-#' @param filterBarcodes option for alevin, to import only cell barcodes
-#' listed in \code{whitelist.txt}. Default is FALSE
+#' @param alevinArgs named list, with logical elements \code{filterBarcodes},
+#' \code{tierImport}, \code{forceSlow}. See Details for definitions.
 #' 
 #' @return A simple list containing matrices: abundance, counts, length.
 #' Another list element 'countsFromAbundance' carries through
@@ -254,8 +259,7 @@ tximport <- function(files,
                      sparse=FALSE,
                      sparseThreshold=1,
                      readLength=75,
-                     forceSlow=FALSE,
-                     filterBarcodes=FALSE) {
+                     alevinArgs=NULL) {
 
   # inferential replicate importer
   infRepImporter <- NULL
@@ -290,30 +294,53 @@ tximport <- function(files,
   
   # special alevin code
   if (type=="alevin") {
+    
+    # unpacking alevinArgs
+    if (is.null(alevinArgs)) {
+      alevinArgs <- list(filterBarcodes=FALSE,
+                         tierImport=FALSE,
+                         forceSlow=FALSE)
+    }
+    stopifnot(is(alevinArgs, "list"))
+    stopifnot(all(sapply(alevinArgs, is.logical)))
+    alevinArgNms <- c("filterBarcodes","tierImport","forceSlow")
+    stopifnot(all(names(alevinArgs) %in% alevinArgNms))
+    filterBarcodes <- if (is.null(alevinArgs$filterBarcodes)) FALSE else alevinArgs$filterBarcodes
+    tierImport <- if (is.null(alevinArgs$tierImport)) FALSE else alevinArgs$tierImport
+    forceSlow <- if (is.null(alevinArgs$forceSlow)) FALSE else alevinArgs$forceSlow
+    
     if (length(files) > 1) stop("alevin import currently only supports a single experiment")
     vrsn <- getAlevinVersion(files)
     compareToV014 <- compareVersion(vrsn, "0.14.0")
     if (compareToV014 == -1) {
       mat <- readAlevinPreV014(files, filterBarcodes)
     } else {
-      mat <- readAlevin(files, dropInfReps, forceSlow, filterBarcodes)
+      mat <- readAlevin(files, dropInfReps, filterBarcodes, tierImport, forceSlow)
     }
+    # lots of if/else based on what we want to return...
     if (!is.list(mat)) {
-      # only counts
-      txi <- list(abundance=NULL, counts=mat,
-                  length=NULL, countsFromAbundance="no")
+      txi <- list(abundance=NULL, counts=mat, length=NULL, countsFromAbundance="no")
     } else {
-      if ("infReps" %in% names(mat)) {
-        # counts + mean + variance + infReps
-        txi <- list(abundance=NULL, counts=mat$counts,
-                    mean=mat$mean, variance=mat$variance,
-                    infReps=mat$infReps,
-                    length=NULL, countsFromAbundance="no")
+      if (tierImport) {
+        if ("infReps" %in% names(mat)) {
+          txi <- list(
+            abundance=NULL, counts=mat$counts, tier=mat$tier, mean=mat$mean, variance=mat$variance,
+            infReps=mat$infReps, length=NULL, countsFromAbundance="no")
+        } else {
+          txi <- list(
+            abundance=NULL, counts=mat$counts, tier=mat$tier, mean=mat$mean, variance=mat$variance,
+            length=NULL, countsFromAbundance="no")
+        }
       } else {
-        # counts + mean + variance
-        txi <- list(abundance=NULL, counts=mat$counts,
-                    mean=mat$mean, variance=mat$variance,
-                    length=NULL, countsFromAbundance="no")
+        if ("infReps" %in% names(mat)) {
+          txi <- list(
+            abundance=NULL, counts=mat$counts, mean=mat$mean, variance=mat$variance,
+            infReps=mat$infReps, length=NULL, countsFromAbundance="no")
+        } else {
+          txi <- list(
+            abundance=NULL, counts=mat$counts, mean=mat$mean, variance=mat$variance,
+            length=NULL, countsFromAbundance="no")
+        }
       }
     }
     return(txi)

@@ -61,11 +61,12 @@ readAlevinPreV014 <- function(files, filterBarcodes) {
   mat
 }
 
-readAlevin <- function(files, dropInfReps, forceSlow, filterBarcodes) {
+readAlevin <- function(files, dropInfReps, filterBarcodes, tierImport, forceSlow) {
   dir <- sub("/alevin$","",dirname(files))
   barcode.file <- file.path(dir, "alevin/quants_mat_rows.txt")
   gene.file <- file.path(dir, "alevin/quants_mat_cols.txt")
   matrix.file <- file.path(dir, "alevin/quants_mat.gz")
+  tier.file <- file.path(dir, "alevin/quants_tier_mat.gz")
   mean.file <- file.path(dir, "alevin/quants_mean_mat.gz")
   var.file <- file.path(dir, "alevin/quants_var_mat.gz")
   boot.file <- file.path(dir, "alevin/quants_boot_mat.gz")
@@ -105,12 +106,13 @@ readAlevin <- function(files, dropInfReps, forceSlow, filterBarcodes) {
       hasFishpond <- FALSE
     }
   }
-  if (!hasFishpond)
-    message("importing alevin data is much faster after installing `fishpond` (>= 1.1.18)")
-
   # for testing purposes, force the use of the slower R code for importing alevin
   if (forceSlow) {
     hasFishpond <- FALSE
+  }
+  if (!hasFishpond) {
+    message("importing alevin data is much faster after installing `fishpond` (>= 1.2.0)")
+    if (tierImport) stop("tierImport=TRUE requires fishpond package")
   }
   
   extraMsg <- if (hasFishpond) "with fishpond" else ""
@@ -120,6 +122,9 @@ readAlevin <- function(files, dropInfReps, forceSlow, filterBarcodes) {
     # reads alevin's Efficient Data Storage (EDS) format
     # using C++ code in the fishpond package
     mat <- readAlevinFast(matrix.file, gene.names, cell.names)
+    if (tierImport) {
+      tier <- readAlevinFast(tier.file, gene.names, cell.names, tierImport=TRUE)
+    }
   } else {
     # reads alevin EDS format in R, using e.g. `readBin` and `intToBits`
     # slow in R, because requires looping over cells to read positions and expression
@@ -132,8 +137,12 @@ readAlevin <- function(files, dropInfReps, forceSlow, filterBarcodes) {
     keep <- colnames(mat) %in% filter
     message(paste("filtering down to",sum(keep),"cell barcodes"))
     mat <- mat[,keep]
+    if (tierImport) {
+      tier <- tier[,keep]
+    }
   }
-  
+
+  # read in inferential replicate data
   if (num.boot > 0) {
 
     message(paste("reading in alevin inferential variance", extraMsg))
@@ -173,15 +182,35 @@ readAlevin <- function(files, dropInfReps, forceSlow, filterBarcodes) {
       if (filterBarcodes & file.exists(whitelist.file)) {
         infReps <- lapply(infReps, function(z) z[,keep])
       }
-      return(list(counts=mat, mean=mean.mat, variance=var.mat, infReps=infReps))
+
+      # with inf reps
+      if (tierImport) {
+        return(list(counts=mat, tier=tier,
+                    mean=mean.mat, variance=var.mat,
+                    infReps=infReps))
+      } else {
+        return(list(counts=mat, mean=mean.mat, variance=var.mat, infReps=infReps))
+      }
+      
     } else {
-      # return counts, mean and variance
-      return(list(counts=mat, mean=mean.mat, variance=var.mat))
+
+      # without inf reps
+      if (tierImport) {
+        return(list(counts=mat, tier=tier, mean=mean.mat, variance=var.mat))
+      } else {
+        return(list(counts=mat, mean=mean.mat, variance=var.mat))
+      }
+      
     }
     
   } else {
-    
-    return(mat)
+
+    # without inferential replicate data at all
+    if (tierImport) {
+      return(list(counts=mat, tier=tier))
+    } else {
+      return(mat)
+    }
     
   }
 }
@@ -196,7 +225,7 @@ getAlevinVersion <- function(files) {
   cmd_info$salmon_version
 }
 
-# this is the R version of the reader for alevin's EDS format,
+# this is the R (slow) version of the reader for alevin's EDS format,
 # see below for another function that leverages C++ code from fishpond::readEDS()
 readAlevinBits <- function(matrix.file, gene.names, cell.names) {
   num.cells <- length(cell.names)
@@ -257,10 +286,10 @@ readAlevinBits <- function(matrix.file, gene.names, cell.names) {
 # this function performs the same operation as the above R code,
 # reading in alevin's EDS format and creating a sparse matrix,
 # but it leverages the C++ code in fishpond::readEDS()
-readAlevinFast <- function(matrix.file, gene.names, cell.names) {
-  num.cells <- length(cell.names)
+readAlevinFast <- function(matrix.file, gene.names, cell.names, tierImport=FALSE) {
   num.genes <- length(gene.names)
-  mat <- fishpond::readEDS(num.genes, num.cells, matrix.file)
+  num.cells <- length(cell.names)
+  mat <- fishpond::readEDS(num.genes, num.cells, matrix.file, tierImport)
   dimnames(mat) <- list(gene.names, cell.names)
   mat
 }
