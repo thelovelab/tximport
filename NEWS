@@ -1,3 +1,19 @@
+CHANGES IN VERSION 1.16.0
+------------------------
+
+    o Moved alevin arguments into a new 'list' argument, alevinArgs.
+      As of this version the possible values for alevinArgs are:
+      filterBarcodes, tierImport, forceSlow (all logical).
+    o Added alevinArgs argument `tierImport`, which will import
+      the "tier" information from alevin on the quantification
+      assessment.
+    o Add an alevinArgs argument `filterBarcodes`, which will only
+      import cells with barcodes in the `whitelist.txt` file.
+    o Fixed bug where the bootstrap matrices from alevin were
+      not aligned by cell with the counts matrix. This affected the
+      variance and the infReps list. The fix will also be
+      propogated to tximport v1.14.1 (Oct 2019 release).
+
 CHANGES IN VERSION 1.15.12
 --------------------------
 
