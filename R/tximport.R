@@ -550,12 +550,13 @@ txOut=TRUE, CFA either 'no' or 'scaledTPM', and no inferential replicates")
     countsMatTx <- Matrix::sparseMatrix(i=unlist(countsListI),
                                         j=rep(seq_along(numNonzero), numNonzero),
                                         x=unlist(countsListX),
-                                        dims=c(length(txId),length(files)),
+                                        dims=c(length(txId), length(files)),
                                         dimnames=list(txId, names(files)))
     if (countsFromAbundance == "scaledTPM") {
       abundanceMatTx <- Matrix::sparseMatrix(i=unlist(countsListI),
                                              j=rep(seq_along(numNonzero), numNonzero),
                                              x=unlist(abundanceListX),
+                                             dims=c(length(txId), length(files)),
                                              dimnames=list(txId, names(files)))
     } else {
       abundanceMatTx <- NULL
