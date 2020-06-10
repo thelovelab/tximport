@@ -61,7 +61,7 @@ readAlevinPreV014 <- function(files, filterBarcodes) {
   mat
 }
 
-readAlevin <- function(files, dropInfReps, filterBarcodes, tierImport, forceSlow) {
+readAlevin <- function(files, dropInfReps, filterBarcodes, tierImport, forceSlow, dropMeanVar) {
   dir <- sub("/alevin$","",dirname(files))
   barcode.file <- file.path(dir, "alevin/quants_mat_rows.txt")
   gene.file <- file.path(dir, "alevin/quants_mat_cols.txt")
@@ -143,7 +143,7 @@ readAlevin <- function(files, dropInfReps, filterBarcodes, tierImport, forceSlow
   }
 
   # read in inferential replicate data
-  if (num.boot > 0) {
+  if (num.boot > 0 & !dropMeanVar) {
 
     message(paste("reading in alevin inferential variance", extraMsg))
     mean.exists <- file.exists(mean.file)
@@ -183,6 +183,8 @@ readAlevin <- function(files, dropInfReps, filterBarcodes, tierImport, forceSlow
         infReps <- lapply(infReps, function(z) z[,keep])
       }
 
+      # TODO this is a mess, benchmark if growing a list is really a problem
+      
       # with inf reps
       if (tierImport) {
         return(list(counts=mat, tier=tier,

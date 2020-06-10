@@ -124,7 +124,8 @@ The formula used to calculate counts is:
 \code{cov * transcript length / read length}}
 
 \item{alevinArgs}{named list, with logical elements \code{filterBarcodes},
-\code{tierImport}, \code{forceSlow}. See Details for definitions.}
+\code{tierImport}, \code{forceSlow}, \code{dropMeanVar}.
+See Details for definitions.}
 }
 \value{
 A simple list containing matrices: abundance, counts, length.
@@ -209,7 +210,9 @@ The variables are described as follows (with default values in parens):
 \code{whitelist.txt};
 \code{tierImport} (FALSE) import the tier information in addition to counts;
 \code{forceSlow} (FALSE) force the use of the slower import R code
-even if \code{fishpond} is installed.
+even if \code{fishpond} is installed;
+\code{dropMeanVar} (FALSE) don't import inferential mean and variance
+matrices even if they exist (also skips inferential replicates)
 For \code{type="alevin"} all arguments other than \code{files},
 \code{dropInfReps}, and \code{alevinArgs} are ignored.
 Note that \code{files} should point to a single \code{quants_mat.gz} file,

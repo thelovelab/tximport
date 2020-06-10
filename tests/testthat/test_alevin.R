@@ -24,6 +24,9 @@ test_that("import alevin works", {
   idx <- 1:1000 # Bioc Windows machine can't handle the entire matrix
   cts <- unname(as.matrix(txi$counts[idx,]))
 
+  # no mean and variance
+  txi.no.mv <- tximport(files, type="alevin", alevinArgs=list(dropMeanVar=TRUE))
+
   # compare to MM import
   matrix.file <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.mtx.gz")
   mat <- Matrix::readMM(matrix.file)

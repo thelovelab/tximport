@@ -102,7 +102,9 @@ NULL
 #' \code{whitelist.txt};
 #' \code{tierImport} (FALSE) import the tier information in addition to counts;
 #' \code{forceSlow} (FALSE) force the use of the slower import R code
-#' even if \code{fishpond} is installed.
+#' even if \code{fishpond} is installed;
+#' \code{dropMeanVar} (FALSE) don't import inferential mean and variance
+#' matrices even if they exist (also skips inferential replicates)
 #' For \code{type="alevin"} all arguments other than \code{files},
 #' \code{dropInfReps}, and \code{alevinArgs} are ignored.
 #' Note that \code{files} should point to a single \code{quants_mat.gz} file,
@@ -191,7 +193,8 @@ NULL
 #' The formula used to calculate counts is:
 #' \code{cov * transcript length / read length}
 #' @param alevinArgs named list, with logical elements \code{filterBarcodes},
-#' \code{tierImport}, \code{forceSlow}. See Details for definitions.
+#' \code{tierImport}, \code{forceSlow}, \code{dropMeanVar}.
+#' See Details for definitions.
 #' 
 #' @return A simple list containing matrices: abundance, counts, length.
 #' Another list element 'countsFromAbundance' carries through
@@ -300,15 +303,17 @@ tximport <- function(files,
     if (is.null(alevinArgs)) {
       alevinArgs <- list(filterBarcodes=FALSE,
                          tierImport=FALSE,
-                         forceSlow=FALSE)
+                         forceSlow=FALSE,
+                         dropMeanVar=FALSE)
     }
     stopifnot(is(alevinArgs, "list"))
     stopifnot(all(sapply(alevinArgs, is.logical)))
-    alevinArgNms <- c("filterBarcodes","tierImport","forceSlow")
+    alevinArgNms <- c("filterBarcodes","tierImport","forceSlow","dropMeanVar")
     stopifnot(all(names(alevinArgs) %in% alevinArgNms))
     filterBarcodes <- if (is.null(alevinArgs$filterBarcodes)) FALSE else alevinArgs$filterBarcodes
     tierImport <- if (is.null(alevinArgs$tierImport)) FALSE else alevinArgs$tierImport
     forceSlow <- if (is.null(alevinArgs$forceSlow)) FALSE else alevinArgs$forceSlow
+    dropMeanVar <- if (is.null(alevinArgs$dropMeanVar)) FALSE else alevinArgs$dropMeanVar
     
     if (length(files) > 1) stop("alevin import currently only supports a single experiment")
     vrsn <- getAlevinVersion(files)
@@ -316,7 +321,7 @@ tximport <- function(files,
     if (compareToV014 == -1) {
       mat <- readAlevinPreV014(files, filterBarcodes)
     } else {
-      mat <- readAlevin(files, dropInfReps, filterBarcodes, tierImport, forceSlow)
+      mat <- readAlevin(files, dropInfReps, filterBarcodes, tierImport, forceSlow, dropMeanVar)
     }
     # lots of if/else based on what we want to return...
     if (!is.list(mat)) {
