@@ -142,8 +142,7 @@ genes as rows and cells as columns.
 If \code{varReduce=TRUE} the inferential replicates will be summarized
 according to the sample variance, and stored as a matrix \code{variance}.
 alevin already computes the variance of the bootstrap inferential replicates
-and so this is imported without needing to specify \code{varReduce=TRUE}
-(note that alevin uses the 1/N variance estimator, so not the same as \code{var}).
+and so this is imported without needing to specify \code{varReduce=TRUE}.
 }
 \description{
 \code{tximport} imports transcript-level estimates from various

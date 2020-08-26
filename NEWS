@@ -1,3 +1,10 @@
+CHANGES IN VERSION 1.18.0
+-------------------------
+
+    o Code cleanup for deprecated functions. tximport reads in
+      only alevin version 0.14.0 or greater. For older data, use
+      previous versions of tximport.
+
 CHANGES IN VERSION 1.16.0
 ------------------------
 

@@ -1,5 +1,5 @@
 Package: tximport
-Version: 1.17.3
+Version: 1.17.4
 Title: Import and summarize transcript-level estimates for transcript- and
        gene-level analysis
 Description: Imports transcript-level abundance, estimated counts and
@@ -23,6 +23,6 @@ URL: https://github.com/mikelove/tximport
 biocViews: DataImport, Preprocessing,
     RNASeq, Transcriptomics, Transcription, GeneExpression,
     ImmunoOncology
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 NeedsCompilation: no
 Encoding: UTF-8

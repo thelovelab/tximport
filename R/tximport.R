@@ -210,8 +210,7 @@ NULL
 #' If \code{varReduce=TRUE} the inferential replicates will be summarized
 #' according to the sample variance, and stored as a matrix \code{variance}.
 #' alevin already computes the variance of the bootstrap inferential replicates
-#' and so this is imported without needing to specify \code{varReduce=TRUE}
-#' (note that alevin uses the 1/N variance estimator, so not the same as \code{var}).
+#' and so this is imported without needing to specify \code{varReduce=TRUE}.
 #' 
 #' @references
 #'
@@ -298,13 +297,10 @@ tximport <- function(files,
   
   # special alevin code
   if (type=="alevin") {
-    
     # unpacking alevinArgs
     if (is.null(alevinArgs)) {
-      alevinArgs <- list(filterBarcodes=FALSE,
-                         tierImport=FALSE,
-                         forceSlow=FALSE,
-                         dropMeanVar=FALSE)
+      alevinArgs <- list(filterBarcodes=FALSE, tierImport=FALSE,
+                         forceSlow=FALSE, dropMeanVar=FALSE)
     }
     stopifnot(is(alevinArgs, "list"))
     stopifnot(all(sapply(alevinArgs, is.logical)))
@@ -313,42 +309,28 @@ tximport <- function(files,
     filterBarcodes <- if (is.null(alevinArgs$filterBarcodes)) FALSE else alevinArgs$filterBarcodes
     tierImport <- if (is.null(alevinArgs$tierImport)) FALSE else alevinArgs$tierImport
     forceSlow <- if (is.null(alevinArgs$forceSlow)) FALSE else alevinArgs$forceSlow
-    dropMeanVar <- if (is.null(alevinArgs$dropMeanVar)) FALSE else alevinArgs$dropMeanVar
-    
+    dropMeanVar <- if (is.null(alevinArgs$dropMeanVar)) FALSE else alevinArgs$dropMeanVar    
     if (length(files) > 1) stop("alevin import currently only supports a single experiment")
-    vrsn <- getAlevinVersion(files)
-    compareToV014 <- compareVersion(vrsn, "0.14.0")
-    if (compareToV014 == -1) {
-      mat <- readAlevinPreV014(files, filterBarcodes)
-    } else {
-      mat <- readAlevin(files, dropInfReps, filterBarcodes, tierImport, forceSlow, dropMeanVar)
+    # check that alevin is >= version 0.14.0
+    if (compareVersion(getAlevinVersion(files), "0.14.0") == -1) {
+      stop("use of tximport version >= 1.18 requires alevin version >= 0.14")
     }
-    # lots of if/else based on what we want to return...
+    mat <- readAlevin(files, dropInfReps, filterBarcodes, tierImport, forceSlow, dropMeanVar)
+    # if 'mat' is not a list, it is a matrix with the counts
     if (!is.list(mat)) {
-      txi <- list(abundance=NULL, counts=mat, length=NULL, countsFromAbundance="no")
+      txi <- list(abundance=NULL, counts=mat)
     } else {
+      # otherwise, 'mat' is a list with various information to pass on
+      txi <- list(abundance=NULL, counts=mat$counts, mean=mat$mean, variance=mat$variance)
       if (tierImport) {
-        if ("infReps" %in% names(mat)) {
-          txi <- list(
-            abundance=NULL, counts=mat$counts, tier=mat$tier, mean=mat$mean, variance=mat$variance,
-            infReps=mat$infReps, length=NULL, countsFromAbundance="no")
-        } else {
-          txi <- list(
-            abundance=NULL, counts=mat$counts, tier=mat$tier, mean=mat$mean, variance=mat$variance,
-            length=NULL, countsFromAbundance="no")
-        }
-      } else {
-        if ("infReps" %in% names(mat)) {
-          txi <- list(
-            abundance=NULL, counts=mat$counts, mean=mat$mean, variance=mat$variance,
-            infReps=mat$infReps, length=NULL, countsFromAbundance="no")
-        } else {
-          txi <- list(
-            abundance=NULL, counts=mat$counts, mean=mat$mean, variance=mat$variance,
-            length=NULL, countsFromAbundance="no")
-        }
+        txi$tier <- mat$tier
+      }
+      if ("infReps" %in% names(mat)) {
+        txi$infReps <- mat$infReps
       }
     }
+    txi$length <- NULL
+    txi$countsFromAbundance="no"
     return(txi)
   }
   
