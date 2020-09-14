@@ -232,10 +232,9 @@ txi <- tximport("quant.sf", type="none", txOut=TRUE,
 
 If inferential replicates (Gibbs or bootstrap samples) are present in
 expected locations relative to the `quant.sf` file, *tximport* will 
-import these as well, if `txOut=TRUE`. *tximport* will not summarize
-inferential replicate information to the gene-level. Here we
-demonstrate using Salmon, run with only 5 Gibbs replicates (usually
-more Gibbs samples would be useful for estimating variability).
+import these as well. Here we demonstrate using Salmon, run with only
+5 Gibbs replicates (usually more Gibbs samples, such as 20 or 30,
+would be useful for capturing inferential uncertainty). 
 
 ```{r}
 files <- file.path(dir,"salmon_gibbs", samples$run, "quant.sf.gz")
@@ -248,8 +247,8 @@ dim(txi.inf.rep$infReps$sample1)
 
 The *tximport* arguments `varReduce` and `dropInfReps` can be used to
 summarize the inferential replicates into a single variance per
-transcript and per sample, or to not import inferential replicates,
-respectively. 
+transcript/gene and per sample, or to not import inferential
+replicates, respectively. 
 
 ## kallisto
 
@@ -268,9 +267,7 @@ head(txi.kallisto$counts)
 ## kallisto with inferential replicates
 
 Because the `kallisto_boot` directory also has inferential replicate
-information, it was imported as well (and because `txOut=TRUE`).
-As with Salmon, inferential replicate information will not be
-summarized to the gene level.
+information, it was imported as well.
 
 ```{r}
 names(txi.kallisto)
