@@ -140,11 +140,14 @@ head(tx2gene)
 
 The *tximport* package has a single function for importing
 transcript-level estimates.  The `type` argument is used to specify
-what software was used for estimation ("kallisto", "salmon",
-"sailfish", and "rsem" are implemented).  A simple list with
-matrices, "abundance", "counts", and "length", is returned, where the
-transcript level information is summarized to the gene-level.  The
-"length" matrix can be used to generate an offset matrix for
+what software was used for estimation.  A simple list with
+matrices, `"abundance"`, `"counts"`, and `"length"`, is returned, where the
+transcript level information is summarized to the
+gene-level. Typically, abundance is provided by the quantification
+tools as TPM (transcripts-per-million), while the counts are estimated
+counts (possibly fractional), and the `"length"` matrix contains the
+effective gene lengths.
+The `"length"` matrix can be used to generate an offset matrix for
 downstream gene-level differential analysis of count matrices, as
 shown below.
 
