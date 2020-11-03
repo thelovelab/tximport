@@ -125,7 +125,9 @@ NULL
 #' @param type character, the type of software used to generate the abundances.
 #' Options are "salmon", "sailfish", "alevin", "kallisto", "rsem", "stringtie", or "none".
 #' This argument is used to autofill the arguments below (geneIdCol, etc.)
-#' "none" means that the user will specify these columns.
+#' "none" means that the user will specify these columns. Be aware that
+#' specifying \code{type} other than "none" will ignore the arguments below
+#' (geneIdCol, etc.)
 #' @param txIn logical, whether the incoming files are transcript level (default TRUE)
 #' @param txOut logical, whether the function should just output
 #' transcript-level (default FALSE)
@@ -174,7 +176,8 @@ NULL
 #' @param ignoreAfterBar logical, whether to split the tx id on the '|' character
 #' to facilitate matching with the tx id in \code{tx2gene} (default FALSE)
 #' @param geneIdCol name of column with gene id. if missing, the \code{tx2gene}
-#' argument can be used
+#' argument can be used. Note that this argument and the other four "...Col"
+#' arguments below are ignored unless \code{type="none"} 
 #' @param txIdCol name of column with tx id
 #' @param abundanceCol name of column with abundances (e.g. TPM or FPKM)
 #' @param countsCol name of column with estimated counts

@@ -36,7 +36,9 @@ tximport(
 \item{type}{character, the type of software used to generate the abundances.
 Options are "salmon", "sailfish", "alevin", "kallisto", "rsem", "stringtie", or "none".
 This argument is used to autofill the arguments below (geneIdCol, etc.)
-"none" means that the user will specify these columns.}
+"none" means that the user will specify these columns. Be aware that
+specifying \code{type} other than "none" will ignore the arguments below
+(geneIdCol, etc.)}
 
 \item{txIn}{logical, whether the incoming files are transcript level (default TRUE)}
 
@@ -95,7 +97,8 @@ to remove version information to facilitate matching with the tx id in \code{tx2
 to facilitate matching with the tx id in \code{tx2gene} (default FALSE)}
 
 \item{geneIdCol}{name of column with gene id. if missing, the \code{tx2gene}
-argument can be used}
+argument can be used. Note that this argument and the other four "...Col"
+arguments below are ignored unless \code{type="none"}}
 
 \item{txIdCol}{name of column with tx id}
 
