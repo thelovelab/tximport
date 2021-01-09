@@ -448,10 +448,7 @@ y <- y[keep,]
 For creating a matrix of CPMs within *edgeR*, the following code chunk can be used:
 
 ```{r}
-se <- SummarizedExperiment(assays=list(counts=y$counts, offset=y$offset))
-se$totals <- y$samples$lib.size
-library(csaw)
-cpms <- calculateCPM(se, use.offsets=TRUE, log=FALSE)
+cpms <- edgeR::cpm(y, offset=y$offset, log=FALSE)
 ```
 
 ## DESeq2
