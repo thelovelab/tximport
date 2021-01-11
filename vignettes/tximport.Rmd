@@ -49,7 +49,9 @@ mouse). See the [tximeta](https://bioconductor.org/packages/tximeta)
 package vignette for more details. Whereas `tximport` outputs a simple
 list of matrices, `tximeta` will output a *SummarizedExperiment*
 object with appropriate *GRanges* added if the transcriptome is from
-one of the sources above for human and mouse.
+one of the sources above for human and mouse. *tximeta* also offers
+easy conversion to data objects used by *edgeR* and *limma* with the
+`makeDGEList` function.
 
 ```{r, echo=FALSE}
 library(knitr)
@@ -409,11 +411,13 @@ without calculating an offset and without using *countsFromAbundance*.
 
 ## edgeR
 
-An example of creating a `DGEList` for use with *edgeR* [@Robinson2010]:
+An example of creating a `DGEList` for use with *edgeR*
+[@Robinson2010] follows. Note that the alternate package, *tximeta*,
+described above has a convenience function `makeDGEList` for creating
+a data object for use with *edgeR* and *limma*.
 
 ```{r, results="hide", messages=FALSE}
 library(edgeR)
-library(csaw)
 ```
 
 ```{r}
@@ -520,7 +524,7 @@ Jenny Drnevich,
 [Leon Fodoulian](https://twitter.com/LFodoulian),
 [Koen Van den Berge](https://twitter.com/koenvdberge_Be),
 [Aaron Lun](https://github.com/LTLA),
-
+[Alexander Toenges](https://github.com/ATpoint)
 
 ## Session info
 
