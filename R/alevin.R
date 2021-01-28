@@ -218,7 +218,7 @@ readAlevinBits <- function(matrix.file, gene.names, cell.names) {
                               x=counts.vec,
                               dims=c(num.genes, num.cells),
                               dimnames=list(gene.names, cell.names),
-                              giveCsparse=FALSE)
+                              repr="T")
   mat
 }
 
@@ -293,7 +293,7 @@ readAlevinInfReps <- function(boot.file, gene.names, cell.names, num.boot) {
                          x=counts.vec.list[[i]],
                          dims=c(num.genes, num.cells),
                          dimnames=list(gene.names, cell.names),
-                         giveCsparse=FALSE)
+                         repr="T")
   })
 
   infReps
