@@ -174,7 +174,9 @@ NULL
 #' to remove version information to facilitate matching with the tx id in \code{tx2gene}
 #' (default FALSE)
 #' @param ignoreAfterBar logical, whether to split the tx id on the '|' character
-#' to facilitate matching with the tx id in \code{tx2gene} (default FALSE)
+#' to facilitate matching with the tx id in \code{tx2gene} (default FALSE).
+#' if \code{txOut=TRUE} it will strip the text after '|' on the rownames
+#' of the matrices
 #' @param geneIdCol name of column with gene id. if missing, the \code{tx2gene}
 #' argument can be used. Note that this argument and the other four "...Col"
 #' arguments below are ignored unless \code{type="none"} 
@@ -618,6 +620,13 @@ txOut=TRUE, CFA either 'no' or 'scaledTPM', and no inferential replicates")
                                             abundanceMat=txi$abundance,
                                             lengthMat=length4CFA,
                                             countsFromAbundance=countsFromAbundance)
+    }
+    # request from Issue 40: remove text after '|' for txOut=TRUE
+    if (ignoreAfterBar) {
+      for (matNm in c("counts","abundance","length")) {
+        rowNms <- rownames(txi[[matNm]])
+        rownames(txi[[matNm]]) <- sub("\\|.*", "", rowNms)
+      }
     }
     return(txi)
   }

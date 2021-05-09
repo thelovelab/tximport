@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.19.4
+-------------------------
+
+    o 'ignoreAfterBar' and txOut=TRUE will now strip the characters
+      after '|' on the rownames of the output matrices.
+
 CHANGES IN VERSION 1.18.0
 -------------------------
 
