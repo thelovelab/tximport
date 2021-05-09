@@ -94,7 +94,9 @@ to remove version information to facilitate matching with the tx id in \code{tx2
 (default FALSE)}
 
 \item{ignoreAfterBar}{logical, whether to split the tx id on the '|' character
-to facilitate matching with the tx id in \code{tx2gene} (default FALSE)}
+to facilitate matching with the tx id in \code{tx2gene} (default FALSE).
+if \code{txOut=TRUE} it will strip the text after '|' on the rownames
+of the matrices}
 
 \item{geneIdCol}{name of column with gene id. if missing, the \code{tx2gene}
 argument can be used. Note that this argument and the other four "...Col"
