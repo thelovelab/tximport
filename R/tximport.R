@@ -268,31 +268,31 @@ tximport <- function(files,
                      sparseThreshold=1,
                      readLength=75,
                      alevinArgs=NULL) {
-
+  
   # inferential replicate importer
   infRepImporter <- NULL
-
+  
   type <- match.arg(type)
   countsFromAbundance <- match.arg(countsFromAbundance)
   if (countsFromAbundance == "dtuScaledTPM") {
     stopifnot(txOut)
     if (is.null(tx2gene)) stop("'dtuScaledTPM' requires 'tx2gene' input")
   }
-
+  
   if (!existenceOptional) stopifnot(all(file.exists(files)))
   if (!txIn & txOut) stop("txOut only an option when transcript-level data is read in (txIn=TRUE)")
-
+  
   stopifnot(length(files) > 0)
   kallisto.h5 <- basename(files[1]) == "abundance.h5"
   if (type == "kallisto" & !kallisto.h5) {
     message("Note: importing `abundance.h5` is typically faster than `abundance.tsv`")
   }
-
+  
   if (type=="rsem" & txIn & grepl("genes", files[1])) {
     message("It looks like you are importing RSEM genes.results files, setting txIn=FALSE")
     txIn <- FALSE
   }
-
+  
   # in order to use infRepStat, we need inf reps, and doesn't work with alevin or sparse code
   if (!is.null(infRepStat)) {
     if (dropInfReps) stop("infRepStat requires infReps")
@@ -345,8 +345,12 @@ tximport <- function(files,
       message("reading in files with read.delim (install 'readr' package for speed up)")
       importer <- read.delim
     } else {
-      message("reading in files with read_tsv")
-      readrStatus <- TRUE
+      if(length(suppressWarnings(OlsonNames())) == 0 | is.na(Sys.timezone())) {
+        importer <- read.delim
+      } else {
+        message("reading in files with read_tsv")
+        readrStatus <- TRUE
+      }
     }
   }
   
@@ -364,7 +368,7 @@ tximport <- function(files,
     }
     infRepImporter <- if (dropInfReps) { NULL } else { function(x) readInfRepFish(x, type) }
   }
-
+  
   # kallisto presets
   if (type == "kallisto") {
     txIdCol <- "target_id"
@@ -410,7 +414,7 @@ tximport <- function(files,
       }
     }
   }
-
+  
   if (type == c("stringtie")) {
     txIdCol <- "t_name"
     geneIdCol <- "gene_name"
@@ -437,12 +441,12 @@ tximport <- function(files,
     txi <- computeRsemGeneLevel(files, importer, geneIdCol, abundanceCol, countsCol, lengthCol, countsFromAbundance)
     return(txi)
   }
-
+  
   # if external tx2gene table not provided, send user to vignette
   if (is.null(tx2gene) & !txOut) {
     summarizeFail() # ...long message in helper.R
   }
-
+  
   # trial run of inferential replicate info
   repInfo <- NULL
   if (infRepType != "none") {
@@ -466,7 +470,7 @@ txOut=TRUE, CFA either 'no' or 'scaledTPM', and no inferential replicates")
   
   ######################################################
   # the rest of the code assumes transcript-level input:
-
+  
   ### --- BEGIN --- loop over files reading in columns / inf reps ###
   for (i in seq_along(files)) {
     message(i," ",appendLF=FALSE)
@@ -536,7 +540,7 @@ txOut=TRUE, CFA either 'no' or 'scaledTPM', and no inferential replicates")
     }
   }
   ### --- END --- loop over files ###
-
+  
   # compile sparse matrices
   if (sparse) {
     countsMatTx <- Matrix::sparseMatrix(i=unlist(countsListI),
