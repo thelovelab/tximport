@@ -345,7 +345,11 @@ tximport <- function(files,
       message("reading in files with read.delim (install 'readr' package for speed up)")
       importer <- read.delim
     } else {
-      if(length(suppressWarnings(OlsonNames())) == 0 | is.na(Sys.timezone())) {
+      # this fix contributed by @ATpoint
+      # readr won't work on very stripped down machines, e.g. Docker images w/o timezone
+      timeZoneMissing <- length(suppressWarnings(OlsonNames())) == 0 | is.na(Sys.timezone())
+      if (timeZoneMissing) {
+        message("reading in files with read.delim ('readr' installed but won't work w/o timezones)")
         importer <- read.delim
       } else {
         message("reading in files with read_tsv")
