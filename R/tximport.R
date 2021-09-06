@@ -443,6 +443,7 @@ tximport <- function(files,
   # RSEM gene-level is the only case of !txIn
   if (!txIn) {
     txi <- computeRsemGeneLevel(files, importer, geneIdCol, abundanceCol, countsCol, lengthCol, countsFromAbundance)
+    message("")
     return(txi)
   }
   
