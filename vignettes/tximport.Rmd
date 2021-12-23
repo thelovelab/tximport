@@ -409,6 +409,30 @@ original counts, e.g. `txi$counts` as a counts matrix, e.g. providing
 to *DESeqDataSetFromMatrix* or to the *edgeR* or *limma* functions
 without calculating an offset and without using *countsFromAbundance*.
 
+## DESeq2
+
+An example of creating a `DESeqDataSet` for use with *DESeq2* [@Love2014]:
+
+```{r, results="hide", messages=FALSE}
+library(DESeq2)
+```
+
+The user should make sure the rownames of `sampleTable` align with the
+colnames of `txi$counts`, if there are colnames. The best practice is
+to read `sampleTable` from a CSV file, and to construct `files` from a
+column of `sampleTable`, as was shown in the *tximport* examples above.
+
+```{r}
+sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
+rownames(sampleTable) <- colnames(txi$counts)
+```
+
+```{r}
+dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
+# dds is now ready for DESeq()
+# see DESeq2 vignette
+```
+
 ## edgeR
 
 An example of creating a `DGEList` for use with *edgeR*
@@ -455,30 +479,6 @@ For creating a matrix of CPMs within *edgeR*, the following code chunk can be us
 
 ```{r}
 cpms <- edgeR::cpm(y, offset=y$offset, log=FALSE)
-```
-
-## DESeq2
-
-An example of creating a `DESeqDataSet` for use with *DESeq2* [@Love2014]:
-
-```{r, results="hide", messages=FALSE}
-library(DESeq2)
-```
-
-The user should make sure the rownames of `sampleTable` align with the
-colnames of `txi$counts`, if there are colnames. The best practice is
-to read `sampleTable` from a CSV file, and to construct `files` from a
-column of `sampleTable`, as was shown in the *tximport* examples above.
-
-```{r}
-sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
-rownames(sampleTable) <- colnames(txi$counts)
-```
-
-```{r}
-dds <- DESeqDataSetFromTximport(txi, sampleTable, ~ condition)
-# dds is now ready for DESeq()
-# see DESeq2 vignette
 ```
 
 ## limma-voom
