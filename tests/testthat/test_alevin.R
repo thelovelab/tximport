@@ -7,9 +7,9 @@ test_that("import alevin works", {
 
   #expect_warning({txi <- tximport(files, type="alevin")}, "deprecated")
 
-  dir <- system.file("extdata", package="tximportData")
-  files <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.gz")
-  file.exists(files)
+  ## dir <- system.file("extdata", package="tximportData")
+  ## files <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.gz")
+  ## file.exists(files)
 
   #txi <- tximport(files, type="alevin")
   #n <- 100
@@ -20,29 +20,29 @@ test_that("import alevin works", {
   #infrep.mu <- apply(abind::abind(lapply(txi$infReps, function(x) as.matrix(x[1:n,1:n])), along=3), 1:2, mean)
   #plot(txi$counts[1:n,1:n], infrep.mu)
   
-  txi <- tximport(files, type="alevin", dropInfReps=TRUE)
-  idx <- 1:1000 # Bioc Windows machine can't handle the entire matrix
-  cts <- unname(as.matrix(txi$counts[idx,]))
+  ## txi <- tximport(files, type="alevin", dropInfReps=TRUE)
+  ## idx <- 1:1000 # Bioc Windows machine can't handle the entire matrix
+  ## cts <- unname(as.matrix(txi$counts[idx,]))
 
-  # no mean and variance
-  txi.no.mv <- tximport(files, type="alevin", alevinArgs=list(dropMeanVar=TRUE))
+  ## # no mean and variance
+  ## txi.no.mv <- tximport(files, type="alevin", alevinArgs=list(dropMeanVar=TRUE))
 
-  # compare to MM import
-  matrix.file <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.mtx.gz")
-  mat <- Matrix::readMM(matrix.file)
-  mat <- t(as.matrix(mat[,idx]))
-  expect_true(max(abs(mat - unname(cts))) < 1e-6)
+  ## # compare to MM import
+  ## matrix.file <- file.path(dir,"alevin/neurons_900_v014/alevin/quants_mat.mtx.gz")
+  ## mat <- Matrix::readMM(matrix.file)
+  ## mat <- t(as.matrix(mat[,idx]))
+  ## expect_true(max(abs(mat - unname(cts))) < 1e-6)
 
-  # again import alevin without fishpond
-  txi <- tximport(files, type="alevin", dropInfReps=TRUE, alevinArgs=list(forceSlow=TRUE))
-  idx <- 1:1000 
-  cts <- unname(as.matrix(txi$counts[idx,]))
-  expect_true(max(abs(mat - unname(cts))) < 1e-6)
+  ## # again import alevin without fishpond
+  ## txi <- tximport(files, type="alevin", dropInfReps=TRUE, alevinArgs=list(forceSlow=TRUE))
+  ## idx <- 1:1000 
+  ## cts <- unname(as.matrix(txi$counts[idx,]))
+  ## expect_true(max(abs(mat - unname(cts))) < 1e-6)
 
-  # again import with cell barcode filtering
-  txi <- tximport(files, type="alevin", dropInfReps=TRUE, alevinArgs=list(filterBarcodes=TRUE))
+  ## # again import with cell barcode filtering
+  ## txi <- tximport(files, type="alevin", dropInfReps=TRUE, alevinArgs=list(filterBarcodes=TRUE))
 
-  # again import with tier information
-  txi <- tximport(files, type="alevin", dropInfReps=TRUE, alevinArgs=list(tierImport=TRUE))
+  ## # again import with tier information
+  ## txi <- tximport(files, type="alevin", dropInfReps=TRUE, alevinArgs=list(tierImport=TRUE))
   
 })
