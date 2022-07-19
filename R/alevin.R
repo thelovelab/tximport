@@ -34,30 +34,26 @@ readAlevin <- function(files, dropInfReps, filterBarcodes, tierImport, forceSlow
     stop("importing alevin requires package `Matrix`")
   }
 
-  # test for fishpond >= 1.1.17
-  hasFishpond <- TRUE
-  if (!requireNamespace("fishpond", quietly=TRUE)) {
-    hasFishpond <- FALSE
-  } else {
-    if (packageVersion("fishpond") < "1.1.18") {
-      hasFishpond <- FALSE
-    }
+  # test for 'eds' Bioconductor package
+  hasEds <- TRUE
+  if (!requireNamespace("eds", quietly=TRUE)) {
+    hasEds <- FALSE
   }
   # for testing purposes, force the use of the slower R code for importing alevin
   if (forceSlow) {
-    hasFishpond <- FALSE
+    hasEds <- FALSE
   }
-  if (!hasFishpond) {
-    message("importing alevin data is much faster after installing `fishpond` (>= 1.2.0)")
-    if (tierImport) stop("tierImport=TRUE requires fishpond package")
+  if (!hasEds) {
+    message("importing alevin data is much faster after installing 'eds'")
+    if (tierImport) stop("tierImport=TRUE requires 'eds' package")
   }
   
-  extraMsg <- if (hasFishpond) "with fishpond" else ""
+  extraMsg <- if (hasEds) "with 'eds'" else ""
   message(paste("reading in alevin gene-level counts across cells", extraMsg))
 
-  if (hasFishpond) {
+  if (hasEds) {
     # reads alevin's Efficient Data Storage (EDS) format
-    # using C++ code in the fishpond package
+    # using C++ code in the eds package
     mat <- readAlevinFast(matrix.file, gene.names, cell.names)
     if (tierImport) {
       tier <- readAlevinFast(tier.file, gene.names, cell.names, tierImport=TRUE)
@@ -91,7 +87,7 @@ readAlevin <- function(files, dropInfReps, filterBarcodes, tierImport, forceSlow
 
     boot.cell.names <- readLines(boot.barcode.file)
 
-    if (hasFishpond) {
+    if (hasEds) {
       mean.mat <- readAlevinFast(mean.file, gene.names, boot.cell.names)
       var.mat <- readAlevinFast(var.file, gene.names, boot.cell.names)
     } else {
@@ -165,7 +161,7 @@ getAlevinVersion <- function(files) {
 }
 
 # this is the R (slow) version of the reader for alevin's EDS format,
-# see below for another function that leverages C++ code from fishpond::readEDS()
+# see below for another function that leverages C++ code from eds::readEDS()
 readAlevinBits <- function(matrix.file, gene.names, cell.names) {
   num.cells <- length(cell.names)
   num.genes <- length(gene.names)
@@ -224,11 +220,11 @@ readAlevinBits <- function(matrix.file, gene.names, cell.names) {
 
 # this function performs the same operation as the above R code,
 # reading in alevin's EDS format and creating a sparse matrix,
-# but it leverages the C++ code in fishpond::readEDS()
+# but it leverages the C++ code in eds::readEDS()
 readAlevinFast <- function(matrix.file, gene.names, cell.names, tierImport=FALSE) {
   num.genes <- length(gene.names)
   num.cells <- length(cell.names)
-  mat <- fishpond::readEDS(num.genes, num.cells, matrix.file, tierImport)
+  mat <- eds::readEDS(num.genes, num.cells, matrix.file, tierImport)
   dimnames(mat) <- list(gene.names, cell.names)
   mat
 }

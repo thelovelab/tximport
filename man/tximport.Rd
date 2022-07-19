@@ -214,7 +214,7 @@ The variables are described as follows (with default values in parens):
 \code{whitelist.txt};
 \code{tierImport} (FALSE) import the tier information in addition to counts;
 \code{forceSlow} (FALSE) force the use of the slower import R code
-even if \code{fishpond} is installed;
+even if \code{eds} is installed;
 \code{dropMeanVar} (FALSE) don't import inferential mean and variance
 matrices even if they exist (also skips inferential replicates)
 For \code{type="alevin"} all arguments other than \code{files},
@@ -223,7 +223,7 @@ Note that \code{files} should point to a single \code{quants_mat.gz} file,
 in the directory structure created by the alevin software
 (e.g. do not move the file or delete the other important files).
 Note that importing alevin quantifications will be much faster by first
-installing the \code{fishpond} package, which contains a C++ importer
+installing the \code{eds} package, which contains a C++ importer
 for alevin's EDS format.
 For alevin, \code{tximport} is importing the gene-by-cell matrix of counts,
 as \code{txi$counts}, and effective lengths are not estimated.
