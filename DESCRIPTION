@@ -1,5 +1,5 @@
 Package: tximport
-Version: 1.27.0
+Version: 1.27.1
 Title: Import and summarize transcript-level estimates for transcript- and
        gene-level analysis
 Description: Imports transcript-level abundance, estimated counts and
@@ -12,7 +12,7 @@ Author: Michael Love [cre,aut], Charlotte Soneson [aut], Mark Robinson [aut],
         Rob Patro [ctb], Andrew Parker Morgan [ctb], Ryan C. Thompson [ctb], 
         Matt Shirley [ctb], Avi Srivastava [ctb]
 Maintainer: Michael Love <michaelisaiahlove@gmail.com>
-License: GPL (>=2)
+License: LGPL (>=2)
 VignetteBuilder: knitr
 Imports: utils, stats, methods
 Suggests: knitr, rmarkdown, testthat, tximportData,
