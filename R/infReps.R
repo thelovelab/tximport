@@ -92,7 +92,7 @@ readInfRepPiscem <- function(fish_file) {
   parquet_file <- sub("quant$", "infreps.pq", fish_file)
   if (!file.exists(fish_file)) return(NULL)
   if (!requireNamespace("arrow", quietly=TRUE)) {
-    stop("reading piscem-infer results from Parquet files requires package `arrow`")
+    stop("reading piscem results from Parquet files requires package `arrow`")
   }
   boots <- arrow::read_parquet(parquet_file)
   numBoot <- length(boots)
