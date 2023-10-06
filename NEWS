@@ -1,3 +1,8 @@
+CHANGES IN VERSION 1.30.0
+-------------------------
+
+    o Support for piscem-infer: use `type="piscem"`.
+
 CHANGES IN VERSION 1.27.1
 -------------------------
 

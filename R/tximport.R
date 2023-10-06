@@ -77,7 +77,7 @@ NULL
 #' used to create the transcriptome index).
 #'
 #' \strong{Tximeta:}
-#' One automated solution for Salmon or alevin quantification data is to use the
+#' One automated solution for Salmon/alevin/piscem quantification data is to use the
 #' \code{tximeta} function in the tximeta Bioconductor package
 #' which builds upon and extends \code{tximport}; this solution should
 #' work out-of-the-box for human and mouse transcriptomes downloaded
@@ -123,7 +123,8 @@ NULL
 #' 
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
-#' Options are "salmon", "sailfish", "alevin", "kallisto", "rsem", "stringtie", or "none".
+#' Options are "salmon", "sailfish", "alevin", "piscem",
+#' "kallisto", "rsem", "stringtie", or "none".
 #' This argument is used to autofill the arguments below (geneIdCol, etc.)
 #' "none" means that the user will specify these columns. Be aware that
 #' specifying \code{type} other than "none" will ignore the arguments below
@@ -247,7 +248,8 @@ NULL
 #'
 #' @export
 tximport <- function(files,
-                     type=c("none","salmon","sailfish","alevin","kallisto","rsem","stringtie", "piscem"),
+                     type=c("none","salmon","sailfish","alevin","piscem",
+                            "kallisto","rsem","stringtie"),
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM","dtuScaledTPM"),
@@ -379,10 +381,12 @@ tximport <- function(files,
     lengthCol <- "eelen"
     abundanceCol <- "tpm"
     countsCol <- "ecount"
-    col.types <- readr::cols(
-                             readr::col_character(),readr::col_integer(),readr::col_double(),readr::col_double(),readr::col_double()
-    )
-    importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
+    if (readrStatus & is.null(importer)) {
+      col.types <- readr::cols(
+                            readr::col_character(),readr::col_integer(),readr::col_double(),readr::col_double(),readr::col_double()
+      )
+      importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
+    }
     infRepImporter <- if (dropInfReps) { NULL } else { readInfRepPiscem }
   }
   
