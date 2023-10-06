@@ -85,6 +85,30 @@ readInfRepFish <- function(fish_dir, meth) {
   }
 }
 
+# read inferential replicates from piscem-infer
+readInfRepPiscem <- function(fish_file) {
+  # look for the quant file (ending in `quant`, hence the $ below) and
+  # replace it with `infreps.pq`.
+  parquet_file <- sub("quant$", "infreps.pq", fish_file)
+  if (!file.exists(fish_file)) return(NULL)
+  if (!requireNamespace("arrow", quietly=TRUE)) {
+    stop("reading piscem-infer results from Parquet files requires package `arrow`")
+  }
+  boots <- arrow::read_parquet(parquet_file)
+  numBoot <- length(boots)
+  if (numBoot > 0) {
+    numTxp <- length(boots$bootstrap.0)
+    bootMat <- matrix(nrow=numTxp, ncol=numBoot)
+    for (bsn in seq_len(numBoot)) {
+      bootMat[,bsn] <- boots[bsn][[1]]
+    }
+    vars <- rowVars(bootMat)
+    return(list(vars=vars, reps=bootMat))
+  } else {
+    return(NULL)
+  }
+}
+
 readInfRepKallisto <- function(bear_dir) {
   h5File <- file.path(bear_dir, "abundance.h5")
   if (!file.exists(h5File)) return(NULL)

@@ -247,7 +247,7 @@ NULL
 #'
 #' @export
 tximport <- function(files,
-                     type=c("none","salmon","sailfish","alevin","kallisto","rsem","stringtie"),
+                     type=c("none","salmon","sailfish","alevin","kallisto","rsem","stringtie", "piscem-infer"),
                      txIn=TRUE,
                      txOut=FALSE,
                      countsFromAbundance=c("no","scaledTPM","lengthScaledTPM","dtuScaledTPM"),
@@ -372,6 +372,19 @@ tximport <- function(files,
     }
     infRepImporter <- if (dropInfReps) { NULL } else { function(x) readInfRepFish(x, type) }
   }
+
+  # piscem-infer presets
+  if (type == "piscem-infer") {
+    txIdCol <- "target_name"
+    lengthCol <- "eelen"
+    abundanceCol <- "tpm"
+    countsCol <- "ecount"
+    col.types <- readr::cols(
+                             readr::col_character(),readr::col_integer(),readr::col_double(),readr::col_double(),readr::col_double()
+    )
+    importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
+    infRepImporter <- if (dropInfReps) { NULL } else { readInfRepPiscem }
+  }
   
   # kallisto presets
   if (type == "kallisto") {
@@ -434,7 +447,7 @@ tximport <- function(files,
   }
   
   infRepType <- "none"
-  if (type %in% c("salmon", "sailfish", "kallisto") & !dropInfReps) {
+  if (type %in% c("salmon", "sailfish", "piscem-infer", "kallisto") & !dropInfReps) {
     # if summarizing to gene-level, need the full matrices passed to summarizeToGene
     infRepType <- if (varReduce & txOut) { "var" } else { "full" }
   }
@@ -455,7 +468,7 @@ tximport <- function(files,
   # trial run of inferential replicate info
   repInfo <- NULL
   if (infRepType != "none") {
-    repInfo <- infRepImporter(dirname(files[1]))
+    repInfo <- if (type == "piscem-infer") { infRepImporter(files[1]) } else { infRepImporter(dirname(files[1])) }
     # if we didn't find inferential replicate info
     if (is.null(repInfo)) {
       infRepType <- "none"
@@ -483,7 +496,7 @@ txOut=TRUE, CFA either 'no' or 'scaledTPM', and no inferential replicates")
     raw <- as.data.frame(importer(files[i]))
     # import inferential replicate info
     if (infRepType != "none") {
-      repInfo <- infRepImporter(dirname(files[i]))
+      repInfo <- if (type == "piscem-infer") { infRepImporter(files[i]) } else { infRepImporter(dirname(files[i])) }
     } else {
       repInfo <- NULL
     }

@@ -17,7 +17,7 @@ VignetteBuilder: knitr
 Imports: utils, stats, methods
 Suggests: knitr, rmarkdown, testthat, tximportData,
         TxDb.Hsapiens.UCSC.hg19.knownGene, readr (>= 0.2.2),
-	limma, edgeR, DESeq2 (>= 1.11.6),
+	arrow, limma, edgeR, DESeq2 (>= 1.11.6),
 	rhdf5, jsonlite, matrixStats, Matrix, eds
 URL: https://github.com/thelovelab/tximport
 biocViews: DataImport, Preprocessing,
