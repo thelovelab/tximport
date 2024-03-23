@@ -77,7 +77,7 @@ NULL
 #' used to create the transcriptome index).
 #'
 #' \strong{Tximeta:}
-#' One automated solution for Salmon/alevin/piscem quantification data is to use the
+#' One automated solution for Salmon/alevin/piscem/oarfish quantification data is to use the
 #' \code{tximeta} function in the tximeta Bioconductor package
 #' which builds upon and extends \code{tximport}; this solution should
 #' work out-of-the-box for human and mouse transcriptomes downloaded
@@ -123,7 +123,7 @@ NULL
 #' 
 #' @param files a character vector of filenames for the transcript-level abundances
 #' @param type character, the type of software used to generate the abundances.
-#' Options are "salmon", "sailfish", "alevin", "piscem",
+#' Options are "salmon", "sailfish", "alevin", "piscem", "oarfish",
 #' "kallisto", "rsem", "stringtie", or "none".
 #' This argument is used to autofill the arguments below (geneIdCol, etc.)
 #' "none" means that the user will specify these columns. Be aware that
@@ -248,7 +248,8 @@ NULL
 #'
 #' @export
 tximport <- function(files,
-                     type=c("none","salmon","sailfish","alevin","piscem",
+                     type=c("none","salmon","sailfish",
+                            "alevin","piscem","oarfish",
                             "kallisto","rsem","stringtie"),
                      txIn=TRUE,
                      txOut=FALSE,
@@ -383,7 +384,22 @@ tximport <- function(files,
     countsCol <- "ecount"
     if (readrStatus & is.null(importer)) {
       col.types <- readr::cols(
-                            readr::col_character(),readr::col_integer(),readr::col_double(),readr::col_double(),readr::col_double()
+        readr::col_character(),readr::col_integer(),readr::col_double(),readr::col_double(),readr::col_double()
+      )
+      importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
+    }
+    infRepImporter <- if (dropInfReps) { NULL } else { readInfRepPiscem }
+  }
+
+  # oarfish presets
+  if (type == "oarfish") {
+    txIdCol <- "tname"
+    lengthCol <- "len"
+    abundanceCol <- "num_reads"
+    countsCol <- "num_reads"
+    if (readrStatus & is.null(importer)) {
+      col.types <- readr::cols(
+        readr::col_character(),readr::col_integer(),readr::col_double()
       )
       importer <- function(x) readr::read_tsv(x, progress=FALSE, col_types=col.types)
     }
@@ -451,7 +467,7 @@ tximport <- function(files,
   }
   
   infRepType <- "none"
-  if (type %in% c("salmon", "sailfish", "piscem", "kallisto") & !dropInfReps) {
+  if (type %in% c("salmon", "sailfish", "piscem", "oarfish", "kallisto") & !dropInfReps) {
     # if summarizing to gene-level, need the full matrices passed to summarizeToGene
     infRepType <- if (varReduce & txOut) { "var" } else { "full" }
   }
@@ -472,7 +488,11 @@ tximport <- function(files,
   # trial run of inferential replicate info
   repInfo <- NULL
   if (infRepType != "none") {
-    repInfo <- if (type == "piscem") { infRepImporter(files[1]) } else { infRepImporter(dirname(files[1])) }
+    repInfo <- if (type %in% c("piscem","oarfish")) {
+                 infRepImporter(files[1])
+               } else {
+                 infRepImporter(dirname(files[1]))
+               }
     # if we didn't find inferential replicate info
     if (is.null(repInfo)) {
       infRepType <- "none"
@@ -500,7 +520,11 @@ txOut=TRUE, CFA either 'no' or 'scaledTPM', and no inferential replicates")
     raw <- as.data.frame(importer(files[i]))
     # import inferential replicate info
     if (infRepType != "none") {
-      repInfo <- if (type == "piscem") { infRepImporter(files[i]) } else { infRepImporter(dirname(files[i])) }
+      repInfo <- if (type %in% c("piscem","oarfish")) {
+                   infRepImporter(files[i])
+                 } else {
+                   infRepImporter(dirname(files[i]))
+                 }
     } else {
       repInfo <- NULL
     }

@@ -7,8 +7,8 @@ for transcript- and gene-level analysis packages}
 \usage{
 tximport(
   files,
-  type = c("none", "salmon", "sailfish", "alevin", "piscem", "kallisto", "rsem",
-    "stringtie"),
+  type = c("none", "salmon", "sailfish", "alevin", "piscem", "oarfish", "kallisto",
+    "rsem", "stringtie"),
   txIn = TRUE,
   txOut = FALSE,
   countsFromAbundance = c("no", "scaledTPM", "lengthScaledTPM", "dtuScaledTPM"),
@@ -35,7 +35,7 @@ tximport(
 \item{files}{a character vector of filenames for the transcript-level abundances}
 
 \item{type}{character, the type of software used to generate the abundances.
-Options are "salmon", "sailfish", "alevin", "piscem",
+Options are "salmon", "sailfish", "alevin", "piscem", "oarfish",
 "kallisto", "rsem", "stringtie", or "none".
 This argument is used to autofill the arguments below (geneIdCol, etc.)
 "none" means that the user will specify these columns. Be aware that
@@ -191,7 +191,7 @@ the same set of transcripts used for quantifying (the set of transcript
 used to create the transcriptome index).
 
 \strong{Tximeta:}
-One automated solution for Salmon/alevin/piscem quantification data is to use the
+One automated solution for Salmon/alevin/piscem/oarfish quantification data is to use the
 \code{tximeta} function in the tximeta Bioconductor package
 which builds upon and extends \code{tximport}; this solution should
 work out-of-the-box for human and mouse transcriptomes downloaded
