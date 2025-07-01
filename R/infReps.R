@@ -90,7 +90,7 @@ readInfRepPiscem <- function(fish_file) {
   # look for the quant file (ending in `quant`, hence the $ below) and
   # replace it with `infreps.pq`.
   parquet_file <- sub("quant$", "infreps.pq", fish_file)
-  if (!file.exists(fish_file)) return(NULL)
+  if (!file.exists(parquet_file)) return(NULL)
   if (!requireNamespace("arrow", quietly=TRUE)) {
     stop("reading piscem results from Parquet files requires package `arrow`")
   }
