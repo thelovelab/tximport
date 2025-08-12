@@ -87,10 +87,11 @@ readInfRepFish <- function(fish_dir, meth) {
 
 # read inferential replicates from piscem-infer
 readInfRepPiscem <- function(fish_file) {
-  # look for the quant file (ending in `quant`, hence the $ below) and
-  # replace it with `infreps.pq`.
-  parquet_file <- sub("quant$", "infreps.pq", fish_file)
+  # look for the quant file (ending in `quant` or `quant.gz`, hence the $ below) 
+  # and replace it with `infreps.pq`.
+  parquet_file <- sub("quant(.gz)?$", "infreps.pq", fish_file)
   if (!file.exists(parquet_file)) return(NULL)
+  browser()
   if (!requireNamespace("arrow", quietly=TRUE)) {
     stop("reading piscem results from Parquet files requires package `arrow`")
   }
