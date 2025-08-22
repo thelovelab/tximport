@@ -89,7 +89,7 @@ readInfRepFish <- function(fish_dir, meth) {
 readInfRepPiscem <- function(fish_file) {
   # look for the quant file (ending in `quant` or `quant.gz`, hence the $ below) 
   # and replace it with `infreps.pq`.
-  parquet_file <- sub("quant(.gz)?$", "infreps.pq", fish_file)
+  parquet_file <- sub("quant(\\.gz)?$", "infreps.pq", fish_file)
   if (!file.exists(parquet_file)) return(NULL)
   browser()
   if (!requireNamespace("arrow", quietly=TRUE)) {
