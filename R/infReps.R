@@ -91,7 +91,6 @@ readInfRepPiscem <- function(fish_file) {
   # and replace it with `infreps.pq`.
   parquet_file <- sub("quant(\\.gz)?$", "infreps.pq", fish_file)
   if (!file.exists(parquet_file)) return(NULL)
-  browser()
   if (!requireNamespace("arrow", quietly=TRUE)) {
     stop("reading piscem results from Parquet files requires package `arrow`")
   }
