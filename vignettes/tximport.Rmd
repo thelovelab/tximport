@@ -388,8 +388,8 @@ use the transcript-level abundance estimates to calculate a gene-level offset
 that corrects for changes to the average transcript length across
 samples. The code examples below accomplish these steps for you,
 keeping track of appropriate matrices and calculating these
-offsets. The functions `DGEListFromTximport`, for *edgeR* and *limma*, and
-`DESeqDataSetFromTximport`, for *DESeq2*, take care of creation of the
+offsets. The functions `edgeR::DGEListFromTximport`, for *edgeR* and *limma*, and
+`DESeq2::DESeqDataSetFromTximport`, for *DESeq2*, take care of creation of the
 offset for you. Let's call this method "*original counts and offset*".
 
 The second method is to use the `tximport` argument
@@ -401,16 +401,19 @@ count matrix with these software. Let's call this method
 **Note:** Do not manually pass the original gene-level counts
 to downstream methods *without an offset*. The only case where this
 would make sense is if there is no length bias to the counts, as 
-happens in 3' tagged RNA-seq data (see section below).
+may happen in 3' tagged RNA-seq data (see section below), 
+or if there is little to no fragmentation before sequencing.
 The original gene-level counts are in `txi$counts` when `tximport` was run with
-`countsFromAbundance="no"`. This is simply passing the summed
+`countsFromAbundance="no"`. Using only `txi$counts` is simply passing the summed
 estimated transcript counts, and does not correct for potential differential
 isoform usage (the offset), which is the point
 of the *tximport* methods [@Soneson2015] for gene-level analysis. Passing
 uncorrected gene-level counts without an offset is not recommended by the
 *tximport* package authors. The two methods we provide here are: 
-"*original counts and offset*" or "*bias corrected counts without an
-offset*". Passing `txi` to `DESeqDataSetFromTximport` or `DGEListFromTximport` as
+"*original counts and offset*" or 
+"*bias corrected counts without an offset*". 
+Passing `txi` to `DESeq2::DESeqDataSetFromTximport` or 
+`edgeR::DGEListFromTximport` as
 outlined below is correct: the functions create the appropriate offset
 for you to perform gene-level differential expression.
 
@@ -457,6 +460,9 @@ for analysis with the *edgeR* package [@chen2025edger4]:
 library(edgeR)
 dge <- DGEListFromTximport(txi)
 ```
+
+The `DGEListFromTximport` function is available in *edgeR* as of version 4.10.0 
+(Bioconductor release 3.23, Spring 2026).
 
 The object `dge` is ready for any of the *edgeR* analysis pipelines,
 starting usually with `filterByExpr` and `normLibSizes` followed by `glmQLFit`.
