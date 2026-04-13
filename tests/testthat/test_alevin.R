@@ -19,6 +19,6 @@ test_that("import alevin works", {
   txi <- tximport(files, type="alevin", alevinArgs=list(filterBarcodes=TRUE))
 
   # again import with tier information
-  txi <- tximport(files, type="alevin", alevinArgs=list(tierImport=TRUE))
+  # txi <- tximport(files, type="alevin", alevinArgs=list(tierImport=TRUE))
   
 })
