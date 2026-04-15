@@ -30,11 +30,8 @@
 #'
 #' @author Charlotte Soneson, Michael I. Love, Mark D. Robinson
 #' 
-#' @docType package
-#' @name tximport-package
-#' @aliases tximport-package
-#' @keywords package
-NULL
+#' @keywords internal
+"_PACKAGE"
 
 #' Import transcript-level abundances and counts
 #' for transcript- and gene-level analysis packages

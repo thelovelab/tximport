@@ -19,21 +19,21 @@ summarizeToGene(object, ...)
 }
 \arguments{
 \item{object}{the list of matrices of trancript-level abundances,
-counts, lengths produced by \code{\link{tximport}},
-with a \code{countsFromAbundance} element that tells
+counts, lengths produced by `tximport()`,
+with a `countsFromAbundance` element that tells
 how the counts were generated.}
 
 \item{...}{additional arguments, ignored}
 
-\item{tx2gene}{see \code{\link{tximport}}}
+\item{tx2gene}{see `tximport()`}
 
-\item{varReduce}{see \code{\link{tximport}}}
+\item{varReduce}{see `tximport()`}
 
-\item{ignoreTxVersion}{see \code{\link{tximport}}}
+\item{ignoreTxVersion}{see `tximport()`}
 
-\item{ignoreAfterBar}{see \code{\link{tximport}}}
+\item{ignoreAfterBar}{see `tximport()`}
 
-\item{countsFromAbundance}{see \code{\link{tximport}}}
+\item{countsFromAbundance}{see `tximport()`}
 }
 \value{
 a list of matrices of gene-level abundances, counts, lengths,
@@ -43,7 +43,7 @@ are present).
 \description{
 Summarizes abundances, counts, lengths, (and inferential
 replicates or variance) from transcript- to gene-level.
-}
-\seealso{
-\code{\link{tximport}}
+Note that this function works on the list object returned
+by `tximport()`. Another function that works on _SummarizedExperiment_
+objects produced by `tximeta()` is documented in that package.
 }

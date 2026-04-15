@@ -145,16 +145,19 @@ summarizeToGene.list <- function(object,
 #'
 #' Summarizes abundances, counts, lengths, (and inferential
 #' replicates or variance) from transcript- to gene-level.
+#' Note that this function works on the list object returned
+#' by `tximport()`. Another function that works on _SummarizedExperiment_
+#' objects produced by `tximeta()` is documented in that package.
 #'
 #' @param object the list of matrices of trancript-level abundances,
-#' counts, lengths produced by \code{\link{tximport}},
-#' with a \code{countsFromAbundance} element that tells
+#' counts, lengths produced by `tximport()`,
+#' with a `countsFromAbundance` element that tells
 #' how the counts were generated.
-#' @param tx2gene see \code{\link{tximport}}
-#' @param varReduce see \code{\link{tximport}}
-#' @param ignoreTxVersion see \code{\link{tximport}}
-#' @param ignoreAfterBar see \code{\link{tximport}}
-#' @param countsFromAbundance see \code{\link{tximport}}
+#' @param tx2gene see `tximport()`
+#' @param varReduce see `tximport()`
+#' @param ignoreTxVersion see `tximport()`
+#' @param ignoreAfterBar see `tximport()`
+#' @param countsFromAbundance see `tximport()`
 #' @param ... additional arguments, ignored
 #'
 #' @return a list of matrices of gene-level abundances, counts, lengths,
@@ -165,8 +168,6 @@ summarizeToGene.list <- function(object,
 #' @docType methods
 #' @aliases summarizeToGene,list-method
 #'
-#' @seealso \code{\link{tximport}}
-#' 
 #' @export
 setMethod("summarizeToGene", signature(object="list"),
           summarizeToGene.list)
