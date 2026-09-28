@@ -1,3 +1,14 @@
+CHANGES IN VERSION 1.39.4
+-------------------------
+
+    o Vignette, examples and tests updated for the smaller
+      tximportData (>= 1.41.1), which now has 2 GEUVADIS samples
+      and no longer includes inferential replicates (salmon Gibbs,
+      kallisto bootstraps) or kallisto abundance.h5 files. These
+      are archived at https://doi.org/10.5281/zenodo.22982575.
+      Tests for inferential replicate and h5 import now write
+      synthetic replicates to a temporary directory.
+
 CHANGES IN VERSION 1.40.0
 -------------------------
 

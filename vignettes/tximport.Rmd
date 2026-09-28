@@ -59,7 +59,7 @@ opts_chunk$set(tidy=TRUE,message=FALSE)
 ## Import transcript-level estimates
 
 We begin by locating some prepared files that contain
-transcript abundance estimates for six samples, from the
+transcript abundance estimates for two samples, from the
 *tximportData* package. The *tximport* pipeline will be nearly
 identical for various quantification tools, usually only
 requiring one change the `type` argument.
@@ -96,7 +96,7 @@ use to import the files.)
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
 samples
 files <- file.path(dir, "salmon", samples$run, "quant.sf.gz")
-names(files) <- paste0("sample",1:6)
+names(files) <- paste0("sample",1:2)
 all(file.exists(files))
 ```
 
@@ -203,7 +203,7 @@ salmon or sailfish `quant.sf` files can be imported by setting type to
 
 ```{r}
 files <- file.path(dir,"salmon", samples$run, "quant.sf.gz")
-names(files) <- paste0("sample",1:6)
+names(files) <- paste0("sample",1:2)
 txi.salmon <- tximport(files, type="salmon", tx2gene=tx2gene)
 head(txi.salmon$counts)
 ```
@@ -214,7 +214,7 @@ need to read in a different `tx2gene` for this next code chunk.
 ```{r}
 tx2knownGene <- read_csv(file.path(dir, "tx2gene.csv"))
 files <- file.path(dir,"sailfish", samples$run, "quant.sf")
-names(files) <- paste0("sample",1:6)
+names(files) <- paste0("sample",1:2)
 txi.sailfish <- tximport(files, type="sailfish", tx2gene=tx2knownGene)
 head(txi.sailfish$counts)
 ```
@@ -236,17 +236,19 @@ txi <- tximport("quant.sf", type="none", txOut=TRUE,
 
 If inferential replicates (Gibbs or bootstrap samples) are present in
 expected locations relative to the `quant.sf` file, *tximport* will 
-import these as well. Here we demonstrate using salmon, run with only
-5 Gibbs replicates (usually more Gibbs samples, such as 20 or 30,
-would be useful for capturing inferential uncertainty). 
+import these as well, as a list of matrices `txi$infReps`, with one
+matrix per sample (rows are transcripts, columns are replicates).
+*tximportData* no longer includes inferential replicates, to keep the
+package small; salmon Gibbs samples and kallisto bootstraps for the
+GEUVADIS samples used in earlier versions are archived on Zenodo at
+<https://doi.org/10.5281/zenodo.22982575>. (The following chunk is
+not evaluated.)
 
-```{r}
-files <- file.path(dir,"salmon_gibbs", samples$run, "quant.sf.gz")
-names(files) <- paste0("sample",1:6)
+```{r, eval=FALSE}
+files <- file.path("path/to", samples$run, "quant.sf")
+names(files) <- paste0("sample",1:2)
 txi.inf.rep <- tximport(files, type="salmon", txOut=TRUE)
-names(txi.inf.rep)
 names(txi.inf.rep$infReps)
-dim(txi.inf.rep$infReps$sample1)
 ```
 
 The *tximport* arguments `varReduce` and `dropInfReps` can be used to
@@ -259,30 +261,22 @@ replicates, respectively.
 kallisto `abundance.h5` files can be imported by setting type to
 `"kallisto"`. Note that this requires that you have the Bioconductor package 
 [rhdf5](http://bioconductor.org/packages/rhdf5) installed.
-(Here we only demonstrate reading in transcript-level information.)
+If the `abundance.h5` files contain bootstrap replicates, these
+will be imported as inferential replicates, as with salmon above
+(stored in `txi.kallisto$infReps`).
+(The following chunk is not evaluated, as *tximportData* no longer
+includes `abundance.h5` files.)
 
-```{r}
-files <- file.path(dir, "kallisto_boot", samples$run, "abundance.h5")
-names(files) <- paste0("sample",1:6)
+```{r, eval=FALSE}
+files <- file.path("path/to", samples$run, "abundance.h5")
+names(files) <- paste0("sample",1:2)
 txi.kallisto <- tximport(files, type="kallisto", txOut=TRUE)
-head(txi.kallisto$counts)
-```
-
-## kallisto with inferential replicates
-
-Because the `kallisto_boot` directory also has inferential replicate
-information, it was imported as well.
-
-```{r}
-names(txi.kallisto)
-names(txi.kallisto$infReps)
-dim(txi.kallisto$infReps$sample1)
 ```
 
 ## kallisto with TSV files
 
 kallisto `abundance.tsv` files can be imported as well, but this is
-typically slower than the approach above. Note that we add an
+typically slower than importing `abundance.h5` files. Note that we add an
 additional argument in this code chunk, `ignoreAfterBar=TRUE`. This is
 because the Gencode transcripts have names like
 "ENST00000456328.2|ENSG00000223972.5|...", though our `tx2gene` table
@@ -296,7 +290,7 @@ summarization to gene level.
 
 ```{r}
 files <- file.path(dir, "kallisto", samples$run, "abundance.tsv.gz")
-names(files) <- paste0("sample",1:6)
+names(files) <- paste0("sample",1:2)
 txi.kallisto.tsv <- tximport(files, type="kallisto", tx2gene=tx2gene,
                              ignoreAfterBar=TRUE)
 head(txi.kallisto.tsv$counts)
@@ -309,7 +303,7 @@ type to `"rsem"`, and `txIn` and `txOut` to `FALSE`.
 
 ```{r}
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".genes.results.gz"))
-names(files) <- paste0("sample",1:6)
+names(files) <- paste0("sample",1:2)
 txi.rsem <- tximport(files, type="rsem", txIn=FALSE, txOut=FALSE)
 head(txi.rsem$counts)
 ```
@@ -319,7 +313,7 @@ type to `"rsem"`, and `txIn` and `txOut` to `TRUE`.
 
 ```{r}
 files <- file.path(dir,"rsem", samples$run, paste0(samples$run, ".isoforms.results.gz"))
-names(files) <- paste0("sample",1:6)
+names(files) <- paste0("sample",1:2)
 txi.rsem <- tximport(files, type="rsem", txIn=TRUE, txOut=TRUE)
 head(txi.rsem$counts)
 ```
@@ -441,7 +435,7 @@ to read `sampleTable` from a CSV file, and to construct `files` from a
 column of `sampleTable`, as was shown in the *tximport* examples above.
 
 ```{r}
-sampleTable <- data.frame(condition=factor(rep(c("A","B"),each=3)))
+sampleTable <- data.frame(condition=factor(c("A","B")))
 rownames(sampleTable) <- colnames(txi$counts)
 ```
 

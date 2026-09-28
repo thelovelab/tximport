@@ -245,7 +245,7 @@ library(tximportData)
 dir <- system.file("extdata", package="tximportData")
 samples <- read.table(file.path(dir,"samples.txt"), header=TRUE)
 files <- file.path(dir,"salmon", samples$run, "quant.sf.gz")
-names(files) <- paste0("sample",1:6)
+names(files) <- paste0("sample",1:2)
 
 # tx2gene links transcript IDs to gene IDs for summarization
 tx2gene <- read.csv(file.path(dir, "tx2gene.gencode.v27.csv"))
